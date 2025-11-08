@@ -1,0 +1,61 @@
+# Development files
+.replit
+replit.nix
+.git
+.gitignore
+.vscode
+.idea
+*.log
+*.swp
+*.swo
+*~
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Documentation files (README is included in package.json files field)
+docs/
+CHANGELOG.md
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Data files
+*.json.bak
+appstate.json
+fb_dtsg_data.json
+
+# Build artifacts
+dist/
+build/

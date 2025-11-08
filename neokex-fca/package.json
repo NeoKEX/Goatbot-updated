@@ -1,0 +1,63 @@
+{
+  "name": "neokex-fca",
+  "version": "2.0.0",
+  "description": "Advanced Facebook Chat API for Node.js - Build powerful Messenger bots with real-time messaging, webhooks, and plugin support",
+  "main": "index.js",
+  "types": "lib/types/types/index.d.ts",
+  "scripts": {
+    "test": "node --version"
+  },
+  "files": [
+    "index.js",
+    "utils.js",
+    "lib/",
+    "src/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NeoKEX/neokex-fca.git"
+  },
+  "author": "NeoKEX (https://github.com/NeoKEX)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NeoKEX/neokex-fca/issues"
+  },
+  "homepage": "https://github.com/NeoKEX/neokex-fca#readme",
+  "keywords": [
+    "facebook",
+    "messenger",
+    "chat",
+    "api",
+    "bot",
+    "neokex",
+    "neokex-fca",
+    "facebook-chat-api",
+    "messenger-bot",
+    "automation",
+    "mqtt",
+    "webhook",
+    "real-time",
+    "facebook-api",
+    "messenger-api"
+  ],
+  "dependencies": {
+    "axios": "^1.9.0",
+    "axios-cookiejar-support": "^4.0.7",
+    "chalk": "^3.0.0",
+    "cheerio": "^0.22.0",
+    "form-data": "^4.0.3",
+    "https-proxy-agent": "^4.0.0",
+    "lodash": "^4.17.21",
+    "mqtt": "^3.0.0",
+    "node-cron": "^3.0.3",
+    "request": "^2.88.2",
+    "tough-cookie": "^5.1.2",
+    "websocket-stream": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

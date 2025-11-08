@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: goat-bot-v2
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        generateValue: true
+    autoDeploy: true
+    # Note: Free tier spins down after 15 minutes of inactivity
+    # To keep bot running 24/7, consider upgrading or use Railway

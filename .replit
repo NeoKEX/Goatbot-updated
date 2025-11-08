@@ -1,0 +1,12 @@
+entrypoint = "main.sh"
+modules = ["bash"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["bash", "main.sh"]
+deploymentTarget = "cloudrun"
+
+[agent]
+expertMode = true
