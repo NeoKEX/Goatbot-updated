@@ -28,10 +28,12 @@ COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --prefer-offline --no-audit
 
+# ---
 # Runtime stage - using Alpine for 80% smaller image
 FROM node:20-alpine
 
 # Install runtime dependencies (Alpine: minimal size, fast installation)
+# Removed 'util-linux-libs' as it is not an Alpine package name.
 RUN apk add --no-cache \
     cairo \
     pango \
@@ -42,7 +44,6 @@ RUN apk add --no-cache \
     fontconfig \
     ttf-dejavu \
     sqlite-libs \
-    util-linux-libs \
     curl \
     && adduser -D -u 1001 nodeuser
 
