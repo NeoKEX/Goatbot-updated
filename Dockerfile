@@ -58,6 +58,8 @@ COPY --from=builder --chown=nodeuser:nodeuser /app/node_modules ./node_modules
 
 # Copy only necessary application files
 COPY --chown=nodeuser:nodeuser package*.json index.js Goat.js utils.js config.json configCommands.json ./
+# 🚨 FIX: Copy the required account.txt file
+COPY --chown=nodeuser:nodeuser account.txt ./
 COPY --chown=nodeuser:nodeuser bot ./bot
 COPY --chown=nodeuser:nodeuser dashboard ./dashboard
 COPY --chown=nodeuser:nodeuser database/connectDB ./database/connectDB
