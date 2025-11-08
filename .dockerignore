@@ -65,11 +65,6 @@ tests/
 *.bak
 backupData/
 
-# Session files (will be created on server)
-account.txt
-appstate.json
-fb_dtsg_data.json
-
 # Dashboard uploads and user data
 dashboard/uploads/
 
