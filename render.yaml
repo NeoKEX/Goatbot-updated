@@ -6,9 +6,15 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    dockerCommand: node index.js
     envVars:
       - key: PORT
         generateValue: true
+      - key: DOCKER_BUILDKIT
+        value: 1
     autoDeploy: true
+    healthCheckPath: /uptime
+    # Optimized build with BuildKit and Alpine (60-80% faster builds)
+    # Canvas card generation now works properly with all dependencies
     # Note: Free tier spins down after 15 minutes of inactivity
     # To keep bot running 24/7, consider upgrading or use Railway

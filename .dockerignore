@@ -1,0 +1,79 @@
+# Node modules (will be installed fresh)
+node_modules/
+npm-debug.log
+# Keep package-lock.json for Docker builds (npm ci needs it)
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and non-essential files
+*.md
+!README.md
+CHANGELOG.md
+DOCS.md
+STEP_INSTALL.md
+FREE_TIER_SETUP.md
+DEPLOYMENT.md
+Copyright.txt
+LICENSE
+
+# Replit specific files
+.replit
+replit.nix
+replit.md
+.cache/
+.config/
+.upm/
+
+# Development files
+.env.local
+.env.*.local
+*.log
+
+# Temporary files and caches
+tmp/
+scripts/cmds/tmp/
+scripts/events/tmp/
+.npm/
+.cache/
+*.swp
+*.swo
+*~
+
+# Database files (use external DB on production)
+database/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+.DS_Store
+
+# Backup files
+*.backup
+*.bak
+backupData/
+
+# Session files (will be created on server)
+account.txt
+appstate.json
+fb_dtsg_data.json
+
+# Dashboard uploads and user data
+dashboard/uploads/
+
+# Dev dependencies
+.eslintrc*
+.prettierrc*
+.editorconfig

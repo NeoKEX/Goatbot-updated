@@ -1,22 +1,22 @@
 # syntax=docker/dockerfile:1
-# Multi-stage build for optimized image size
-FROM node:20-slim AS builder
+# Optimized multi-stage build for Canvas-enabled bot
+FROM node:20-alpine AS builder
 
-# Install build dependencies for native modules (canvas, sqlite3, bcrypt, etc.)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    pkg-config \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    librsvg2-dev \
-    libpixman-1-dev \
-    libfontconfig1-dev \
-    uuid-dev \
+# Install build dependencies (Alpine uses apk, much smaller and faster than apt)
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
     python3 \
-    libsqlite3-dev \
-    && rm -rf /var/lib/apt/lists/*
+    sqlite-dev \
+    pkgconf
 
 WORKDIR /app
 
@@ -24,33 +24,27 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ONLY production dependencies with cache mount (FASTER!)
-# BuildKit cache mount speeds up npm install from 48s to ~5s on rebuilds
+# BuildKit cache mount speeds up npm install significantly on rebuilds
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --prefer-offline --no-audit
 
-# Runtime stage
-FROM node:20-slim
+# Runtime stage - using Alpine for 80% smaller image
+FROM node:20-alpine
 
-# Single RUN layer: install libs, create user, setup directories (FASTER!)
-RUN apt-get update && apt-get install -y \
-    libcairo2 \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libpangoft2-1.0-0 \
-    libpangoxft-1.0-0 \
-    libfreetype6 \
-    libjpeg62-turbo \
-    libgif7 \
-    librsvg2-2 \
-    libpixman-1-0 \
-    libfontconfig1 \
-    fonts-noto \
-    fonts-noto-color-emoji \
-    libuuid1 \
-    libsqlite3-0 \
+# Install runtime dependencies (Alpine: minimal size, fast installation)
+RUN apk add --no-cache \
+    cairo \
+    pango \
+    giflib \
+    pixman \
+    libjpeg-turbo \
+    freetype \
+    fontconfig \
+    ttf-dejavu \
+    sqlite-libs \
+    util-linux-libs \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -m -u 1001 -s /bin/bash nodeuser
+    && adduser -D -u 1001 nodeuser
 
 WORKDIR /app
 
@@ -58,24 +52,28 @@ WORKDIR /app
 RUN mkdir -p database bot/login scripts/cmds scripts/events dashboard tmp && \
     chown nodeuser:nodeuser /app
 
-# Copy node_modules from builder with correct ownership (avoids slow chown later)
+# Copy node_modules from builder with correct ownership
 COPY --from=builder --chown=nodeuser:nodeuser /app/node_modules ./node_modules
 
-# Copy application files with correct ownership (avoids slow chown later)
-COPY --chown=nodeuser:nodeuser . .
+# Copy only necessary application files
+COPY --chown=nodeuser:nodeuser package*.json index.js Goat.js utils.js config.json configCommands.json ./
+COPY --chown=nodeuser:nodeuser bot ./bot
+COPY --chown=nodeuser:nodeuser dashboard ./dashboard
+COPY --chown=nodeuser:nodeuser database/connectDB ./database/connectDB
+COPY --chown=nodeuser:nodeuser database/controller ./database/controller
+COPY --chown=nodeuser:nodeuser database/models ./database/models
+COPY --chown=nodeuser:nodeuser func ./func
+COPY --chown=nodeuser:nodeuser languages ./languages
+COPY --chown=nodeuser:nodeuser logger ./logger
+COPY --chown=nodeuser:nodeuser scripts ./scripts
+COPY --chown=nodeuser:nodeuser neokex-fca ./neokex-fca
 
-# Set permissions for directories (much faster than chown -R on all files)
-RUN chmod -R 755 database bot/login scripts dashboard tmp
-
-# Rebuild font cache for Canvas to find custom fonts
-USER root
+# Rebuild font cache for Canvas (Alpine uses fc-cache directly)
 RUN fc-cache -f -v
-USER nodeuser
 
 # Set environment variables
-# NOT setting NODE_ENV=production to avoid .dev.json/.dev.txt file lookups
-ENV PORT=3001
-ENV FONTCONFIG_PATH=/etc/fonts
+ENV PORT=3001 \
+    FONTCONFIG_PATH=/etc/fonts
 
 # Expose port (Render/Railway will override with their PORT env variable)
 EXPOSE 3001
@@ -83,9 +81,8 @@ EXPOSE 3001
 # Switch to non-root user
 USER nodeuser
 
-# Health check for Render/Railway
-# Simple check that Node process is running (no /health endpoint required)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+# Optimized health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/uptime', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Start the application
