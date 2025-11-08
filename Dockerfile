@@ -50,15 +50,16 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Create directories and set ownership in one step
-RUN mkdir -p database bot/login scripts/cmds scripts/events dashboard tmp && \
-    chown nodeuser:nodeuser /app
+# FIX APPLIED HERE: Explicitly create 'database/data' and use recursive chown
+RUN mkdir -p database/data bot/login scripts/cmds scripts/events dashboard tmp && \
+    chown -R nodeuser:nodeuser /app
 
 # Copy node_modules from builder with correct ownership
 COPY --from=builder --chown=nodeuser:nodeuser /app/node_modules ./node_modules
 
 # Copy only necessary application files
 COPY --chown=nodeuser:nodeuser package*.json index.js Goat.js utils.js config.json configCommands.json ./
-# 🚨 FIX: Copy the required account.txt file
+# FIX: Copy the required account.txt file
 COPY --chown=nodeuser:nodeuser account.txt ./
 COPY --chown=nodeuser:nodeuser bot ./bot
 COPY --chown=nodeuser:nodeuser dashboard ./dashboard
