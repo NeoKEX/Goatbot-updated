@@ -77,8 +77,7 @@ module.exports = {
     for (let i = 0; i < lengthTarget; i++) {
       try {
         const friendRequest = await promiseFriends[i];
-        const friendData = typeof friendRequest === 'string' ? JSON.parse(friendRequest) : friendRequest;
-        if (friendData.errors) {
+        if (JSON.parse(friendRequest).errors) {
           failed.push(newTargetIDs[i].node.name);
         }
         else {
@@ -100,70 +99,34 @@ module.exports = {
     api.unsendMessage(messageID); // Unsend the message after it has been processed
   },
 
-  onStart: async function ({ event, api, commandName, message }) {
-    try {
-      const form = {
-        av: api.getCurrentUserID(),
-        fb_api_req_friendly_name: "FriendingCometFriendRequestsRootQueryRelayPreloader",
-        fb_api_caller_class: "RelayModern",
-        doc_id: "4499164963466303",
-        variables: JSON.stringify({ input: { scale: 3 } })
-      };
-      
-      console.log("[ACCEPT DEBUG] Fetching friend requests...");
-      const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-      console.log("[ACCEPT DEBUG] Response type:", typeof response);
-      console.log("[ACCEPT DEBUG] Response keys:", response && typeof response === 'object' ? Object.keys(response) : 'N/A');
-      
-      let responseData;
-      if (typeof response === 'object' && response !== null) {
-        responseData = response;
-      } else if (typeof response === 'string') {
-        try {
-          responseData = JSON.parse(response);
-        } catch (parseError) {
-          console.log("[ACCEPT DEBUG] Parse error:", parseError.message);
-          return message.reply(`Error parsing Facebook API response. The response may be invalid.`);
-        }
-      } else {
-        console.log("[ACCEPT DEBUG] Unexpected response type:", typeof response);
-        return message.reply(`Unexpected response type from Facebook API.`);
-      }
-      
-      console.log("[ACCEPT DEBUG] Checking response structure...");
-      if (!responseData.data || !responseData.data.viewer || !responseData.data.viewer.friending_possibilities) {
-        console.log("[ACCEPT DEBUG] Response structure invalid. Has data:", !!responseData.data, "Has viewer:", !!responseData?.data?.viewer);
-        return message.reply(`Could not fetch friend requests. The API response structure is unexpected.`);
-      }
-      
-      const listRequest = responseData.data.viewer.friending_possibilities.edges;
-      console.log("[ACCEPT DEBUG] Found", listRequest ? listRequest.length : 0, "friend requests");
-      if (!listRequest || listRequest.length === 0) {
-        return message.reply(`You have no pending friend requests.`);
-      }
-      
-      let msg = "";
-      let i = 0;
-      for (const user of listRequest) {
-        i++;
-        msg += (`\n${i}. Name: ${user.node.name}`
-          + `\nID: ${user.node.id}`
-          + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
-          + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
-      }
-      api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
-        global.GoatBot.onReply.set(info.messageID, {
-          commandName,
-          messageID: info.messageID,
-          listRequest,
-          author: event.senderID,
-          unsendTimeout: setTimeout(() => {
-            api.unsendMessage(info.messageID); // Unsend the message after the countdown duration
-          }, this.config.countDown * 1000) // Convert countdown duration to milliseconds
-        });
-      }, event.messageID);
-    } catch (error) {
-      return message.reply(`An error occurred while fetching friend requests: ${error.message}`);
+  onStart: async function ({ event, api, commandName }) {
+    const form = {
+      av: api.getCurrentUserID(),
+      fb_api_req_friendly_name: "FriendingCometFriendRequestsRootQueryRelayPreloader",
+      fb_api_caller_class: "RelayModern",
+      doc_id: "4499164963466303",
+      variables: JSON.stringify({ input: { scale: 3 } })
+    };
+    const listRequest = JSON.parse(await api.httpPost("https://www.facebook.com/api/graphql/", form)).data.viewer.friending_possibilities.edges;
+    let msg = "";
+    let i = 0;
+    for (const user of listRequest) {
+      i++;
+      msg += (`\n${i}. Name: ${user.node.name}`
+        + `\nID: ${user.node.id}`
+        + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
+        + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
     }
+    api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
+      global.GoatBot.onReply.set(info.messageID, {
+        commandName,
+        messageID: info.messageID,
+        listRequest,
+        author: event.senderID,
+        unsendTimeout: setTimeout(() => {
+          api.unsendMessage(info.messageID); // Unsend the message after the countdown duration
+        }, this.config.countDown * 1000) // Convert countdown duration to milliseconds
+      });
+    }, event.messageID);
   }
 };
