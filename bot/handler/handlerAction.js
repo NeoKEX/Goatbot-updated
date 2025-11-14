@@ -53,13 +53,27 @@ module.exports = (api, threadModel, userModel, globalModel, usersData, threadsDa
                         case "read_receipt":
                                 read_receipt();
                                 break;
-                        // case "friend_request_received":
-                        // { /* code block */ }
-                        // break;
-
-                        // case "friend_request_cancel"
-                        // { /* code block */ }
-                        // break;
+                        case "friend_request_received":
+                                {
+                                        const { userID, senderID, author } = event;
+                                        const requestID = userID || senderID || author;
+                                        if (requestID) {
+                                                global.GoatBot.friendRequests.set(requestID, {
+                                                        name: event.name || "Unknown",
+                                                        timestamp: Date.now()
+                                                });
+                                        }
+                                }
+                                break;
+                        case "friend_request_cancel":
+                                {
+                                        const { userID, senderID, author } = event;
+                                        const requestID = userID || senderID || author;
+                                        if (requestID) {
+                                                global.GoatBot.friendRequests.delete(requestID);
+                                        }
+                                }
+                                break;
                         default:
                                 break;
                 }

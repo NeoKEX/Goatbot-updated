@@ -89,7 +89,8 @@ global.GoatBot = {
         callbackListenTime: {}, // store callback listen 
         storage5Message: [], // store 5 message to check listening loop
         fcaApi: null, // store fca api
-        botID: null // store bot id
+        botID: null, // store bot id
+        friendRequests: new Map() // store friend requests {userID: {name, timestamp}}
 };
 
 global.db = {

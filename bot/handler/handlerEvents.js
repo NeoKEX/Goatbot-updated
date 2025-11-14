@@ -7,12 +7,82 @@ function getType(obj) {
         return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
-function getRole(threadData, senderID) {
+async function getRole(threadData, senderID, usersData) {
         const adminBot = global.GoatBot.config.adminBot || [];
+        const botDevelopers = global.GoatBot.config.botDevelopers || [];
         if (!senderID)
                 return 0;
+        
+        if (botDevelopers.includes(senderID))
+                return 4;
+        
+        if (adminBot.includes(senderID))
+                return 2;
+        
         const adminBox = threadData ? threadData.adminIDs || [] : [];
-        return adminBot.includes(senderID) ? 2 : adminBox.includes(senderID) ? 1 : 0;
+        if (adminBox.includes(senderID))
+                return 1;
+        
+        if (usersData) {
+                try {
+                        const userData = await usersData.get(senderID);
+                        if (userData) {
+                                if (userData.data && userData.data.customRole !== undefined && userData.data.customRole > 0)
+                                        return userData.data.customRole;
+                                
+                                if (userData.money !== undefined && userData.money >= 2000)
+                                        return 3;
+                        }
+                } catch (err) {
+                }
+        }
+        
+        return 0;
+}
+
+function calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        
+        if (longer.length === 0) return 1.0;
+        
+        const editDistance = (s1, s2) => {
+                s1 = s1.toLowerCase();
+                s2 = s2.toLowerCase();
+                const costs = [];
+                for (let i = 0; i <= s1.length; i++) {
+                        let lastValue = i;
+                        for (let j = 0; j <= s2.length; j++) {
+                                if (i === 0)
+                                        costs[j] = j;
+                                else if (j > 0) {
+                                        let newValue = costs[j - 1];
+                                        if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+                                                newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                                        costs[j - 1] = lastValue;
+                                        lastValue = newValue;
+                                }
+                        }
+                        if (i > 0)
+                                costs[s2.length] = lastValue;
+                }
+                return costs[s2.length];
+        };
+        
+        return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
+}
+
+function findSimilarCommands(input, commands, threshold = 0.5) {
+        const suggestions = [];
+        for (const [name] of commands) {
+                const similarity = calculateSimilarity(input, name);
+                if (similarity >= threshold) {
+                        suggestions.push({ name, similarity });
+                }
+        }
+        
+        suggestions.sort((a, b) => b.similarity - a.similarity);
+        return suggestions.slice(0, 3);
 }
 
 function getText(type, reason, time, targetID, lang) {
@@ -181,7 +251,7 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                         hideNotiMessage = threadData.settings.hideNotiMessage;
 
                 const prefix = getPrefix(threadID);
-                const role = getRole(threadData, senderID);
+                const role = await getRole(threadData, senderID, usersData);
                 const parameters = {
                         api, usersData, threadsData, message, event,
                         userModel, threadModel, prefix,
@@ -250,15 +320,29 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                         // —————  CHECK BANNED OR ONLY ADMIN BOX  ————— //
                         if (isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, commandName, message, langCode))
                                 return;
-                        if (!command)
-                                if (!hideNotiMessage.commandNotFound)
-                                        return await message.reply(
-                                                commandName ?
-                                                        utils.getText({ lang: langCode, head: "handlerEvents" }, "commandNotFound", commandName, prefix) :
-                                                        utils.getText({ lang: langCode, head: "handlerEvents" }, "commandNotFound2", prefix)
-                                        );
-                                else
+                        if (!command) {
+                                if (!hideNotiMessage.commandNotFound) {
+                                        if (!commandName) {
+                                                return await message.reply(`⚠️ That's just my prefix "${prefix}". Type ${prefix}help to see all available commands.`);
+                                        }
+                                        
+                                        const similarCommands = findSimilarCommands(commandName, GoatBot.commands, 0.4);
+                                        let replyMsg = `❌ Command "${commandName}" not found.`;
+                                        
+                                        if (similarCommands.length > 0) {
+                                                replyMsg += `\n\n💡 Did you mean:\n`;
+                                                similarCommands.forEach((cmd, idx) => {
+                                                        replyMsg += `${idx + 1}. ${prefix}${cmd.name}\n`;
+                                                });
+                                        }
+                                        replyMsg += `\nType ${prefix}help to see all commands.`;
+                                        
+                                        return await message.reply(replyMsg);
+                                }
+                                else {
                                         return true;
+                                }
+                        }
                         // ————————————— CHECK PERMISSION ———————————— //
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onStart;
@@ -269,6 +353,10 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdmin", commandName));
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2", commandName));
+                                        else if (needRole == 3)
+                                                return await message.reply(`⭐ The command "${commandName}" requires premium status (2000+ balance). Your current role: ${role}`);
+                                        else if (needRole == 4)
+                                                return await message.reply(`🔒 The command "${commandName}" is for bot developers only. Your current role: ${role}`);
                                 }
                                 else {
                                         return true;

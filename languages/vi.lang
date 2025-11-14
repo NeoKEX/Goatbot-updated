@@ -153,3 +153,7 @@ app.notPermissionChangeFbstate=Bạn không có quyền thay đổi fbstate!
 app.notFoundFbstate=Vui lòng nhập fbstate!
 app.changedFbstateSuccess=Thay đổi fbstate thành công!
 app.serverError=Server đã xảy ra lỗi, vui lòng thử lại sau!
+handlerEvents.onlyPremium=⭐ Lệnh "%1" yêu cầu trạng thái cao cấp (2000+ số dư). Vai trò hiện tại của bạn: %2
+handlerEvents.onlyDeveloper=🔒 Lệnh "%1" chỉ dành cho nhà phát triển bot. Vai trò hiện tại của bạn: %2
+handlerEvents.onlyPrefix=⚠️ Đó chỉ là tiền tố của tôi "%1". Gõ %1help để xem tất cả các lệnh có sẵn
+handlerEvents.commandSuggestion=❌ Lệnh "%1" không tìm thấy.\n\n💡 Ý bạn là:\n%2\nGõ %3help để xem tất cả các lệnh
