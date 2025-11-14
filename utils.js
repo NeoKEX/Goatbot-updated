@@ -16,23 +16,6 @@ const { isHexColor, colors } = require("./func/colors.js");
 const Prism = require("./func/prism.js");
 
 const { config } = global.GoatBot;
-const { gmailAccount } = config.credentials;
-const { clientId, clientSecret, refreshToken, apiKey: googleApiKey } = gmailAccount || {};
-
-let oauth2ClientForGGDrive;
-let driveApi;
-
-if (clientId && clientSecret && refreshToken) {
-        oauth2ClientForGGDrive = new google.auth.OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
-        oauth2ClientForGGDrive.setCredentials({ refresh_token: refreshToken });
-        driveApi = google.drive({
-                version: 'v3',
-                auth: oauth2ClientForGGDrive
-        });
-        log.info("CREDENTIALS", "Gmail credentials loaded successfully");
-} else {
-        log.warn("CREDENTIALS", "Gmail credentials not provided - Gmail and Google Drive features will be disabled");
-}
 const word = [
         'A', 'Á', 'À', 'Ả', 'Ã', 'Ạ', 'a', 'á', 'à', 'ả', 'ã', 'ạ',
         'Ă', 'Ắ', 'Ằ', 'Ẳ', 'Ẵ', 'Ặ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ',
@@ -787,177 +770,28 @@ async function uploadZippyshare(stream) {
 }
 
 const drive = {
-        default: driveApi,
+        default: null,
         parentID: "",
-        async uploadFile(fileName, mimeType, file) {
-                if (!driveApi) {
-                        throw new Error('Google Drive is not configured. Please provide Gmail credentials in config.json');
-                }
-                if (!file && typeof fileName === "string") {
-                        file = mimeType;
-                        mimeType = undefined;
-                }
-                let response;
-                try {
-                        response = (await driveApi.files.create({
-                                resource: {
-                                        name: fileName,
-                                        parents: [this.parentID]
-                                },
-                                media: {
-                                        mimeType,
-                                        body: file
-                                },
-                                fields: "*"
-                        })).data;
-                }
-                catch (err) {
-                        throw new Error(err.errors.map(e => e.message).join("\n"));
-                }
-                await utils.drive.makePublic(response.id);
-                return response;
+        async uploadFile() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        async deleteFile(id) {
-                if (!driveApi) {
-                        throw new Error('Google Drive is not configured. Please provide Gmail credentials in config.json');
-                }
-                if (!id || typeof id !== "string")
-                        throw new Error('The first argument (id) must be a string');
-                try {
-                        await driveApi.files.delete({
-                                fileId: id
-                        });
-                        return true;
-                }
-                catch (err) {
-                        throw new Error(err.errors.map(e => e.message).join("\n"));
-                }
+        async deleteFile() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        getUrlDownload(id = "") {
-                if (!id || typeof id !== "string")
-                        throw new Error('The first argument (id) must be a string');
-                return `https://docs.google.com/uc?id=${id}&export=download&confirm=t${googleApiKey ? `&key=${googleApiKey}` : ''}`;
+        getUrlDownload() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        async getFile(id, responseType) {
-                if (!driveApi) {
-                        throw new Error('Google Drive is not configured. Please provide Gmail credentials in config.json');
-                }
-                if (!id || typeof id !== "string")
-                        throw new Error('The first argument (id) must be a string');
-                if (!responseType)
-                        responseType = "arraybuffer";
-                if (typeof responseType !== "string")
-                        throw new Error('The second argument (responseType) must be a string');
-
-                const response = await driveApi.files.get({
-                        fileId: id,
-                        alt: 'media'
-                }, {
-                        responseType
-                });
-                const headersResponse = response.headers;
-                const fileName = headersResponse["content-disposition"]?.split('filename="')[1]?.split('"')[0] || `${utils.randomString(10)}.${utils.getExtFromMimeType(headersResponse["content-type"])}`;
-
-                if (responseType == "arraybuffer")
-                        return Buffer.from(response.data);
-                else if (responseType == "stream")
-                        response.data.path = fileName;
-
-                const file = response.data;
-
-                return file;
+        async getFile() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        async getFileName(id) {
-                if (!driveApi) {
-                        throw new Error('Google Drive is not configured. Please provide Gmail credentials in config.json');
-                }
-                if (!id || typeof id !== "string")
-                        throw new Error('The first argument (id) must be a string');
-                const { fileNames: tempFileNames } = global.temp.filesOfGoogleDrive;
-                if (tempFileNames[id])
-                        return tempFileNames[id];
-                try {
-                        const { data: response } = await driveApi.files.get({
-                                fileId: id,
-                                fields: "name"
-                        });
-                        tempFileNames[id] = response.name;
-                        return response.name;
-                }
-                catch (err) {
-                        throw new Error(err.errors.map(e => e.message).join("\n"));
-                }
+        async getFileName() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        async makePublic(id) {
-                if (!driveApi) {
-                        throw new Error('Google Drive is not configured. Please provide Gmail credentials in config.json');
-                }
-                if (!id || typeof id !== "string")
-                        throw new Error('The first argument (id) must be a string');
-                try {
-                        await driveApi.permissions.create({
-                                fileId: id,
-                                requestBody: {
-                                        role: 'reader',
-                                        type: 'anyone'
-                                }
-                        });
-                        return id;
-                }
-                catch (err) {
-                        const error = new Error(err.errors.map(e => e.message).join("\n"));
-                        error.name = 'CAN\'T_MAKE_PUBLIC';
-                        throw new Error(err.errors.map(e => e.message).join("\n"));
-                }
+        async makePublic() {
+                throw new Error('Google Drive features have been removed from this bot');
         },
-
-        async checkAndCreateParentFolder(folderName) {
-                if (!driveApi) {
-                        log.warn("GOOGLE DRIVE", "Google Drive is not configured - skipping folder setup");
-                        return null;
-                }
-                if (!folderName || typeof folderName !== "string")
-                        throw new Error('The first argument (folderName) must be a string');
-                let parentID;
-                const { data: findParentFolder } = await driveApi.files.list({
-                        q: `name="${folderName}" and mimeType="application/vnd.google-apps.folder" and trashed=false`,
-                        fields: '*'
-                });
-                const parentFolder = findParentFolder.files.find(i => i.ownedByMe);
-                if (!parentFolder) {
-                        const { data } = await driveApi.files.create({
-                                requestBody: {
-                                        name: folderName,
-                                        mimeType: 'application/vnd.google-apps.folder'
-                                }
-                        });
-                        await driveApi.permissions.create({
-                                fileId: data.id,
-                                requestBody: {
-                                        role: 'reader',
-                                        type: 'anyone'
-                                }
-                        });
-                        parentID = data.id;
-                }
-                else if (!parentFolder.shared) {
-                        await driveApi.permissions.create({
-                                fileId: parentFolder.id,
-                                requestBody: {
-                                        role: 'reader',
-                                        type: 'anyone'
-                                }
-                        });
-                        parentID = parentFolder.data.id;
-                }
-                else
-                        parentID = parentFolder.id;
-                return parentID;
+        async checkAndCreateParentFolder() {
+                return null;
         }
 };
 
