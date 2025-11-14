@@ -478,7 +478,7 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                         if (!command) {
                                 if (!hideNotiMessage.commandNotFound) {
                                         if (!commandName) {
-                                                return await message.reply(`⚠️ That's just my prefix "${prefix}". Type ${prefix}help to see all available commands.`);
+                                                return await message.reply(`"${prefix}" is just my prefix ~_~\nType ${prefix}help to see all available commands.`);
                                         }
                                         
                                         const similarCommands = findSimilarCommands(commandName, GoatBot.commands, 0.4);

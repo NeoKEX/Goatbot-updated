@@ -114,7 +114,7 @@ handlerEvents.cannotFindCommandName=❌ Cannot find command name to execute this
 handlerEvents.cannotFindCommand=❌ Cannot find command "%1" to execute this reply!
 handlerEvents.onlyPremium=⭐ The command "%1" requires premium status (2000+ balance). Your current role: %2
 handlerEvents.onlyDeveloper=🔒 The command "%1" is for bot developers only. Your current role: %2
-handlerEvents.onlyPrefix=⚠️ That's just my prefix "%1". Type %1help to see all available commands
+handlerEvents.onlyPrefix="%1" is just my prefix ~_~\nType %1help to see all available commands
 handlerEvents.commandSuggestion=❌ Command "%1" not found.\n\n💡 Did you mean:\n%2\nType %3help to see all commands
 
 # bot/autoUptime.js
