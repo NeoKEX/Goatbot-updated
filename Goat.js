@@ -215,50 +215,59 @@ if (config.autoRestart) {
 (async () => {
         // ———————————————— SETUP MAIL ———————————————— //
         const { gmailAccount } = config.credentials;
-        const { email, clientId, clientSecret, refreshToken } = gmailAccount;
-        const OAuth2 = google.auth.OAuth2;
+        const { email, clientId, clientSecret, refreshToken } = gmailAccount || {};
         
-        async function sendMail({ to, subject, text, html, attachments }) {
-                // Generate fresh access token at runtime (not at startup)
-                const OAuth2_client = new OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
-                OAuth2_client.setCredentials({ refresh_token: refreshToken });
+        if (clientId && clientSecret && refreshToken && email) {
+                const OAuth2 = google.auth.OAuth2;
                 
-                let accessToken;
-                try {
-                        const accessTokenResponse = await OAuth2_client.getAccessToken();
-                        accessToken = accessTokenResponse.token;
-                }
-                catch (err) {
-                        console.error("Gmail OAuth2 Error:", err.message);
-                        throw new Error(`Failed to get Gmail access token: ${err.message}`);
-                }
-                
-                const transporter = nodemailer.createTransport({
-                        host: 'smtp.gmail.com',
-                        service: 'Gmail',
-                        auth: {
-                                type: 'OAuth2',
-                                user: email,
-                                clientId,
-                                clientSecret,
-                                refreshToken,
-                                accessToken
+                async function sendMail({ to, subject, text, html, attachments }) {
+                        // Generate fresh access token at runtime (not at startup)
+                        const OAuth2_client = new OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
+                        OAuth2_client.setCredentials({ refresh_token: refreshToken });
+                        
+                        let accessToken;
+                        try {
+                                const accessTokenResponse = await OAuth2_client.getAccessToken();
+                                accessToken = accessTokenResponse.token;
                         }
-                });
-                
-                const mailOptions = {
-                        from: email,
-                        to,
-                        subject,
-                        text,
-                        html,
-                        attachments
-                };
-                const info = await transporter.sendMail(mailOptions);
-                return info;
-        }
+                        catch (err) {
+                                console.error("Gmail OAuth2 Error:", err.message);
+                                throw new Error(`Failed to get Gmail access token: ${err.message}`);
+                        }
+                        
+                        const transporter = nodemailer.createTransport({
+                                host: 'smtp.gmail.com',
+                                service: 'Gmail',
+                                auth: {
+                                        type: 'OAuth2',
+                                        user: email,
+                                        clientId,
+                                        clientSecret,
+                                        refreshToken,
+                                        accessToken
+                                }
+                        });
+                        
+                        const mailOptions = {
+                                from: email,
+                                to,
+                                subject,
+                                text,
+                                html,
+                                attachments
+                        };
+                        const info = await transporter.sendMail(mailOptions);
+                        return info;
+                }
 
-        global.utils.sendMail = sendMail;
+                global.utils.sendMail = sendMail;
+                utils.log.info("GMAIL", "Gmail sendMail function configured successfully");
+        } else {
+                global.utils.sendMail = () => {
+                        throw new Error('Gmail is not configured. Please provide Gmail credentials in config.json to use email features.');
+                };
+                utils.log.warn("GMAIL", "Gmail credentials not provided - email features will be disabled");
+        }
 
         // ———————————————— CHECK VERSION ———————————————— //
         const { data: { version } } = await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2/main/package.json");
@@ -272,8 +281,10 @@ if (config.autoRestart) {
                         colors.hex("#eb6a07", "node update")
                 ));
         // —————————— CHECK FOLDER GOOGLE DRIVE —————————— //
-        const parentIdGoogleDrive = await utils.drive.checkAndCreateParentFolder("GoatBot");
-        utils.drive.parentID = parentIdGoogleDrive;
+        if (clientId && clientSecret && refreshToken) {
+                const parentIdGoogleDrive = await utils.drive.checkAndCreateParentFolder("GoatBot");
+                utils.drive.parentID = parentIdGoogleDrive;
+        }
         // ———————————————————— LOGIN ———————————————————— //
         require(`./bot/login/login${NODE_ENV === 'development' ? '.dev.js' : '.js'}`);
 })();
