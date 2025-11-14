@@ -12,13 +12,13 @@
         "antiInbox": false,
         "language": "en",
         "notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-        "nickNameBot": "GoatBot",
-        "prefix": "-",
+        "nickNameBot": "NeoKEX",
+        "prefix": "?",
         "adminOnly": {
                 "enable": false,
                 "ignoreCommand": []
         },
-        "adminBot": [],
+        "adminBot": ["100083039411474"],
         "whiteListMode": {
                 "enable": false,
                 "whiteListIds": [],
@@ -37,18 +37,18 @@
                 "autoRefreshThreadInfoFirstTime": true,
                 "notes": "(1) type selects 'json' or 'sqlite' or 'mongodb'. If you choose mongodb, enter uri connect mongodb in the uriMongodb section, instructions to get uri connect mongodb at: https://youtu.be/z1f9urHW5xY. I recommend using 'mongodb' or 'sqlite', json is not recommended because it is not stable. (2) when you set autoSyncWhenStart to true, the bot will automatically synchronize the data in the database when starting the bot, this will make the bot start slower. (3) when you set autoRefreshThreadInfoFirstTime to true, the bot will automatically refresh the thread information when get first message from the thread since starting the bot"
         },
-        "timeZone": "Asia/Ho_Chi_Minh",
+        "timeZone": "Asia/Dhaka",
         "credentials": {
                 "gmailAccount": {
-                        "email": "",
-                        "clientId": "",
-                        "clientSecret": "",
-                        "refreshToken": "",
-                        "apiKey": ""
+                        "email": "bossnexxo@gmail.com",
+                        "clientId": "1096868705353-e49qp5a9cotptc38t561vrj5osiusfo1.apps.googleusercontent.com",
+                        "clientSecret": "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",
+                        "refreshToken": "1//04HzJ6VbHNzVCCgYIARAAGAQSNwF-L9Ir3b2-Cndxw5FVqBY_1QHIsyRCWyCDW9Aq439RmIM_4ro4Aya964kiHL7qgIwTdaUArVM",
+                        "apiKey": "ya29.a0ATi6K2u2kyABqGoUGjrXJudj4IhFSria9RBUPMqbt8bLfO4W_fCgBJJrcNd85Y1Atn1SqmxchsQ0NywNg38jp0imJ5Oes1H6HqutQeuYdJLQ6-Le9QT9SXInGC8i8jpcFpKvEPrdQTGoXrZLTHdOtRapEtuVgwPDKEiplKwDBdaGZ0tfPkGMk-Rjl5uGfrX4w_ZtY_gaCgYKAbcSARYSFQHGX2Mi8rcjmoXuuSl_NgCcTBB6RA0206"
                 },
                 "gRecaptcha": {
-                        "siteKey": "",
-                        "secretKey": ""
+                        "siteKey": "6LdOZgAsAAAAAJMV3yDqxlyIBLYrWUwa9UDLHJmy",
+                        "secretKey": "6LdOZgAsAAAAAJxFSqh0mj2eh_-oByGm5S47Ir73"
                 }
         },
         "serverUptime": {

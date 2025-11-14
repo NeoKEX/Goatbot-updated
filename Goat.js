@@ -217,29 +217,22 @@ if (config.autoRestart) {
         const { gmailAccount } = config.credentials;
         const { email, clientId, clientSecret, refreshToken } = gmailAccount;
         const OAuth2 = google.auth.OAuth2;
-        const OAuth2_client = new OAuth2(clientId, clientSecret);
-        OAuth2_client.setCredentials({ refresh_token: refreshToken });
-        let accessToken;
-        try {
-                accessToken = await OAuth2_client.getAccessToken();
-        }
-        catch (err) {
-                throw new Error(getText("Goat", "googleApiTokenExpired"));
-        }
-        const transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                service: 'Gmail',
-                auth: {
-                        type: 'OAuth2',
-                        user: email,
-                        clientId,
-                        clientSecret,
-                        refreshToken,
-                        accessToken
-                }
-        });
-
+        
         async function sendMail({ to, subject, text, html, attachments }) {
+                // Generate fresh access token at runtime (not at startup)
+                const OAuth2_client = new OAuth2(clientId, clientSecret, "https://developers.google.com/oauthplayground");
+                OAuth2_client.setCredentials({ refresh_token: refreshToken });
+                
+                let accessToken;
+                try {
+                        const accessTokenResponse = await OAuth2_client.getAccessToken();
+                        accessToken = accessTokenResponse.token;
+                }
+                catch (err) {
+                        console.error("Gmail OAuth2 Error:", err.message);
+                        throw new Error(`Failed to get Gmail access token: ${err.message}`);
+                }
+                
                 const transporter = nodemailer.createTransport({
                         host: 'smtp.gmail.com',
                         service: 'Gmail',
@@ -252,6 +245,7 @@ if (config.autoRestart) {
                                 accessToken
                         }
                 });
+                
                 const mailOptions = {
                         from: email,
                         to,
@@ -265,7 +259,6 @@ if (config.autoRestart) {
         }
 
         global.utils.sendMail = sendMail;
-        global.utils.transporter = transporter;
 
         // ———————————————— CHECK VERSION ———————————————— //
         const { data: { version } } = await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2/main/package.json");
