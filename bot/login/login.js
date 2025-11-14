@@ -15,7 +15,7 @@ const path = defaultRequire("path");
 const readline = defaultRequire("readline");
 const fs = defaultRequire("fs-extra");
 const toptp = defaultRequire("totp-generator");
-const login = defaultRequire("neokex-fca");
+const { login } = defaultRequire("neokex-fca");
 const qr = new (defaultRequire("qrcode-reader"));
 const Canvas = defaultRequire("canvas");
 const https = defaultRequire("https");
@@ -233,7 +233,6 @@ global.responseUptimeError = responseUptimeError;
 global.statusAccountBot = 'good';
 let changeFbStateByCode = false;
 let latestChangeContentAccount = fs.statSync(dirAccount).mtimeMs;
-let dashBoardIsRunning = false;
 
 
 async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { } }, facebookAccount) {
@@ -491,10 +490,9 @@ async function getAppStateToLogin(loginWithEmail) {
                                         }))
                                         .filter(i => i.key && i.value && i.key != "x-referer");
                         }
-                        if (!await checkLiveCookie(appState.map(i => i.key + "=" + i.value).join("; "), facebookAccount.userAgent)) {
-                                const error = new Error("Cookie is invalid");
-                                error.name = "COOKIE_INVALID";
-                                throw error;
+                        const cookieValidation = await checkLiveCookie(appState.map(i => i.key + "=" + i.value).join("; "), facebookAccount.userAgent);
+                        if (!cookieValidation) {
+                                log.warn("LOGIN FACEBOOK", "Cookie validation returned false, but attempting login anyway...");
                         }
                 }
         }
@@ -808,7 +806,7 @@ async function startBot(loginWithEmail) {
                                                                 global.temp.contentScripts.cmds[filename] = currentContent;
                                                                 filename = filename.replace('.js', '');
 
-                                                                const infoLoad = global.utils.loadScripts("cmds", filename, log, global.GoatBot.configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData);
+                                                                const infoLoad = global.utils.loadScripts("cmds", filename, log, global.GoatBot.configCommands, api, threadModel, userModel, globalModel, threadsData, usersData, globalData);
                                                                 if (infoLoad.status == "success")
                                                                         log.master("AUTO LOAD SCRIPTS", `Command ${filename}.js (${infoLoad.command.config.name}) has been reloaded`);
                                                                 else
@@ -834,7 +832,7 @@ async function startBot(loginWithEmail) {
                                                                 global.temp.contentScripts.events[filename] = currentContent;
                                                                 filename = filename.replace('.js', '');
 
-                                                                const infoLoad = global.utils.loadScripts("events", filename, log, global.GoatBot.configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData);
+                                                                const infoLoad = global.utils.loadScripts("events", filename, log, global.GoatBot.configCommands, api, threadModel, userModel, globalModel, threadsData, usersData, globalData);
                                                                 if (infoLoad.status == "success")
                                                                         log.master("AUTO LOAD SCRIPTS", `Event ${filename}.js (${infoLoad.command.config.name}) has been reloaded`);
                                                                 else
@@ -846,18 +844,6 @@ async function startBot(loginWithEmail) {
                                                 }
                                         }
                                 });
-                        }
-                        // ——————————————————— DASHBOARD ——————————————————— //
-                        if (global.GoatBot.config.dashBoard?.enable == true && dashBoardIsRunning == false) {
-                                logColor('#f5ab00', createLine('DASHBOARD'));
-                                try {
-                                        await require("../../dashboard/app.js")(api);
-                                        log.info("DASHBOARD", getText('login', 'openDashboardSuccess'));
-                                        dashBoardIsRunning = true;
-                                }
-                                catch (err) {
-                                        log.err("DASHBOARD", getText('login', 'openDashboardError'), err);
-                                }
                         }
                         // ———————————————————— ADMIN BOT ———————————————————— //
                         logColor('#f5ab00', character);
@@ -902,7 +888,7 @@ async function startBot(loginWithEmail) {
                                                 global.responseUptimeCurrent = responseUptimeError;
                                                 global.statusAccountBot = 'can\'t login';
                                                 if (!isSendNotiErrorMessage) {
-                                                        await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
+                                                        await handlerWhenListenHasError({ api, threadModel, userModel, globalModel, threadsData, usersData, globalData, error });
                                                         isSendNotiErrorMessage = true;
                                                 }
 
@@ -950,7 +936,7 @@ async function startBot(loginWithEmail) {
                                                 return;
                                         }
                                         else {
-                                                await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
+                                                await handlerWhenListenHasError({ api, threadModel, userModel, globalModel, threadsData, usersData, globalData, error });
                                                 return log.err("LISTEN_MQTT", getText('login', 'callBackError'), error);
                                         }
                                 }

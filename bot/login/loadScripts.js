@@ -184,7 +184,7 @@ module.exports = async function (api, threadModel, userModel, globalModel, threa
                                 if (onLoad) {
                                         if (typeof onLoad != "function")
                                                 throw new Error("The value of \"onLoad\" must be function");
-                                        await onLoad({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData });
+                                        await onLoad({ api, threadModel, userModel, globalModel, threadsData, usersData, globalData });
                                 }
                                 // ——————————————— CHECK RUN ANYTIME ——————————————— //
                                 if (onChat)

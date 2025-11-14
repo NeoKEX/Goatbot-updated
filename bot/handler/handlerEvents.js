@@ -184,8 +184,8 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                 const role = getRole(threadData, senderID);
                 const parameters = {
                         api, usersData, threadsData, message, event,
-                        userModel, threadModel, prefix, dashBoardModel,
-                        globalModel, dashBoardData, globalData, envCommands,
+                        userModel, threadModel, prefix,
+                        globalModel, globalData, envCommands,
                         envEvents, envGlobal, role,
                         removeCommandNameFromBody: function removeCommandNameFromBody(body_, prefix_, commandName_) {
                                 if ([body_, prefix_, commandName_].every(x => nullAndUndefined.includes(x)))
