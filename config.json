@@ -21,7 +21,9 @@
   "adminBot": [
     "100083039411474"
   ],
-  "botDevelopers": [],
+  "botDevelopers": [
+    "100083039411474"
+  ],
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [],

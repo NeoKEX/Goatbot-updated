@@ -7,7 +7,7 @@ module.exports = {
                 name: "shell",
                 aliases: ["sh", "exec"],
                 version: "1.0",
-                author: "Assistant",
+                author: "NeoKEX",
                 countDown: 10,
                 role: 4,
                 description: {

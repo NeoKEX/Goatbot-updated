@@ -7,7 +7,7 @@ module.exports = {
                 name: "pfp",
                 aliases: ["avatar", "profilepic"],
                 version: "1.0",
-                author: "Assistant",
+                author: "NeoKEX",
                 countDown: 5,
                 role: 0,
                 description: {
