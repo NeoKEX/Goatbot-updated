@@ -109,7 +109,11 @@ module.exports = {
         doc_id: "4499164963466303",
         variables: JSON.stringify({ input: { scale: 3 } })
       };
+      
+      console.log("[ACCEPT DEBUG] Fetching friend requests...");
       const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
+      console.log("[ACCEPT DEBUG] Response type:", typeof response);
+      console.log("[ACCEPT DEBUG] Response keys:", response && typeof response === 'object' ? Object.keys(response) : 'N/A');
       
       let responseData;
       if (typeof response === 'object' && response !== null) {
@@ -118,17 +122,22 @@ module.exports = {
         try {
           responseData = JSON.parse(response);
         } catch (parseError) {
+          console.log("[ACCEPT DEBUG] Parse error:", parseError.message);
           return message.reply(`Error parsing Facebook API response. The response may be invalid.`);
         }
       } else {
+        console.log("[ACCEPT DEBUG] Unexpected response type:", typeof response);
         return message.reply(`Unexpected response type from Facebook API.`);
       }
       
+      console.log("[ACCEPT DEBUG] Checking response structure...");
       if (!responseData.data || !responseData.data.viewer || !responseData.data.viewer.friending_possibilities) {
+        console.log("[ACCEPT DEBUG] Response structure invalid. Has data:", !!responseData.data, "Has viewer:", !!responseData?.data?.viewer);
         return message.reply(`Could not fetch friend requests. The API response structure is unexpected.`);
       }
       
       const listRequest = responseData.data.viewer.friending_possibilities.edges;
+      console.log("[ACCEPT DEBUG] Found", listRequest ? listRequest.length : 0, "friend requests");
       if (!listRequest || listRequest.length === 0) {
         return message.reply(`You have no pending friend requests.`);
       }
