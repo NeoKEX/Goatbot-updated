@@ -7,36 +7,191 @@ function getType(obj) {
         return Object.prototype.toString.call(obj).slice(8, -1);
 }
 
-async function getRole(threadData, senderID, usersData) {
-        const adminBot = global.GoatBot.config.adminBot || [];
-        const botDevelopers = global.GoatBot.config.botDevelopers || [];
-        if (!senderID)
-                return 0;
+const roleCache = new Map();
+let roleCacheTick = Date.now();
+
+function normalizeUserRole(userRecord) {
+        if (!userRecord || typeof userRecord !== 'object')
+                return null;
         
-        if (botDevelopers.includes(senderID))
-                return 4;
+        const normalized = {
+                customRole: null,
+                premiumEligible: false,
+                needsMigration: false
+        };
         
-        if (adminBot.includes(senderID))
-                return 2;
+        if (userRecord.data && typeof userRecord.data.customRole === 'number') {
+                normalized.customRole = userRecord.data.customRole;
+        }
+        else if (typeof userRecord.role === 'number') {
+                normalized.customRole = userRecord.role;
+                normalized.needsMigration = true;
+        }
+        else if (userRecord.data && typeof userRecord.data.rank === 'number') {
+                normalized.customRole = userRecord.data.rank;
+                normalized.needsMigration = true;
+        }
         
-        const adminBox = threadData ? threadData.adminIDs || [] : [];
-        if (adminBox.includes(senderID))
-                return 1;
+        if (typeof userRecord.money === 'number' && userRecord.money >= 2000) {
+                normalized.premiumEligible = true;
+        }
         
-        if (usersData) {
-                try {
-                        const userData = await usersData.get(senderID);
-                        if (userData) {
-                                if (userData.data && userData.data.customRole !== undefined && userData.data.customRole > 0)
-                                        return userData.data.customRole;
-                                
-                                if (userData.money !== undefined && userData.money >= 2000)
-                                        return 3;
+        if (normalized.customRole !== null) {
+                if (!Number.isInteger(normalized.customRole) || normalized.customRole < 0 || normalized.customRole > 4) {
+                        if (global.utils && global.utils.log) {
+                                global.utils.log.warn("ROLE_VALIDATION", `Invalid customRole value detected: ${normalized.customRole}, resetting to 0`);
                         }
-                } catch (err) {
+                        normalized.customRole = 0;
+                        normalized.needsMigration = true;
                 }
         }
         
+        return normalized;
+}
+
+async function migrateUserRoleIfNeeded(usersData, senderID, normalized) {
+        if (!normalized.needsMigration || !usersData)
+                return;
+        
+        try {
+                if (typeof usersData.set === 'function') {
+                        await usersData.set(senderID, {
+                                customRole: normalized.customRole
+                        }, "data");
+                        if (global.utils && global.utils.log) {
+                                global.utils.log.info("ROLE_MIGRATION", `Migrated role data for user ${senderID}`);
+                        }
+                }
+        } catch (err) {
+                if (global.utils && global.utils.log) {
+                        global.utils.log.err("ROLE_MIGRATION", `Failed to migrate role data for user ${senderID}:`, err);
+                }
+        }
+}
+
+async function getRole(threadData, senderID, usersData) {
+        const currentTick = Date.now();
+        if (currentTick - roleCacheTick > 5000) {
+                roleCache.clear();
+                roleCacheTick = currentTick;
+        }
+        
+        if (!senderID) {
+                return 0;
+        }
+        
+        const senderIDStr = String(senderID);
+        const cacheKey = senderIDStr;
+        if (roleCache.has(cacheKey)) {
+                return roleCache.get(cacheKey);
+        }
+        
+        const adminBot = (global.GoatBot?.config?.adminBot || []).map(id => String(id));
+        const botDevelopers = (global.GoatBot?.config?.botDevelopers || []).map(id => String(id));
+        
+        if (botDevelopers.includes(senderIDStr)) {
+                roleCache.set(cacheKey, 4);
+                return 4;
+        }
+        
+        if (adminBot.includes(senderIDStr)) {
+                roleCache.set(cacheKey, 2);
+                return 2;
+        }
+        
+        const adminBox = threadData?.adminIDs || [];
+        if (Array.isArray(adminBox) && adminBox.length > 0) {
+                const isAdmin = adminBox.some(admin => {
+                        if (typeof admin === 'string' || typeof admin === 'number') {
+                                return String(admin) === senderIDStr;
+                        }
+                        if (admin && typeof admin === 'object' && admin.id) {
+                                return String(admin.id) === senderIDStr;
+                        }
+                        return false;
+                });
+                if (isAdmin) {
+                        roleCache.set(cacheKey, 1);
+                        return 1;
+                }
+        }
+        
+        if (usersData && typeof usersData.get === 'function') {
+                try {
+                        const isInitialized = global.db?.allUserData && Array.isArray(global.db.allUserData);
+                        
+                        if (!isInitialized) {
+                                if (global.utils && global.utils.log) {
+                                        global.utils.log.warn("ROLE_COLD_START", `User database not fully initialized, deferring role check for ${senderID}`);
+                                }
+                                
+                                const cachedUser = global.db?.allUserData?.find(u => u.userID == senderID);
+                                if (cachedUser) {
+                                        const normalized = normalizeUserRole(cachedUser);
+                                        if (normalized) {
+                                                if (normalized.customRole !== null && normalized.customRole > 0) {
+                                                        roleCache.set(cacheKey, normalized.customRole);
+                                                        return normalized.customRole;
+                                                }
+                                                if (normalized.premiumEligible) {
+                                                        roleCache.set(cacheKey, 3);
+                                                        return 3;
+                                                }
+                                        }
+                                }
+                                
+                                roleCache.set(cacheKey, 0);
+                                return 0;
+                        }
+                        
+                        const userData = await usersData.get(senderID);
+                        
+                        if (userData && typeof userData === 'object') {
+                                const normalized = normalizeUserRole(userData);
+                                
+                                if (normalized) {
+                                        if (normalized.needsMigration) {
+                                                migrateUserRoleIfNeeded(usersData, senderID, normalized).catch(err => {
+                                                        if (global.utils && global.utils.log) {
+                                                                global.utils.log.err("ROLE_MIGRATION_ASYNC", `Background migration failed for ${senderID}:`, err);
+                                                        }
+                                                });
+                                        }
+                                        
+                                        if (normalized.customRole !== null && normalized.customRole > 0) {
+                                                roleCache.set(cacheKey, normalized.customRole);
+                                                return normalized.customRole;
+                                        }
+                                        
+                                        if (normalized.premiumEligible) {
+                                                roleCache.set(cacheKey, 3);
+                                                return 3;
+                                        }
+                                }
+                        }
+                } catch (err) {
+                        if (global.utils && global.utils.log) {
+                                global.utils.log.err("ROLE_RESOLUTION", `Error resolving role for user ${senderID}:`, err.message || err);
+                        }
+                        
+                        const fallbackUser = global.db?.allUserData?.find(u => u.userID == senderID);
+                        if (fallbackUser) {
+                                const normalized = normalizeUserRole(fallbackUser);
+                                if (normalized) {
+                                        if (normalized.customRole !== null && normalized.customRole > 0) {
+                                                roleCache.set(cacheKey, normalized.customRole);
+                                                return normalized.customRole;
+                                        }
+                                        if (normalized.premiumEligible) {
+                                                roleCache.set(cacheKey, 3);
+                                                return 3;
+                                        }
+                                }
+                        }
+                }
+        }
+        
+        roleCache.set(cacheKey, 0);
         return 0;
 }
 

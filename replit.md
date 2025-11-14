@@ -17,6 +17,12 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
 - Migrated from local fb-chat-api to neokex-fca npm package
 - Removed entire dashboard system to simplify deployment
 - Cleaned up database models and global state
+- **Critical Security Fix:** Refactored role storage and resolution system with:
+  - Proper promise handling and validation
+  - Backward-compatible data migration for legacy role fields
+  - Cold start protection to prevent role downgrade during initialization
+  - Role caching to reduce database load
+  - Comprehensive error logging instead of silent failures
 
 ## User Preferences
 
@@ -75,16 +81,26 @@ Preferred communication style: Simple, everyday language.
 **Design Pattern:** Chain of Responsibility pattern where events pass through multiple handlers. Task queues prevent race conditions during concurrent event processing.
 
 ### Permission & Access Control
-**Problem:** Manage hierarchical permissions (bot admin, group admin, regular users) across commands and features.
+**Problem:** Manage hierarchical permissions (bot admin, group admin, regular users) across commands and features while ensuring reliability during cold starts and data migrations.
 
-**Solution:** Three-tier role system:
+**Solution:** Five-tier role system with defensive resolution:
 - Role 0: Regular users
 - Role 1: Group administrators
 - Role 2: Bot administrators (configured in `config.json`)
+- Role 3: Premium users (balance >= 2000)
+- Role 4: Bot developers (highest privilege)
+
+**Implementation Details:**
+- **Deterministic resolution tiers:** Static roles (developers, admins) checked first, then thread admins, then custom user roles
+- **Backward compatibility:** Automatically migrates legacy role data from `userData.role`, `userData.data.rank` to `userData.data.customRole`
+- **Cold start protection:** Falls back to cached user data when database is initializing to prevent security vulnerabilities
+- **Role validation:** Enforces 0-4 range and rejects invalid values
+- **Performance optimization:** 5-second cache per user to reduce database queries
+- **Error handling:** Logs all resolution failures with context for debugging
 
 Each command specifies required role. Additional modes include `adminOnly` (bot-wide) and `onlyAdminBox` (per-group).
 
-**Trade-offs:** Simple role system is easy to understand but lacks granular permissions. Future enhancement could add custom role definitions.
+**Security Considerations:** The refactored `getRole` function in `bot/handler/handlerEvents.js` prevents critical issues where cold starts or database failures could incorrectly downgrade admin roles to role 0, bypassing security controls.
 
 ### Auto-Uptime & Monitoring
 **Problem:** Keep bot alive on platforms that sleep inactive processes (Replit, Glitch).
