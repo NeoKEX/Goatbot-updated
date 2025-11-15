@@ -27,8 +27,12 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Fixed welcome event error by adding `changeNickname` alias in neokex-fca that maps to `nickname` function
   - Fixed accept command by adding JSON.parse() calls to handle httpPost string responses
   - Fixed theme command current theme detection to use `extensibleThreadTheme` instead of `threadThemeID`
-  - Added proper JSON parsing in accept command for GraphQL API responses
-  - Added validation for GraphQL response structure in accept command to prevent "Cannot read properties of undefined" errors
+  - **Enhanced accept command (November 16, 2025):**
+    - Added robust `safeJsonParse` helper function to handle both string and object responses from httpPost
+    - Implemented validation for GraphQL response structure to prevent "Cannot read properties of undefined" errors
+    - Added null-safety checks in onStart function before accessing nested response properties
+    - Improved error handling with user-friendly error messages when friend requests cannot be fetched
+    - Command now gracefully handles malformed API responses without crashing
 - **New Features (November 15-16, 2025):**
   - **Advanced AI Theme System**: Complete theme generation and management system
     - Generates 5 AI-powered theme variations per request
