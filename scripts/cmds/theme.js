@@ -86,7 +86,7 @@ module.exports = {
     try {
       message.reply(getLang("generating"));
 
-      const themes = await api.createAITheme(prompt);
+      const themes = await api.createAITheme(prompt, 5);
 
       if (!themes || themes.length === 0) {
         return message.reply(getLang("noThemes"));
@@ -94,8 +94,17 @@ module.exports = {
 
       let themeList = "";
       themes.forEach((theme, index) => {
-        const gradientColor = theme.id || "Custom";
-        themeList += getLang("themeInfo", index + 1, theme.id, gradientColor) + "\n\n";
+        let colorInfo = "AI Generated";
+        
+        if (theme.accessibility_label) {
+          colorInfo = theme.accessibility_label;
+        } else if (theme.gradient_colors && theme.gradient_colors.length > 0) {
+          colorInfo = theme.gradient_colors.join(" → ");
+        } else if (theme.primary_color) {
+          colorInfo = theme.primary_color;
+        }
+        
+        themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
       });
 
       const replyMessage = getLang("preview", themes.length, prompt, themeList.trim());
