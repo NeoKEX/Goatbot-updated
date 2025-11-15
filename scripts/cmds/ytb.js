@@ -1,5 +1,6 @@
 const axios = require("axios");
-const ytdl = require("@distube/ytdl-core");
+const { youtube } = require("btch-downloader");
+const yts = require("yt-search");
 const fs = require("fs-extra");
 const { getStreamFromURL, downloadFile, formatNumber } = global.utils;
 async function getStreamAndSize(url, path = "") {
@@ -163,106 +164,106 @@ module.exports = {
 };
 
 async function handle({ type, infoVideo, message, getLang }) {
-        const { title, videoId } = infoVideo;
+        const { title, videoId, video_url } = infoVideo;
 
         if (type == "video") {
                 const MAX_SIZE = 83 * 1024 * 1024; // 83MB (max size of video that can be sent on fb)
                 const msgSend = message.reply(getLang("downloading", getLang("video"), title));
-                const { formats } = await ytdl.getInfo(videoId);
-                const getFormat = formats
-                        .filter(f => f.hasVideo && f.hasAudio && f.contentLength && f.contentLength < MAX_SIZE)
-                        .sort((a, b) => {
-                                const qualityOrder = { 'medium': 3, 'small': 2, 'tiny': 1 };
-                                const aQuality = qualityOrder[a.quality] || 0;
-                                const bQuality = qualityOrder[b.quality] || 0;
-                                if (bQuality !== aQuality) return bQuality - aQuality;
-                                return (b.contentLength || 0) - (a.contentLength || 0);
-                        })[0];
-                if (!getFormat)
-                        return message.reply(getLang("noVideo"));
-                const getStream = await getStreamAndSize(getFormat.url, `${videoId}.mp4`);
-                if (getStream.size > MAX_SIZE)
-                        return message.reply(getLang("noVideo"));
-
-                const savePath = __dirname + `/tmp/${videoId}_${Date.now()}.mp4`;
-                const writeStrean = fs.createWriteStream(savePath);
-                const startTime = Date.now();
-                getStream.stream.pipe(writeStrean);
-                const contentLength = getStream.size;
-                let downloaded = 0;
-                let count = 0;
-
-                getStream.stream.on("data", (chunk) => {
-                        downloaded += chunk.length;
-                        count++;
-                        if (count == 5) {
-                                const endTime = Date.now();
-                                const speed = downloaded / (endTime - startTime) * 1000;
-                                const timeLeft = (contentLength / downloaded * (endTime - startTime)) / 1000;
-                                const percent = downloaded / contentLength * 100;
-                                if (timeLeft > 30) // if time left > 30s, send message
-                                        message.reply(getLang("downloading2", getLang("video"), title, Math.floor(speed / 1000) / 1000, Math.floor(downloaded / 1000) / 1000, Math.floor(contentLength / 1000) / 1000, Math.floor(percent), timeLeft.toFixed(2)));
+                
+                try {
+                        const downloadData = await youtube(video_url);
+                        if (!downloadData || !downloadData.mp4) {
+                                return message.reply(getLang("noVideo"));
                         }
-                });
-                writeStrean.on("finish", () => {
-                        message.reply({
-                                body: title,
-                                attachment: fs.createReadStream(savePath)
-                        }, async (err) => {
-                                if (err)
-                                        return message.reply(getLang("error", err.message));
-                                fs.unlinkSync(savePath);
-                                message.unsend((await msgSend).messageID);
+                        
+                        const getStream = await getStreamAndSize(downloadData.mp4, `${videoId}.mp4`);
+                        if (getStream.size > MAX_SIZE)
+                                return message.reply(getLang("noVideo"));
+
+                        const savePath = __dirname + `/tmp/${videoId}_${Date.now()}.mp4`;
+                        const writeStrean = fs.createWriteStream(savePath);
+                        const startTime = Date.now();
+                        getStream.stream.pipe(writeStrean);
+                        const contentLength = getStream.size;
+                        let downloaded = 0;
+                        let count = 0;
+
+                        getStream.stream.on("data", (chunk) => {
+                                downloaded += chunk.length;
+                                count++;
+                                if (count == 5) {
+                                        const endTime = Date.now();
+                                        const speed = downloaded / (endTime - startTime) * 1000;
+                                        const timeLeft = (contentLength / downloaded * (endTime - startTime)) / 1000;
+                                        const percent = downloaded / contentLength * 100;
+                                        if (timeLeft > 30) // if time left > 30s, send message
+                                                message.reply(getLang("downloading2", getLang("video"), title, Math.floor(speed / 1000) / 1000, Math.floor(downloaded / 1000) / 1000, Math.floor(contentLength / 1000) / 1000, Math.floor(percent), timeLeft.toFixed(2)));
+                                }
                         });
-                });
+                        writeStrean.on("finish", () => {
+                                message.reply({
+                                        body: title,
+                                        attachment: fs.createReadStream(savePath)
+                                }, async (err) => {
+                                        if (err)
+                                                return message.reply(getLang("error", err.message));
+                                        fs.unlinkSync(savePath);
+                                        message.unsend((await msgSend).messageID);
+                                });
+                        });
+                } catch (err) {
+                        return message.reply(getLang("error", err.message));
+                }
         }
         else if (type == "audio") {
                 const MAX_SIZE = 27262976; // 26MB (max size of audio that can be sent on fb)
                 const msgSend = message.reply(getLang("downloading", getLang("audio"), title));
-                const { formats } = await ytdl.getInfo(videoId);
-                const getFormat = formats
-                        .filter(f => f.hasAudio && !f.hasVideo && f.contentLength && f.contentLength < MAX_SIZE)
-                        .sort((a, b) => {
-                                return (b.audioBitrate || 0) - (a.audioBitrate || 0) || (b.contentLength || 0) - (a.contentLength || 0);
-                        })[0];
-                if (!getFormat)
-                        return message.reply(getLang("noAudio"));
-                const getStream = await getStreamAndSize(getFormat.url, `${videoId}.mp3`);
-                if (getStream.size > MAX_SIZE)
-                        return message.reply(getLang("noAudio"));
-
-                const savePath = __dirname + `/tmp/${videoId}_${Date.now()}.mp3`;
-                const writeStrean = fs.createWriteStream(savePath);
-                const startTime = Date.now();
-                getStream.stream.pipe(writeStrean);
-                const contentLength = getStream.size;
-                let downloaded = 0;
-                let count = 0;
-
-                getStream.stream.on("data", (chunk) => {
-                        downloaded += chunk.length;
-                        count++;
-                        if (count == 5) {
-                                const endTime = Date.now();
-                                const speed = downloaded / (endTime - startTime) * 1000;
-                                const timeLeft = (contentLength / downloaded * (endTime - startTime)) / 1000;
-                                const percent = downloaded / contentLength * 100;
-                                if (timeLeft > 30) // if time left > 30s, send message
-                                        message.reply(getLang("downloading2", getLang("audio"), title, Math.floor(speed / 1000) / 1000, Math.floor(downloaded / 1000) / 1000, Math.floor(contentLength / 1000) / 1000, Math.floor(percent), timeLeft.toFixed(2)));
+                
+                try {
+                        const downloadData = await youtube(video_url);
+                        if (!downloadData || !downloadData.mp3) {
+                                return message.reply(getLang("noAudio"));
                         }
-                });
+                        
+                        const getStream = await getStreamAndSize(downloadData.mp3, `${videoId}.mp3`);
+                        if (getStream.size > MAX_SIZE)
+                                return message.reply(getLang("noAudio"));
 
-                writeStrean.on("finish", () => {
-                        message.reply({
-                                body: title,
-                                attachment: fs.createReadStream(savePath)
-                        }, async (err) => {
-                                if (err)
-                                        return message.reply(getLang("error", err.message));
-                                fs.unlinkSync(savePath);
-                                message.unsend((await msgSend).messageID);
+                        const savePath = __dirname + `/tmp/${videoId}_${Date.now()}.mp3`;
+                        const writeStrean = fs.createWriteStream(savePath);
+                        const startTime = Date.now();
+                        getStream.stream.pipe(writeStrean);
+                        const contentLength = getStream.size;
+                        let downloaded = 0;
+                        let count = 0;
+
+                        getStream.stream.on("data", (chunk) => {
+                                downloaded += chunk.length;
+                                count++;
+                                if (count == 5) {
+                                        const endTime = Date.now();
+                                        const speed = downloaded / (endTime - startTime) * 1000;
+                                        const timeLeft = (contentLength / downloaded * (endTime - startTime)) / 1000;
+                                        const percent = downloaded / contentLength * 100;
+                                        if (timeLeft > 30) // if time left > 30s, send message
+                                                message.reply(getLang("downloading2", getLang("audio"), title, Math.floor(speed / 1000) / 1000, Math.floor(downloaded / 1000) / 1000, Math.floor(contentLength / 1000) / 1000, Math.floor(percent), timeLeft.toFixed(2)));
+                                }
                         });
-                });
+
+                        writeStrean.on("finish", () => {
+                                message.reply({
+                                        body: title,
+                                        attachment: fs.createReadStream(savePath)
+                                }, async (err) => {
+                                        if (err)
+                                                return message.reply(getLang("error", err.message));
+                                        fs.unlinkSync(savePath);
+                                        message.unsend((await msgSend).messageID);
+                                });
+                        });
+                } catch (err) {
+                        return message.reply(getLang("error", err.message));
+                }
         }
         else if (type == "info") {
                 const { title, lengthSeconds, viewCount, videoId, uploadDate, likes, channel, chapters } = infoVideo;
@@ -323,26 +324,30 @@ async function getVideoInfo(id) {
         id = id.replace(/(>|<)/gi, '').split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/|\/shorts\/)/);
         id = id[2] !== undefined ? id[2].split(/[^0-9a-z_\-]/i)[0] : id[0];
 
-        const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
-        const videoDetails = info.videoDetails;
+        const searchResult = await yts(`https://www.youtube.com/watch?v=${id}`);
+        const video = searchResult.all && searchResult.all.length > 0 ? searchResult.all[0] : null;
+
+        if (!video || !video.videoId) {
+                throw new Error("Video not found");
+        }
 
         const result = {
-                videoId: videoDetails.videoId,
-                title: videoDetails.title,
-                video_url: `https://youtu.be/${videoDetails.videoId}`,
-                lengthSeconds: parseInt(videoDetails.lengthSeconds),
-                viewCount: parseInt(videoDetails.viewCount || 0),
-                uploadDate: videoDetails.uploadDate || videoDetails.publishDate || 'Unknown',
-                likes: parseInt(videoDetails.likes || 0),
-                chapters: videoDetails.chapters || [],
-                thumbnails: videoDetails.thumbnails || [],
-                author: videoDetails.author?.name || videoDetails.ownerChannelName || 'Unknown',
+                videoId: video.videoId,
+                title: video.title,
+                video_url: video.url || `https://youtu.be/${video.videoId}`,
+                lengthSeconds: video.seconds || video.duration?.seconds || 0,
+                viewCount: video.views || 0,
+                uploadDate: video.ago || 'Unknown',
+                likes: 0,
+                chapters: [],
+                thumbnails: video.thumbnail ? [{ url: video.thumbnail }] : [],
+                author: video.author?.name || 'Unknown',
                 channel: {
-                        id: videoDetails.author?.id || videoDetails.channelId || '',
-                        username: videoDetails.author?.user || '',
-                        name: videoDetails.author?.name || videoDetails.ownerChannelName || 'Unknown',
-                        thumbnails: videoDetails.author?.thumbnails || [],
-                        subscriberCount: parseInt(videoDetails.author?.subscriber_count || 0)
+                        id: '',
+                        username: '',
+                        name: video.author?.name || 'Unknown',
+                        thumbnails: video.author?.thumbnail ? [{ url: video.author.thumbnail }] : [],
+                        subscriberCount: 0
                 }
         };
 

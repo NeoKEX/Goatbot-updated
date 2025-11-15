@@ -117,12 +117,14 @@ module.exports = {
         
         const attachments = [];
         
-        if (theme.preview_image_urls) {
-          console.log("Theme Debug - preview_image_urls:", theme.preview_image_urls);
-          const urls = theme.preview_image_urls;
+        if (theme.preview_image_urls || theme.preview_images) {
+          const urls = theme.preview_image_urls || theme.preview_images;
+          console.log("Theme Debug - preview urls:", urls);
+          
           if (urls.light_mode) {
             try {
-              const lightStream = await getStreamFromURL(urls.light_mode, "theme_light.png");
+              const lightUrl = urls.light_mode.uri || urls.light_mode;
+              const lightStream = await getStreamFromURL(lightUrl, "theme_light.png");
               if (lightStream) attachments.push(lightStream);
             } catch (imgError) {
               console.log("Failed to load light mode preview:", imgError.message);
@@ -130,7 +132,8 @@ module.exports = {
           }
           if (urls.dark_mode) {
             try {
-              const darkStream = await getStreamFromURL(urls.dark_mode, "theme_dark.png");
+              const darkUrl = urls.dark_mode.uri || urls.dark_mode;
+              const darkStream = await getStreamFromURL(darkUrl, "theme_dark.png");
               if (darkStream) attachments.push(darkStream);
             } catch (imgError) {
               console.log("Failed to load dark mode preview:", imgError.message);
@@ -153,6 +156,8 @@ module.exports = {
 
       const themes = await api.createAITheme(prompt, 5);
 
+      console.log("Theme API Response:", JSON.stringify(themes, null, 2));
+
       if (!themes || themes.length === 0) {
         return message.reply(getLang("noThemes"));
       }
@@ -174,7 +179,44 @@ module.exports = {
         
         themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
         
-        if (theme.preview_urls && theme.preview_urls.length > 0) {
+        console.log(`Theme ${index + 1} structure:`, {
+          has_preview_image_urls: !!theme.preview_image_urls,
+          has_preview_images: !!theme.preview_images,
+          has_preview_urls: !!theme.preview_urls,
+          theme_keys: Object.keys(theme)
+        });
+        
+        if (theme.preview_image_urls || theme.preview_images) {
+          const previewUrls = theme.preview_image_urls || theme.preview_images;
+          console.log(`Theme ${index + 1} preview URLs:`, previewUrls);
+          
+          if (previewUrls.light_mode) {
+            try {
+              const lightUrl = previewUrls.light_mode.uri || previewUrls.light_mode;
+              console.log(`Fetching light mode URL: ${lightUrl}`);
+              const stream = await getStreamFromURL(lightUrl, `theme_${index + 1}_light.png`);
+              if (stream) {
+                attachments.push(stream);
+              }
+            } catch (imgError) {
+              console.log(`Failed to load light mode preview for theme ${index + 1}:`, imgError.message);
+            }
+          }
+          
+          if (previewUrls.dark_mode) {
+            try {
+              const darkUrl = previewUrls.dark_mode.uri || previewUrls.dark_mode;
+              console.log(`Fetching dark mode URL: ${darkUrl}`);
+              const stream = await getStreamFromURL(darkUrl, `theme_${index + 1}_dark.png`);
+              if (stream) {
+                attachments.push(stream);
+              }
+            } catch (imgError) {
+              console.log(`Failed to load dark mode preview for theme ${index + 1}:`, imgError.message);
+            }
+          }
+        } else if (theme.preview_urls && theme.preview_urls.length > 0) {
+          console.log(`Using fallback preview_urls array for theme ${index + 1}`);
           for (let previewIndex = 0; previewIndex < theme.preview_urls.length; previewIndex++) {
             try {
               const previewUrl = theme.preview_urls[previewIndex];
@@ -187,10 +229,14 @@ module.exports = {
               console.log(`Failed to load preview ${previewIndex} for theme ${index + 1}:`, imgError.message);
             }
           }
+        } else {
+          console.log(`Theme ${index + 1} has no preview URLs in any known format`);
         }
       }
 
       const replyMessage = getLang("preview", themes.length, prompt, themeList.trim());
+      
+      console.log(`Total attachments collected: ${attachments.length}`);
       
       message.reply({ 
         body: replyMessage,

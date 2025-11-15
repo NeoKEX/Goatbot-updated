@@ -66,18 +66,27 @@ module.exports = {
         failed.push(`Can't find stt ${stt} in the list`);
         continue;
       }
-      form.variables.input.friend_requester_id = u.node.id;
-      form.variables = JSON.stringify(form.variables);
+      const payload = {
+        ...form,
+        variables: JSON.stringify({
+          ...form.variables,
+          input: {
+            ...form.variables.input,
+            friend_requester_id: u.node.id
+          }
+        })
+      };
       newTargetIDs.push(u);
-      promiseFriends.push(api.httpPost("https://www.facebook.com/api/graphql/", form));
-      form.variables = JSON.parse(form.variables);
+      promiseFriends.push(api.httpPost("https://www.facebook.com/api/graphql/", payload));
     }
 
     const lengthTarget = newTargetIDs.length;
     for (let i = 0; i < lengthTarget; i++) {
       try {
         const friendRequest = await promiseFriends[i];
-        if (JSON.parse(friendRequest).errors) {
+        const response = JSON.parse(friendRequest);
+        if (response.errors) {
+          console.log(`GraphQL Error for ${newTargetIDs[i].node.name}:`, response.errors);
           failed.push(newTargetIDs[i].node.name);
         }
         else {
@@ -85,6 +94,7 @@ module.exports = {
         }
       }
       catch (e) {
+        console.log(`Error for ${newTargetIDs[i].node.name}:`, e.message);
         failed.push(newTargetIDs[i].node.name);
       }
     }
@@ -115,7 +125,7 @@ module.exports = {
       msg += (`\n${i}. Name: ${user.node.name}`
         + `\nID: ${user.node.id}`
         + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
-        + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
+        + `\nTime: ${moment(user.time * 1000).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
     }
     api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
       global.GoatBot.onReply.set(info.messageID, {
