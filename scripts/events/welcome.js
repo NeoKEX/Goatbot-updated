@@ -44,7 +44,7 @@ module.exports = {
                                 // if new member is bot
                                 if (dataAddedParticipants.some((item) => item.userFbId == api.getCurrentUserID())) {
                                         if (nickNameBot)
-                                                api.nickname(nickNameBot, threadID, api.getCurrentUserID());
+                                                api.changeNickname(nickNameBot, threadID, api.getCurrentUserID());
                                         return message.send(getLang("welcomeMessage", prefix));
                                 }
                                 // if new member:

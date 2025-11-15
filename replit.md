@@ -24,10 +24,19 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Role caching to reduce database load
   - Comprehensive error logging instead of silent failures
 - **Bug Fixes (November 15, 2025):**
-  - Fixed welcome event error by updating `api.changeNickname` to `api.setNickname` (correct neokex-fca function)
-  - Fixed accept command JSON parse error by removing unnecessary JSON.parse calls since api.httpPost returns parsed objects
+  - Fixed welcome event error by updating function call to `api.nickname` (correct neokex-fca module name)
+  - Fixed accept command error by adding proper error handling and using `api.sendMessage` instead of undefined message object
+  - Added validation for GraphQL response structure in accept command to prevent "Cannot read properties of undefined" errors
 - **New Features (November 15, 2025):**
-  - Added AI theme command using neokex-fca's `createAITheme` API to generate and apply custom themes based on text descriptions
+  - **Advanced AI Theme System**: Complete theme generation and management system
+    - Generates 5 AI-powered theme variations per request
+    - Interactive preview with theme IDs and color information
+    - Reply-based selection system (users reply with 1-5 to choose)
+    - Direct theme application by ID: `?theme apply <ID>`
+    - Displays gradient colors, accessibility labels, and color descriptions
+  - **neokex-fca Enhancements**:
+    - Modified `createAITheme` API to support generating 1-10 themes (default: 3)
+    - Backward compatible implementation with parameter validation
 
 ## User Preferences
 

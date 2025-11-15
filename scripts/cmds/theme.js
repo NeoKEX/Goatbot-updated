@@ -1,3 +1,5 @@
+const { getStreamFromURL } = global.utils;
+
 module.exports = {
   config: {
     name: "theme",
@@ -7,16 +9,16 @@ module.exports = {
     countDown: 5,
     role: 1,
     description: {
-      vi: "Tạo và áp dụng chủ đề AI cho nhóm chat",
-      en: "Create and apply AI themes for chat group"
+      vi: "Tạo và áp dụng chủ đề AI cho nhóm chat với xem trước hình ảnh",
+      en: "Create and apply AI themes for chat group with image previews"
     },
     category: "box chat",
     guide: {
-      vi: "   {pn} <mô tả>: Tạo chủ đề AI và xem xem trước"
+      vi: "   {pn} <mô tả>: Tạo chủ đề AI và xem xem trước với hình ảnh"
         + "\n   {pn} apply <ID>: Áp dụng chủ đề bằng ID"
         + "\n   Ví dụ: {pn} ocean sunset with purple and pink colors"
         + "\n   Sau đó trả lời tin nhắn với số để chọn chủ đề",
-      en: "   {pn} <description>: Create AI theme and preview"
+      en: "   {pn} <description>: Create AI theme and preview with images"
         + "\n   {pn} apply <ID>: Apply theme by ID"
         + "\n   Example: {pn} ocean sunset with purple and pink colors"
         + "\n   Then reply to the message with a number to select theme"
@@ -93,7 +95,10 @@ module.exports = {
       }
 
       let themeList = "";
-      themes.forEach((theme, index) => {
+      const attachments = [];
+      
+      for (let index = 0; index < themes.length; index++) {
+        const theme = themes[index];
         let colorInfo = "AI Generated";
         
         if (theme.accessibility_label) {
@@ -105,11 +110,26 @@ module.exports = {
         }
         
         themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
-      });
+        
+        if (theme.preview_urls && theme.preview_urls.length > 0) {
+          try {
+            const previewUrl = theme.preview_urls[0];
+            const stream = await getStreamFromURL(previewUrl, `theme_${index + 1}.png`);
+            if (stream) {
+              attachments.push(stream);
+            }
+          } catch (imgError) {
+            console.log(`Failed to load preview for theme ${index + 1}:`, imgError.message);
+          }
+        }
+      }
 
       const replyMessage = getLang("preview", themes.length, prompt, themeList.trim());
       
-      message.reply(replyMessage, (err, info) => {
+      message.reply({ 
+        body: replyMessage,
+        attachment: attachments.length > 0 ? attachments : undefined
+      }, (err, info) => {
         if (err) return;
         
         global.GoatBot.onReply.set(info.messageID, {
