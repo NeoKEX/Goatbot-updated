@@ -107,27 +107,42 @@ module.exports = {
       doc_id: "4499164963466303",
       variables: JSON.stringify({ input: { scale: 3 } })
     };
-    const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-    const listRequest = response.data.viewer.friending_possibilities.edges;
-    let msg = "";
-    let i = 0;
-    for (const user of listRequest) {
-      i++;
-      msg += (`\n${i}. Name: ${user.node.name}`
-        + `\nID: ${user.node.id}`
-        + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
-        + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
+    
+    try {
+      const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
+      
+      if (!response || !response.data || !response.data.viewer || !response.data.viewer.friending_possibilities) {
+        return api.sendMessage("❌ | Unable to fetch friend requests. Please try again later.", event.threadID, event.messageID);
+      }
+      
+      const listRequest = response.data.viewer.friending_possibilities.edges;
+      
+      if (!listRequest || listRequest.length === 0) {
+        return api.sendMessage("ℹ️ | You have no pending friend requests.", event.threadID, event.messageID);
+      }
+      
+      let msg = "";
+      let i = 0;
+      for (const user of listRequest) {
+        i++;
+        msg += (`\n${i}. Name: ${user.node.name}`
+          + `\nID: ${user.node.id}`
+          + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
+          + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
+      }
+      api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName,
+          messageID: info.messageID,
+          listRequest,
+          author: event.senderID,
+          unsendTimeout: setTimeout(() => {
+            api.unsendMessage(info.messageID); // Unsend the message after the countdown duration
+          }, this.config.countDown * 1000) // Convert countdown duration to milliseconds
+        });
+      }, event.messageID);
+    } catch (error) {
+      return api.sendMessage(`❌ | An error occurred while fetching friend requests:\n${error.message || error}`, event.threadID, event.messageID);
     }
-    api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
-      global.GoatBot.onReply.set(info.messageID, {
-        commandName,
-        messageID: info.messageID,
-        listRequest,
-        author: event.senderID,
-        unsendTimeout: setTimeout(() => {
-          api.unsendMessage(info.messageID); // Unsend the message after the countdown duration
-        }, this.config.countDown * 1000) // Convert countdown duration to milliseconds
-      });
-    }, event.messageID);
   }
 };
