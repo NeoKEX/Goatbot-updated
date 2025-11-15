@@ -23,19 +23,25 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Cold start protection to prevent role downgrade during initialization
   - Role caching to reduce database load
   - Comprehensive error logging instead of silent failures
-- **Bug Fixes (November 15, 2025):**
-  - Fixed welcome event error by updating function call to `api.nickname` (correct neokex-fca module name)
-  - Fixed accept command error by adding proper error handling and using `api.sendMessage` instead of undefined message object
+- **Bug Fixes (November 15-16, 2025):**
+  - Fixed welcome event error by adding `changeNickname` alias in neokex-fca that maps to `nickname` function
+  - Fixed accept command by adding JSON.parse() calls to handle httpPost string responses
+  - Fixed theme command current theme detection to use `extensibleThreadTheme` instead of `threadThemeID`
+  - Added proper JSON parsing in accept command for GraphQL API responses
   - Added validation for GraphQL response structure in accept command to prevent "Cannot read properties of undefined" errors
-- **New Features (November 15, 2025):**
+- **New Features (November 15-16, 2025):**
   - **Advanced AI Theme System**: Complete theme generation and management system
     - Generates 5 AI-powered theme variations per request
     - Interactive preview with theme IDs and color information
+    - Image previews downloaded via getStreamFromURL and sent as attachments
     - Reply-based selection system (users reply with 1-5 to choose)
     - Direct theme application by ID: `?theme apply <ID>`
+    - Current theme display when typing just `?theme` without arguments
     - Displays gradient colors, accessibility labels, and color descriptions
   - **neokex-fca Enhancements**:
+    - Added `api.changeNickname` alias for backward compatibility (maps to `api.nickname`)
     - Modified `createAITheme` API to support generating 1-10 themes (default: 3)
+    - Safe alias assignment with existence check to prevent crashes if nickname module fails
     - Backward compatible implementation with parameter validation
 
 ## User Preferences
