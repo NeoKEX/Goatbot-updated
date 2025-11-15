@@ -27,3 +27,6 @@ outputType = "console"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node index.js"
+
+[nix]
+channel = "stable-25_05"
