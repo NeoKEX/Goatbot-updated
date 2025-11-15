@@ -14,11 +14,13 @@ module.exports = {
     },
     category: "box chat",
     guide: {
-      vi: "   {pn} <mô tả>: Tạo chủ đề AI và xem xem trước với hình ảnh"
+      vi: "   {pn}: Xem chủ đề hiện tại của nhóm"
+        + "\n   {pn} <mô tả>: Tạo chủ đề AI và xem xem trước với hình ảnh"
         + "\n   {pn} apply <ID>: Áp dụng chủ đề bằng ID"
         + "\n   Ví dụ: {pn} ocean sunset with purple and pink colors"
         + "\n   Sau đó trả lời tin nhắn với số để chọn chủ đề",
-      en: "   {pn} <description>: Create AI theme and preview with images"
+      en: "   {pn}: View current group theme"
+        + "\n   {pn} <description>: Create AI theme and preview with images"
         + "\n   {pn} apply <ID>: Apply theme by ID"
         + "\n   Example: {pn} ocean sunset with purple and pink colors"
         + "\n   Then reply to the message with a number to select theme"
@@ -40,7 +42,10 @@ module.exports = {
       notAuthor: "⚠️ | Chỉ người tạo yêu cầu mới có thể chọn chủ đề",
       missingThemeId: "⚠️ | Vui lòng nhập ID chủ đề\nVí dụ: {pn} apply 739785333579430",
       applyingById: "🎨 | Đang áp dụng chủ đề ID: %1...",
-      appliedById: "✅ | Đã áp dụng chủ đề ID: %1 thành công!"
+      appliedById: "✅ | Đã áp dụng chủ đề ID: %1 thành công!",
+      currentTheme: "🎨 | Chủ đề hiện tại của nhóm:\n\n📌 Theme ID: %1\n🎨 Màu sắc: %2\n\n💡 Sử dụng {pn} apply <ID> để thay đổi chủ đề",
+      fetchingCurrent: "🔍 | Đang lấy thông tin chủ đề hiện tại...",
+      noCurrentTheme: "ℹ️ | Nhóm này đang dùng chủ đề mặc định"
     },
     en: {
       missingPrompt: "⚠️ | Please enter a description for AI theme or theme ID to apply\n\nExamples:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
@@ -56,7 +61,10 @@ module.exports = {
       notAuthor: "⚠️ | Only the person who requested can select the theme",
       missingThemeId: "⚠️ | Please enter theme ID\nExample: {pn} apply 739785333579430",
       applyingById: "🎨 | Applying theme ID: %1...",
-      appliedById: "✅ | Successfully applied theme ID: %1!"
+      appliedById: "✅ | Successfully applied theme ID: %1!",
+      currentTheme: "🎨 | Current group theme:\n\n📌 Theme ID: %1\n🎨 Color: %2\n\n💡 Use {pn} apply <ID> to change theme",
+      fetchingCurrent: "🔍 | Fetching current theme information...",
+      noCurrentTheme: "ℹ️ | This group is using the default theme"
     }
   },
 
@@ -82,7 +90,22 @@ module.exports = {
     const prompt = args.join(" ");
 
     if (!prompt) {
-      return message.reply(getLang("missingPrompt"));
+      try {
+        message.reply(getLang("fetchingCurrent"));
+        
+        const threadInfo = await api.getThreadInfo(event.threadID);
+        
+        if (!threadInfo || !threadInfo.threadThemeID) {
+          return message.reply(getLang("noCurrentTheme"));
+        }
+        
+        const themeId = threadInfo.threadThemeID;
+        const themeName = threadInfo.threadThemeName || "Unknown";
+        
+        return message.reply(getLang("currentTheme", themeId, themeName));
+      } catch (error) {
+        return message.reply(getLang("error", error.message || error));
+      }
     }
 
     try {
