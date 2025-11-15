@@ -1,81 +1,144 @@
+const axios = require("axios");
+const fs = require("fs");
+
 module.exports = {
-        config: {
-                name: "pending",
-                version: "1.0",
-                author: "NeoKEX",
-                countDown: 5,
-                role: 2,
-                description: {
-                        vi: "Xem và chấp nhận tin nhắn đang chờ",
-                        en: "View and accept pending message requests"
-                },
-                category: "admin",
-                guide: {
-                        vi: '   {pn}: Xem danh sách tin nhắn đang chờ'
-                                + '\n   {pn} accept <threadID>: Chấp nhận tin nhắn từ thread cụ thể'
-                                + '\n   {pn} acceptall: Chấp nhận tất cả tin nhắn đang chờ',
-                        en: '   {pn}: View list of pending messages'
-                                + '\n   {pn} accept <threadID>: Accept message from specific thread'
-                                + '\n   {pn} acceptall: Accept all pending messages'
-                }
-        },
+  config: {
+    name: "pending",
+    aliases: ["pen", "pend", "pe"],
+    version: "1.6.9",
+    author: "♡ Nazrul ♡",
+    countDown: 5,
+    role: 1,
+    shortDescription: "handle pending requests",
+    longDescription: "Approve orreject pending users or group requests",
+    category: "utility",
+  },
 
-        langs: {
-                vi: {
-                        pendingList: "📬 Danh sách tin nhắn đang chờ (%1):\n\n%2\n\nDùng {pn} accept <threadID> để chấp nhận",
-                        noPending: "📭 Không có tin nhắn đang chờ nào",
-                        accepted: "✅ Đã chấp nhận tin nhắn từ thread: %1",
-                        acceptedAll: "✅ Đã chấp nhận %1 tin nhắn đang chờ",
-                        error: "❌ Đã xảy ra lỗi: %1",
-                        missingThreadID: "⚠️ Vui lòng nhập threadID"
-                },
-                en: {
-                        pendingList: "📬 Pending message list (%1):\n\n%2\n\nUse {pn} accept <threadID> to accept",
-                        noPending: "📭 No pending messages",
-                        accepted: "✅ Accepted message from thread: %1",
-                        acceptedAll: "✅ Accepted %1 pending messages",
-                        error: "❌ An error occurred: %1",
-                        missingThreadID: "⚠️ Please enter threadID"
-                }
-        },
+  onReply: async function ({ message, api, event, Reply }) {
+    const { author, pending, messageID } = Reply;
+    if (String(event.senderID) !== String(author)) return;
 
-        onStart: async function ({ api, message, args, getLang, commandName }) {
-                try {
-                        const spam = await api.getThreadList(100, null, ["PENDING"]);
-                        const pending = await api.getThreadList(100, null, ["OTHER"]);
-                        const list = [...spam, ...pending].filter(thread => thread.isGroup == false);
-                        
-                        if (list.length === 0)
-                                return message.reply(getLang("noPending"));
-                        
-                        if (args[0] === "accept") {
-                                if (!args[1])
-                                        return message.reply(getLang("missingThreadID"));
-                                
-                                const threadID = args[1];
-                                await api.sendMessage("✅ Message request accepted", threadID);
-                                return message.reply(getLang("accepted", threadID));
-                        } else if (args[0] === "acceptall") {
-                                let count = 0;
-                                for (const thread of list) {
-                                        try {
-                                                await api.sendMessage("✅ Message request accepted", thread.threadID);
-                                                count++;
-                                        } catch (err) {
-                                                console.error(`Error accepting thread ${thread.threadID}:`, err);
-                                        }
-                                }
-                                return message.reply(getLang("acceptedAll", count));
-                        } else {
-                                const msg = list.map((thread, i) => 
-                                        `${i + 1}. ${thread.name || "Unnamed"} (${thread.threadID})`
-                                ).join("\n");
-                                
-                                return message.reply(getLang("pendingList", list.length, msg).replace(/{pn}/g, `${message.prefix || ""}${commandName}`));
-                        }
-                } catch (err) {
-                        console.error("Error in pending command:", err);
-                        return message.reply(getLang("error", err.message));
-                }
-        }
+    const { body, threadID } = event;
+
+    if (body.trim().toLowerCase() === "c") {
+      try {
+        await api.unsendMessage(messageID);
+        return api.sendMessage(
+          ` Operation has been canceled!`,
+          threadID
+        );
+      } catch {
+        return;
+      }
+    }
+
+    const indexes = body.split(/\s+/).map(Number);
+
+    if (isNaN(indexes[0])) {
+      return api.sendMessage(`⚠ Invalid input! Please try again.`, threadID);
+    }
+
+    let count = 0;
+
+    for (const idx of indexes) {
+ 
+      if (idx <= 0 || idx > pending.length) continue;
+
+      const group = pending[idx - 1];
+
+      try {
+        await api.sendMessage(
+          `✅ Group has been Successfully Approved by Toshiro Editz!\n\n📜 Type ${global.GoatBot.config.prefix}help to See Cmds!`,
+          group.threadID
+        );
+
+        await api.changeNickname(
+          `${global.GoatBot.config.nickNameBot || "🌬️ Raven Ai ✨"}`,
+          group.threadID,
+          api.getCurrentUserID()
+        );
+
+        count++;
+      } catch {
+  
+        count++;
+      }
+    }
+
+    for (const idx of indexes.sort((a, b) => b - a)) {
+      if (idx > 0 && idx <= pending.length) {
+        pending.splice(idx - 1, 1);
+      }
+    }
+
+    return api.sendMessage(
+      `✅ | [ Successfully ] 🎉 Approved ${count} Groups✨!`,
+      threadID
+    );
+  },
+
+  onStart: async function ({ api, event, args, usersData }) {
+    const { threadID, messageID } = event;
+    const adminBot = global.GoatBot.config.adminBot;
+
+    if (!adminBot.includes(event.senderID)) {
+      return api.sendMessage(
+        `⚠ you have no permission to use this command!`,
+        threadID
+      );
+    }
+
+    const type = args[0]?.toLowerCase();
+    if (!type) {
+      return api.sendMessage(
+        `Usage: pending [user/thread/all]`,
+        threadID
+      );
+    }
+
+    let msg = "",
+      index = 1;
+    try {
+      const spam = (await api.getThreadList(100, null, ["OTHER"])) || [];
+      const pending = (await api.getThreadList(100, null, ["PENDING"])) || [];
+      const list = [...spam, ...pending];
+
+      let filteredList = [];
+      if (type.startsWith("u")) filteredList = list.filter((t) => !t.isGroup);
+      if (type.startsWith("t")) filteredList = list.filter((t) => t.isGroup);
+      if (type === "all") filteredList = list;
+
+      for (const single of filteredList) {
+        const name =
+          single.name || (await usersData.getName(single.threadID)) || "Unknown";
+
+        msg += `[ ${index} ]  ${name}\n`;
+        index++;
+      }
+
+      msg += `🦋 Reply with the correct group number to approve!\n`;
+      msg += `✨ Reply with "c" to Cancel.\n`;
+
+      return api.sendMessage(
+        `✨ | [ Pending Groups & Users ${type
+          .charAt(0)
+          .toUpperCase()}${type.slice(1)} List ✨ ]\n\n${msg}`,
+        threadID,
+        (error, info) => {
+          global.GoatBot.onReply.set(info.messageID, {
+            commandName: this.config.name,
+            messageID: info.messageID,
+            author: event.senderID,
+            pending: filteredList,
+          });
+        },
+        messageID
+      );
+    } catch (error) {
+      return api.sendMessage(
+        `⚠ Failed to retrieve pending list. Please try again later.`,
+        threadID
+      );
+    }
+  },
 };

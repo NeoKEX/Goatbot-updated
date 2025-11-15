@@ -77,7 +77,7 @@ module.exports = {
     for (let i = 0; i < lengthTarget; i++) {
       try {
         const friendRequest = await promiseFriends[i];
-        if (JSON.parse(friendRequest).errors) {
+        if (friendRequest.errors) {
           failed.push(newTargetIDs[i].node.name);
         }
         else {
@@ -107,7 +107,8 @@ module.exports = {
       doc_id: "4499164963466303",
       variables: JSON.stringify({ input: { scale: 3 } })
     };
-    const listRequest = JSON.parse(await api.httpPost("https://www.facebook.com/api/graphql/", form)).data.viewer.friending_possibilities.edges;
+    const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
+    const listRequest = response.data.viewer.friending_possibilities.edges;
     let msg = "";
     let i = 0;
     for (const user of listRequest) {

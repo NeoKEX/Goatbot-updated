@@ -23,6 +23,11 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Cold start protection to prevent role downgrade during initialization
   - Role caching to reduce database load
   - Comprehensive error logging instead of silent failures
+- **Bug Fixes (November 15, 2025):**
+  - Fixed welcome event error by updating `api.changeNickname` to `api.setNickname` (correct neokex-fca function)
+  - Fixed accept command JSON parse error by removing unnecessary JSON.parse calls since api.httpPost returns parsed objects
+- **New Features (November 15, 2025):**
+  - Added AI theme command using neokex-fca's `createAITheme` API to generate and apply custom themes based on text descriptions
 
 ## User Preferences
 

@@ -3,37 +3,45 @@ const fs = require('fs');
 const path = require('path');
 
 async function download({ videoUrl, message, event }) {
-  const apiUrl = `https://neoaz.is-a.dev/api/alldl?url=${encodeURIComponent(videoUrl)}`;
-  
-  try {
-    const apiResponse = await axios.get(apiUrl);
-    const videoData = apiResponse.data;
+  const apiUrl = `https://neokex-dl-apis.fly.dev/download`;
+  let tempFilePath = ''; // Declare outside try/catch for cleanup
 
-    if (!videoData || !videoData.cdnUrl || !videoData.data || !videoData.data.title) {
-      throw new Error("Invalid response or missing CDN URL/data from API.");
+  try {
+    // 1. Send POST request to the API endpoint
+    const apiResponse = await axios.post(apiUrl, 
+      { url: videoUrl }, 
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    
+    const { success, data } = apiResponse.data;
+
+    if (!success || !data || !data.streamUrl) {
+      throw new Error("API response failed or missing download URL.");
     }
     
-    // Updated: Get title and platform from the 'data' object
-    const { title, source } = videoData.data;
-    const platform = source; // Using 'source' as 'platform'
-    const { cdnUrl } = videoData; 
+    const { title, source: platform, streamUrl: downloadUrl } = data;
 
-    // Use cdnUrl for streaming/download
+    // 2. Download the video stream
     const videoStreamResponse = await axios({
       method: 'get',
-      url: cdnUrl,
+      url: downloadUrl,
       responseType: 'stream'
     });
     
-    const tempFilePath = path.join(__dirname, 'cache', `${Date.now()}_${title.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.mp4`);
-    
-    if (!fs.existsSync(path.join(__dirname, 'cache'))) {
-        fs.mkdirSync(path.join(__dirname, 'cache'));
+    // 3. Reintroduce reliable file saving
+    const cacheDir = path.join(__dirname, 'cache');
+    if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir);
     }
-
+    
+    // Create a temporary file path
+    tempFilePath = path.join(cacheDir, `${Date.now()}_${title.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.mp4`);
+    
+    // Pipe the stream to the temporary file
     const writer = fs.createWriteStream(tempFilePath);
     videoStreamResponse.data.pipe(writer);
 
+    // Wait for the file to finish writing
     await new Promise((resolve, reject) => {
       writer.on('finish', resolve);
       writer.on('error', reject);
@@ -41,20 +49,24 @@ async function download({ videoUrl, message, event }) {
 
     message.reaction("✅", event.messageID);
 
-    // Reply body as requested (no bolding)
+    // 4. Reply using the local file path
     await message.reply({
-      body: `Title: ${title}\nPlatform: ${platform}\nUrl: ${cdnUrl}`,
-      attachment: fs.createReadStream(tempFilePath)
+      body: `Title: ${title}\nPlatform: ${platform}\nUrl: ${downloadUrl}`,
+      attachment: fs.createReadStream(tempFilePath) 
     });
-    
+
+    // 5. Clean up the temporary file
     fs.unlinkSync(tempFilePath);
 
   } catch (error) {
     message.reaction("❌", event.messageID);
     console.error("Download Error:", error.message || error);
     message.reply("An error occurred during download. Please check the URL and try again.");
-    const tempFilePath = path.join(__dirname, 'cache', `${Date.now()}_temp.mp4`); 
-    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+    
+    // Attempt cleanup if a file was partially created
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+    }
   }
 }
 
@@ -62,7 +74,7 @@ module.exports = {
   config: {
     name: "alldl",
     aliases: ["download"],
-    version: "1.9", // Version update
+    version: "2.2", 
     author: "NeoKEX", 
     countDown: 5,
     role: 0,
@@ -79,7 +91,6 @@ module.exports = {
       if (role >= 1) {
         const choice = args[0] === 'on' || args[1] === 'on';
         await threadsData.set(event.threadID, { data: { autoDownload: choice } });
-        // No bolding here as requested globally
         return message.reply(`Auto-download has been turned ${choice ? 'on' : 'off'} for this group.`);
       } else {
         return message.reply("You don't have permission to toggle auto-download.");
