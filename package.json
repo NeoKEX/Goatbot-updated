@@ -8,7 +8,6 @@
                 "npm": ">=9.0.0"
         },
         "dependencies": {
-                "@distube/ytdl-core": "^4.14.4",
                 "axios": "^1.7.9",
                 "canvas": "^2.11.2",
                 "cheerio": "^1.0.0",
@@ -41,7 +40,8 @@
                 "tinyurl": "^1.1.7",
                 "totp-generator": "^0.0.14",
                 "websocket-stream": "^5.5.2",
-                "yt-search": "^2.13.1"
+                "yt-search": "^2.13.1",
+                "ytdl-core": "^4.11.5"
         },
         "scripts": {
                 "start": "set NODE_ENV=&& node index.js",
