@@ -1,4 +1,4 @@
-const ytdlp = require("youtube-dl-exec");
+const ytdl = require("@distube/ytdl-core");
 const yts = require("yt-search");
 const fs = require("fs");
 const path = require("path");
@@ -6,8 +6,8 @@ const path = require("path");
 module.exports = {
   config: {
     name: "video",
-    aliases: ["vid", "youtubevid"],
-    version: "2.1",
+    aliases: ["vid", "youtubevid", "ytb"],
+    version: "3.0",
     author: "Mahi--",
     description: "Downloads YouTube videos by URL or search query.",
     category: "Utility",
@@ -37,6 +37,13 @@ module.exports = {
         const first = search.videos[0];
         videoUrl = first.url;
         videoTitle = first.title;
+      } else {
+        try {
+          const info = await ytdl.getBasicInfo(videoUrl);
+          videoTitle = info.videoDetails.title;
+        } catch (err) {
+          console.log("Could not fetch video title:", err.message);
+        }
       }
 
       const tempDir = path.join(__dirname, "temp");
@@ -46,21 +53,55 @@ module.exports = {
       const filePath = path.join(tempDir, fileName);
 
       const cookiesPath = "cookies.txt";
-      if (!fs.existsSync(cookiesPath))
-        console.warn("⚠️ No cookies.txt file found — some videos may be blocked.");
+      let agent;
+      
+      if (fs.existsSync(cookiesPath)) {
+        try {
+          const cookieData = fs.readFileSync(cookiesPath, 'utf8');
+          const cookies = cookieData.split('\n')
+            .filter(line => line && !line.startsWith('#'))
+            .map(line => {
+              const parts = line.split('\t');
+              if (parts.length >= 7) {
+                return {
+                  domain: parts[0],
+                  flag: parts[1] === 'TRUE',
+                  path: parts[2],
+                  secure: parts[3] === 'TRUE',
+                  expirationDate: parseInt(parts[4]),
+                  name: parts[5],
+                  value: parts[6]
+                };
+              }
+              return null;
+            })
+            .filter(cookie => cookie !== null);
+          
+          if (cookies.length > 0) {
+            agent = ytdl.createAgent(cookies);
+          }
+        } catch (err) {
+          console.warn("⚠️ Could not load cookies:", err.message);
+        }
+      }
 
-      await ytdlp(videoUrl, {
-        output: filePath,
-        format: "bestvideo+bestaudio/best",
-        mergeOutputFormat: "mp4",
-        noCheckCertificates: true,
-        geoBypass: true,
-        preferFreeFormats: true,
-        addHeader: [
-          "referer:https://www.youtube.com/",
-          "user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-        ],
-        cookies: fs.existsSync(cookiesPath) ? cookiesPath : undefined
+      const options = {
+        quality: 'highest',
+        filter: 'audioandvideo'
+      };
+
+      if (agent) {
+        options.agent = agent;
+      }
+
+      const stream = ytdl(videoUrl, options);
+      const writeStream = fs.createWriteStream(filePath);
+
+      await new Promise((resolve, reject) => {
+        stream.pipe(writeStream);
+        stream.on('error', reject);
+        writeStream.on('error', reject);
+        writeStream.on('finish', resolve);
       });
 
       if (!fs.existsSync(filePath))
@@ -90,8 +131,8 @@ module.exports = {
       }
 
       console.error("Download error:", e);
-      const errorMsg = e.stderr?.includes("Sign in to confirm")
-        ? "⚠️ YouTube requires cookies for this video. Add a valid cookies.txt file."
+      const errorMsg = e.message?.includes("Sign in")
+        ? "⚠️ This video may require authentication. Try adding a valid cookies.txt file."
         : e.message || "An unknown error occurred.";
       api.sendMessage(`❌ Error: ${errorMsg}`, event.threadID, event.messageID);
     }
