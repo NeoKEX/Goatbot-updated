@@ -76,7 +76,8 @@ module.exports = {
     const lengthTarget = newTargetIDs.length;
     for (let i = 0; i < lengthTarget; i++) {
       try {
-        const friendRequest = await promiseFriends[i];
+        const friendRequestRaw = await promiseFriends[i];
+        const friendRequest = JSON.parse(friendRequestRaw);
         if (friendRequest.errors) {
           failed.push(newTargetIDs[i].node.name);
         }
@@ -109,7 +110,8 @@ module.exports = {
     };
     
     try {
-      const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
+      const responseRaw = await api.httpPost("https://www.facebook.com/api/graphql/", form);
+      const response = JSON.parse(responseRaw);
       
       if (!response || !response.data || !response.data.viewer || !response.data.viewer.friending_possibilities) {
         return api.sendMessage("❌ | Unable to fetch friend requests. Please try again later.", event.threadID, event.messageID);

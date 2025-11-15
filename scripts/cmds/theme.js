@@ -95,14 +95,23 @@ module.exports = {
         
         const threadInfo = await api.getThreadInfo(event.threadID);
         
-        if (!threadInfo || !threadInfo.threadThemeID) {
+        if (!threadInfo || !threadInfo.extensibleThreadTheme) {
           return message.reply(getLang("noCurrentTheme"));
         }
         
-        const themeId = threadInfo.threadThemeID;
-        const themeName = threadInfo.threadThemeName || "Unknown";
+        const theme = threadInfo.extensibleThreadTheme;
+        const themeId = theme.id || "Unknown";
         
-        return message.reply(getLang("currentTheme", themeId, themeName));
+        let colorInfo = "Unknown";
+        if (theme.accessibility_label) {
+          colorInfo = theme.accessibility_label;
+        } else if (theme.gradient_colors && theme.gradient_colors.length > 0) {
+          colorInfo = theme.gradient_colors.join(" → ");
+        } else if (theme.primary_color) {
+          colorInfo = theme.primary_color;
+        }
+        
+        return message.reply(getLang("currentTheme", themeId, colorInfo));
       } catch (error) {
         return message.reply(getLang("error", error.message || error));
       }
