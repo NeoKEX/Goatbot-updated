@@ -1,5 +1,5 @@
 const axios = require("axios");
-const ytdl = require("ytdl-core");
+const ytdl = require("@distube/ytdl-core");
 const fs = require("fs-extra");
 const { getStreamFromURL, downloadFile, formatNumber } = global.utils;
 async function getStreamAndSize(url, path = "") {
@@ -168,9 +168,7 @@ async function handle({ type, infoVideo, message, getLang }) {
         if (type == "video") {
                 const MAX_SIZE = 83 * 1024 * 1024; // 83MB (max size of video that can be sent on fb)
                 const msgSend = message.reply(getLang("downloading", getLang("video"), title));
-                const { formats } = await ytdl.getInfo(videoId, {
-                        playerClients: ['IOS', 'ANDROID', 'WEB_EMBEDDED']
-                });
+                const { formats } = await ytdl.getInfo(videoId);
                 const getFormat = formats
                         .filter(f => f.hasVideo && f.hasAudio && f.contentLength && f.contentLength < MAX_SIZE)
                         .sort((a, b) => {
@@ -221,9 +219,7 @@ async function handle({ type, infoVideo, message, getLang }) {
         else if (type == "audio") {
                 const MAX_SIZE = 27262976; // 26MB (max size of audio that can be sent on fb)
                 const msgSend = message.reply(getLang("downloading", getLang("audio"), title));
-                const { formats } = await ytdl.getInfo(videoId, {
-                        playerClients: ['IOS', 'ANDROID', 'WEB_EMBEDDED']
-                });
+                const { formats } = await ytdl.getInfo(videoId);
                 const getFormat = formats
                         .filter(f => f.hasAudio && !f.hasVideo && f.contentLength && f.contentLength < MAX_SIZE)
                         .sort((a, b) => {
@@ -327,9 +323,7 @@ async function getVideoInfo(id) {
         id = id.replace(/(>|<)/gi, '').split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/|\/shorts\/)/);
         id = id[2] !== undefined ? id[2].split(/[^0-9a-z_\-]/i)[0] : id[0];
 
-        const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`, {
-                playerClients: ['IOS', 'ANDROID', 'WEB_EMBEDDED']
-        });
+        const info = await ytdl.getInfo(`https://www.youtube.com/watch?v=${id}`);
         const videoDetails = info.videoDetails;
 
         const result = {
