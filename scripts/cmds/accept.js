@@ -18,18 +18,7 @@ module.exports = {
     if (author !== event.senderID) return;
     const args = event.body.replace(/ +/g, " ").toLowerCase().split(" ");
 
-    clearTimeout(Reply.unsendTimeout);
-
-    const safeJsonParse = (data) => {
-      if (typeof data === 'string') {
-        try {
-          return JSON.parse(data);
-        } catch (e) {
-          return null;
-        }
-      }
-      return data;
-    };
+    clearTimeout(Reply.unsendTimeout); // Clear the timeout if the user responds within the countdown duration
 
     const form = {
       av: api.getCurrentUserID(),
@@ -88,11 +77,7 @@ module.exports = {
     for (let i = 0; i < lengthTarget; i++) {
       try {
         const friendRequest = await promiseFriends[i];
-        const parsedResponse = safeJsonParse(friendRequest);
-        if (!parsedResponse) {
-          failed.push(newTargetIDs[i].node.name);
-        }
-        else if (parsedResponse.errors) {
+        if (JSON.parse(friendRequest).errors) {
           failed.push(newTargetIDs[i].node.name);
         }
         else {
@@ -115,17 +100,6 @@ module.exports = {
   },
 
   onStart: async function ({ event, api, commandName }) {
-    const safeJsonParse = (data) => {
-      if (typeof data === 'string') {
-        try {
-          return JSON.parse(data);
-        } catch (e) {
-          return null;
-        }
-      }
-      return data;
-    };
-
     const form = {
       av: api.getCurrentUserID(),
       fb_api_req_friendly_name: "FriendingCometFriendRequestsRootQueryRelayPreloader",
@@ -133,15 +107,7 @@ module.exports = {
       doc_id: "4499164963466303",
       variables: JSON.stringify({ input: { scale: 3 } })
     };
-    
-    const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-    const parsedResponse = safeJsonParse(response);
-    
-    if (!parsedResponse || !parsedResponse.data || !parsedResponse.data.viewer || !parsedResponse.data.viewer.friending_possibilities) {
-      return api.sendMessage("❌ | Unable to fetch friend requests. Please try again later.", event.threadID, event.messageID);
-    }
-    
-    const listRequest = parsedResponse.data.viewer.friending_possibilities.edges;
+    const listRequest = JSON.parse(await api.httpPost("https://www.facebook.com/api/graphql/", form)).data.viewer.friending_possibilities.edges;
     let msg = "";
     let i = 0;
     for (const user of listRequest) {

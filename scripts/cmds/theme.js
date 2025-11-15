@@ -71,6 +71,16 @@ module.exports = {
   onStart: async function ({ args, message, event, api, getLang, commandName }) {
     const command = args[0];
     
+    if (command === "id") {
+      try {
+        const threadInfo = await api.getThreadInfo(event.threadID);
+        const themeId = threadInfo?.threadTheme?.id || threadInfo?.color || "Unknown";
+        return message.reply(`🎨 | Current Theme ID: ${themeId}`);
+      } catch (error) {
+        return message.reply(getLang("error", error.message || error));
+      }
+    }
+    
     if (command === "apply" || command === "set") {
       const themeId = args[1];
       
@@ -94,25 +104,46 @@ module.exports = {
         message.reply(getLang("fetchingCurrent"));
         
         const threadInfo = await api.getThreadInfo(event.threadID);
+        console.log("Theme Debug - threadInfo keys:", Object.keys(threadInfo));
+        console.log("Theme Debug - threadTheme:", JSON.stringify(threadInfo.threadTheme, null, 2));
         
-        if (!threadInfo || !threadInfo.extensibleThreadTheme) {
+        const theme = threadInfo.threadTheme;
+        if (!theme) {
           return message.reply(getLang("noCurrentTheme"));
         }
         
-        const theme = threadInfo.extensibleThreadTheme;
-        const themeId = theme.id || "Unknown";
+        const themeId = theme.id || theme.theme_fbid || "Unknown";
+        let colorInfo = threadInfo.color || "Unknown";
         
-        let colorInfo = "Unknown";
-        if (theme.accessibility_label) {
-          colorInfo = theme.accessibility_label;
-        } else if (theme.gradient_colors && theme.gradient_colors.length > 0) {
-          colorInfo = theme.gradient_colors.join(" → ");
-        } else if (theme.primary_color) {
-          colorInfo = theme.primary_color;
+        const attachments = [];
+        
+        if (theme.preview_image_urls) {
+          console.log("Theme Debug - preview_image_urls:", theme.preview_image_urls);
+          const urls = theme.preview_image_urls;
+          if (urls.light_mode) {
+            try {
+              const lightStream = await getStreamFromURL(urls.light_mode, "theme_light.png");
+              if (lightStream) attachments.push(lightStream);
+            } catch (imgError) {
+              console.log("Failed to load light mode preview:", imgError.message);
+            }
+          }
+          if (urls.dark_mode) {
+            try {
+              const darkStream = await getStreamFromURL(urls.dark_mode, "theme_dark.png");
+              if (darkStream) attachments.push(darkStream);
+            } catch (imgError) {
+              console.log("Failed to load dark mode preview:", imgError.message);
+            }
+          }
         }
         
-        return message.reply(getLang("currentTheme", themeId, colorInfo));
+        return message.reply({
+          body: getLang("currentTheme", themeId, colorInfo),
+          attachment: attachments.length > 0 ? attachments : undefined
+        });
       } catch (error) {
+        console.log("Theme Error:", error);
         return message.reply(getLang("error", error.message || error));
       }
     }
@@ -144,14 +175,17 @@ module.exports = {
         themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
         
         if (theme.preview_urls && theme.preview_urls.length > 0) {
-          try {
-            const previewUrl = theme.preview_urls[0];
-            const stream = await getStreamFromURL(previewUrl, `theme_${index + 1}.png`);
-            if (stream) {
-              attachments.push(stream);
+          for (let previewIndex = 0; previewIndex < theme.preview_urls.length; previewIndex++) {
+            try {
+              const previewUrl = theme.preview_urls[previewIndex];
+              const mode = previewIndex === 0 ? "light" : "dark";
+              const stream = await getStreamFromURL(previewUrl, `theme_${index + 1}_${mode}.png`);
+              if (stream) {
+                attachments.push(stream);
+              }
+            } catch (imgError) {
+              console.log(`Failed to load preview ${previewIndex} for theme ${index + 1}:`, imgError.message);
             }
-          } catch (imgError) {
-            console.log(`Failed to load preview for theme ${index + 1}:`, imgError.message);
           }
         }
       }
