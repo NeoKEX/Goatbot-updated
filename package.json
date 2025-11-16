@@ -27,7 +27,7 @@
                 "moment-timezone": "^0.5.46",
                 "mongoose": "^8.9.3",
                 "mqtt": "^5.11.2",
-                "neokex-fca": "^4.4.6",
+                "neokex-fca": "^4.4.7",
                 "node-cron": "^3.0.3",
                 "nodemailer": "^6.9.16",
                 "npmlog": "^7.0.1",
@@ -42,7 +42,6 @@
                 "tinyurl": "^1.1.7",
                 "totp-generator": "^0.0.14",
                 "websocket-stream": "^5.5.2",
-                "ws3-fca": "^3.5.2",
                 "yt-search": "^2.13.1"
         },
         "scripts": {
