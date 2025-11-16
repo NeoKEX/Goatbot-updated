@@ -47,6 +47,17 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
     - Modified `createAITheme` API to support generating 1-10 themes (default: 3)
     - Safe alias assignment with existence check to prevent crashes if nickname module fails
     - Backward compatible implementation with parameter validation
+    - **Updated User Agents (November 16, 2025):**
+      - Chrome 132.0.6834.83 (latest stable version)
+      - Edge 132.0.2957.55 (latest stable version)
+      - Updated across Windows, macOS, and Linux platforms
+      - Fixed MQTT connection issues
+- **Theme Command Resilience (November 16, 2025):**
+  - Fixed silent failures when preview images cannot be downloaded
+  - Added fallback logic: if attachments fail, command retries with text-only response
+  - Both current theme display (?theme) and AI theme generation now guarantee user response
+  - Removed excessive debug console.log statements for cleaner logs
+  - Command now always responds even when Facebook's GraphQL API returns invalid data
 
 ## User Preferences
 

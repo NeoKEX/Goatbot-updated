@@ -160,17 +160,23 @@ module.exports = {
             }
           }
         } catch (err) {
-          // Failed to fetch theme preview images
+          // Failed to fetch theme preview images, will send without attachments
         }
         
         const messageBody = attachments.length > 0 
           ? getLang("currentTheme", themeId, colorInfo) + "\n\n" + getLang("showingPreviews")
           : getLang("currentTheme", themeId, colorInfo);
         
-        return message.reply({
-          body: messageBody,
-          attachment: attachments.length > 0 ? attachments : undefined
-        });
+        // Try sending with attachments first, fallback to text-only if it fails
+        try {
+          return await message.reply({
+            body: messageBody,
+            attachment: attachments.length > 0 ? attachments : undefined
+          });
+        } catch (attachmentError) {
+          // If sending with attachments failed, retry without them
+          return message.reply(getLang("currentTheme", themeId, colorInfo));
+        }
       } catch (error) {
         return message.reply(getLang("error", error.message || error));
       }
@@ -272,11 +278,25 @@ module.exports = {
 
       const replyMessage = getLang("preview", themes.length, prompt, themeList.trim());
       
+      // Try sending with attachments first
       message.reply({ 
         body: replyMessage,
         attachment: attachments.length > 0 ? attachments : undefined
       }, (err, info) => {
-        if (err) return;
+        if (err) {
+          // If sending with attachments failed, retry without them
+          message.reply(replyMessage, (retryErr, retryInfo) => {
+            if (retryErr) return;
+            global.GoatBot.onReply.set(retryInfo.messageID, {
+              commandName,
+              messageID: retryInfo.messageID,
+              author: event.senderID,
+              themes: themes,
+              prompt: prompt
+            });
+          });
+          return;
+        }
         
         global.GoatBot.onReply.set(info.messageID, {
           commandName,
