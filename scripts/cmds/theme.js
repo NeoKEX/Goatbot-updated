@@ -141,26 +141,37 @@ module.exports = {
               return obj.uri || obj.url || (typeof obj === 'string' ? obj : null);
             };
             
+            let imageUrls = [];
+            
             if (fullTheme.preview_image_urls) {
               const urls = fullTheme.preview_image_urls;
-              if (urls.light_mode) {
-                const lightUrl = extractUrl(urls.light_mode);
-                if (lightUrl) {
-                  const lightStream = await getStreamFromURL(lightUrl, "theme_light.png");
-                  if (lightStream) attachments.push(lightStream);
-                }
-              }
-              if (urls.dark_mode) {
-                const darkUrl = extractUrl(urls.dark_mode);
-                if (darkUrl) {
-                  const darkStream = await getStreamFromURL(darkUrl, "theme_dark.png");
-                  if (darkStream) attachments.push(darkStream);
-                }
+              const lightUrl = extractUrl(urls.light_mode);
+              const darkUrl = extractUrl(urls.dark_mode);
+              if (lightUrl) imageUrls.push({ url: lightUrl, name: "theme_light.png" });
+              if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: "theme_dark.png" });
+            }
+            
+            if (imageUrls.length === 0 && fullTheme.background_asset?.image) {
+              const bgUrl = extractUrl(fullTheme.background_asset.image);
+              if (bgUrl) imageUrls.push({ url: bgUrl, name: "theme_bg.png" });
+            }
+            
+            if (imageUrls.length === 0 && fullTheme.icon_asset?.image) {
+              const iconUrl = extractUrl(fullTheme.icon_asset.image);
+              if (iconUrl) imageUrls.push({ url: iconUrl, name: "theme_icon.png" });
+            }
+            
+            for (const imgData of imageUrls) {
+              try {
+                const stream = await getStreamFromURL(imgData.url, imgData.name);
+                if (stream) attachments.push(stream);
+              } catch (downloadErr) {
+                console.error(`Failed to download current theme preview: ${imgData.url}`, downloadErr.message);
               }
             }
           }
         } catch (err) {
-          // Failed to fetch theme preview images, will send without attachments
+          console.error("Failed to fetch current theme data:", err.message);
         }
         
         const messageBody = attachments.length > 0 
@@ -216,26 +227,44 @@ module.exports = {
         
         themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
         
+        let imageUrls = [];
+        
         if (theme.preview_image_urls) {
           const urls = theme.preview_image_urls;
-          
           const lightUrl = extractUrl(urls.light_mode);
           const darkUrl = extractUrl(urls.dark_mode);
-          
-          if (lightUrl) {
-            try {
-              const stream = await getStreamFromURL(lightUrl, `theme_${index + 1}_light.png`);
-              if (stream) attachments.push(stream);
-            } catch (err) {
+          if (lightUrl) imageUrls.push({ url: lightUrl, name: `theme_${index + 1}_light.png` });
+          if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: `theme_${index + 1}_dark.png` });
+        }
+        
+        if (imageUrls.length === 0 && theme.background_asset?.image) {
+          const bgUrl = extractUrl(theme.background_asset.image);
+          if (bgUrl) imageUrls.push({ url: bgUrl, name: `theme_${index + 1}_bg.png` });
+        }
+        
+        if (imageUrls.length === 0 && theme.icon_asset?.image) {
+          const iconUrl = extractUrl(theme.icon_asset.image);
+          if (iconUrl) imageUrls.push({ url: iconUrl, name: `theme_${index + 1}_icon.png` });
+        }
+        
+        if (imageUrls.length === 0 && theme.alternative_themes?.length > 0) {
+          for (const altTheme of theme.alternative_themes) {
+            if (altTheme.background_asset?.image) {
+              const altUrl = extractUrl(altTheme.background_asset.image);
+              if (altUrl) {
+                imageUrls.push({ url: altUrl, name: `theme_${index + 1}_alt.png` });
+                break;
+              }
             }
           }
-          
-          if (darkUrl && darkUrl !== lightUrl) {
-            try {
-              const stream = await getStreamFromURL(darkUrl, `theme_${index + 1}_dark.png`);
-              if (stream) attachments.push(stream);
-            } catch (err) {
-            }
+        }
+        
+        for (const imgData of imageUrls) {
+          try {
+            const stream = await getStreamFromURL(imgData.url, imgData.name);
+            if (stream) attachments.push(stream);
+          } catch (err) {
+            console.error(`Failed to download theme preview: ${imgData.url}`, err.message);
           }
         }
       }
