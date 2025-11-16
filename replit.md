@@ -29,6 +29,17 @@ Goat Bot V2 is a Facebook Messenger chat bot built using the `neokex-fca` (unoff
   - Previously, neokex-fca returned objects directly while accept command expected strings for JSON.parse()
   - Now maintains compatibility with ws3-fca behavior while providing robust error handling
 
+- **Fixed Pending Command for Searching Pending Users:**
+  - Modified `node_modules/neokex-fca/src/apis/getThreadList.js` to handle null/undefined fields gracefully
+  - Added safe null handling for fields that may be missing in pending user entries:
+    - `adminIDs`: Defaults to empty array if thread_admins is null/undefined
+    - `approvalQueue`: Defaults to empty array if group_approval_queue.nodes is null/undefined
+    - `reactionsMuteMode`: Defaults to 'all_reactions' if null/undefined
+    - `mentionsMuteMode`: Defaults to 'all_mentions' if null/undefined
+  - This prevents "Cannot read properties of undefined (reading 'map')" errors when fetching pending users
+  - Previously, neokex-fca crashed when trying to format pending user entries that lack group-specific fields
+  - Now maintains compatibility with ws3-fca's behavior of returning empty arrays for missing fields
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

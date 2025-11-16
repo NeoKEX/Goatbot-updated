@@ -33,6 +33,7 @@
     }
   },
   "commandUnload": [
-    "shortcut.js"
+    "shortcut.js",
+    "info.js"
   ]
 }
