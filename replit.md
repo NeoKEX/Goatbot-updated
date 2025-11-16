@@ -17,6 +17,11 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
 - Migrated from local fb-chat-api to neokex-fca npm package
 - Removed entire dashboard system to simplify deployment
 - Cleaned up database models and global state
+- **Developer Role Enhancement (November 16, 2025):**
+  - Modified `setrole` command to allow developers (role 4) to change roles for ALL commands
+  - Developers can now manage permissions for high-level commands (role 2, 3, 4) that were previously restricted
+  - Updated command description and error messages to reflect developer privileges
+  - Bot developers now have unrestricted access to all role management commands
 - **Critical Security Fix:** Refactored role storage and resolution system with:
   - Proper promise handling and validation
   - Backward-compatible data migration for legacy role fields
@@ -153,6 +158,7 @@ Preferred communication style: Simple, everyday language.
 - **Role validation:** Enforces 0-4 range and rejects invalid values
 - **Performance optimization:** 5-second cache per user to reduce database queries
 - **Error handling:** Logs all resolution failures with context for debugging
+- **Developer Privileges:** Role 4 (developers) have unrestricted access to all commands and can modify roles for any command, including high-level administrative commands
 
 Each command specifies required role. Additional modes include `adminOnly` (bot-wide) and `onlyAdminBox` (per-group).
 
