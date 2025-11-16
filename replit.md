@@ -58,6 +58,19 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Both current theme display (?theme) and AI theme generation now guarantee user response
   - Removed excessive debug console.log statements for cleaner logs
   - Command now always responds even when Facebook's GraphQL API returns invalid data
+  - **Updated neokex-fca Package (November 16, 2025):**
+    - Enhanced createAITheme API to properly extract and normalize preview image URLs
+    - Supports multiple response formats: preview_image_urls, preview_images, and preview_urls
+    - Extracts both light_mode and dark_mode preview URLs from theme data
+    - Normalizes URI/URL fields to consistent string format for image downloading
+    - Updated setThreadThemeMqtt with latest version_id: 24631415369801570
+    - Updated createAITheme doc_id to latest: 8782699775088722
+  - **Updated Accept Command (November 16, 2025):**
+    - Updated GraphQL doc_ids to latest Facebook API versions:
+      - FriendingCometFriendRequestsRootQueryRelayPreloader: 8559148610815077
+      - FriendingCometFriendRequestConfirmMutation: 8052155221530577
+      - FriendingCometFriendRequestDeleteMutation: 7988363234586686
+    - Maintains existing error handling and user-friendly messages
 
 ## User Preferences
 
