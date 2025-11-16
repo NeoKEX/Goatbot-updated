@@ -28,6 +28,12 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
   - Removed dashBoardModel and dashBoardData parameters from cmd.js onLoad function (line 396)
   - Cleaned up command loading system to remove unused dashboard dependencies
   - Commands now load without dashboard-related parameters for streamlined operation
+- **Accept Command Fix (November 16, 2025):**
+  - Updated GraphQL doc_ids to match neokex-fca package current working values
+  - Changed from FriendingCometFriendRequestsRootQueryRelayPreloader to FriendingCometRootContentQuery (doc_id: 9103543533085580)
+  - Updated FriendingCometFriendRequestConfirmMutation doc_id to 24630768433181357
+  - Fixed friend request fetching and acceptance functionality
+  - Command now successfully retrieves pending friend requests without GraphQL errors
 - **Advanced Pinterest Search Command (November 16, 2025):**
   - Implemented Pinterest image search using unofficial internal API (no authentication required)
   - Pagination mode: Browse 10 images per page with numbered selection (reply 1-10 to select)
