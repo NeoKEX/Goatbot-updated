@@ -125,26 +125,21 @@ module.exports = {
         };
 
         try {
-          const allThemes = await api.getTheme(event.threadID);
-          console.log("All themes fetched:", allThemes.length);
-          console.log("Looking for theme ID:", themeId);
-          console.log("Sample theme IDs from list:", allThemes.slice(0, 5).map(t => t.id));
-          
-          const currentThemeData = allThemes.find(t => t.id === themeId);
-          console.log("Current theme data:", JSON.stringify(currentThemeData, null, 2));
+          console.log("Fetching theme details for ID:", themeId);
+          const currentThemeData = await api.fetchThemeData(themeId);
+          console.log("Theme data fetched:", JSON.stringify(currentThemeData, null, 2));
           
           if (currentThemeData) {
-            if (currentThemeData.accessibility_label) colorInfo = currentThemeData.accessibility_label;
+            if (currentThemeData.name) colorInfo = currentThemeData.name;
             
             let imageUrls = [];
             
-            if (currentThemeData.preview_image_urls) {
-              const urls = currentThemeData.preview_image_urls;
-              const lightUrl = extractUrl(urls.light_mode);
-              const darkUrl = extractUrl(urls.dark_mode);
-              console.log(`Current theme URLs - light: ${lightUrl}, dark: ${darkUrl}`);
-              if (lightUrl) imageUrls.push({ url: lightUrl, name: "current_theme_light.png" });
-              if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: "current_theme_dark.png" });
+            if (currentThemeData.backgroundImage) {
+              const bgUrl = extractUrl(currentThemeData.backgroundImage);
+              console.log(`Current theme background URL: ${bgUrl}`);
+              if (bgUrl) {
+                imageUrls.push({ url: bgUrl, name: "current_theme_preview.png" });
+              }
             }
             
             for (const imgData of imageUrls) {
