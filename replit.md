@@ -17,6 +17,17 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
 - Migrated from local fb-chat-api to neokex-fca npm package
 - Removed entire dashboard system to simplify deployment
 - Cleaned up database models and global state
+- **README.md Enhancement (November 16, 2025):**
+  - Complete redesign with advanced CSS animations and modern styling
+  - Animated badges, typing effects, and visual dividers using external services
+  - Proper credits: Created by NTKhang, Enhanced by NeoKEX (https://github.com/NeoKEX)
+  - Highlighted "No Google Credentials Required" feature prominently
+  - Improved documentation structure with collapsible sections and tables
+  - Added animated banners and footers for professional appearance
+- **Dashboard Reference Cleanup (November 16, 2025):**
+  - Removed dashBoardModel and dashBoardData parameters from cmd.js onLoad function (line 396)
+  - Cleaned up command loading system to remove unused dashboard dependencies
+  - Commands now load without dashboard-related parameters for streamlined operation
 - **Advanced Pinterest Search Command (November 16, 2025):**
   - Implemented Pinterest image search using unofficial internal API (no authentication required)
   - Pagination mode: Browse 10 images per page with numbered selection (reply 1-10 to select)

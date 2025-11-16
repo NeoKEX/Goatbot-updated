@@ -393,7 +393,7 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 
                 // Check onLoad function
                 if (command.onLoad)
-                        command.onLoad({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData });
+                        command.onLoad({ api, threadModel, userModel, globalModel, threadsData, usersData, globalData });
 
                 const { envGlobal, envConfig } = configCommand;
                 if (!command.onStart)
