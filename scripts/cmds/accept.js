@@ -20,30 +20,19 @@ module.exports = {
 
     clearTimeout(Reply.unsendTimeout); // Clear the timeout if the user responds within the countdown duration
 
-    const form = {
-      av: api.getCurrentUserID(),
-      fb_api_caller_class: "RelayModern",
-      variables: {
-        input: {
-          source: "friends_tab",
-          actor_id: api.getCurrentUserID(),
-          client_mutation_id: Math.round(Math.random() * 19).toString()
-        },
-        scale: 3,
-        refresh_num: 0
-      }
-    };
-
     const success = [];
     const failed = [];
 
+    let doc_id;
+    let friendly_name;
+
     if (args[0] === "add") {
-      form.fb_api_req_friendly_name = "FriendingCometFriendRequestConfirmMutation";
-      form.doc_id = "8052155221530577";
+      friendly_name = "FriendingCometFriendRequestConfirmMutation";
+      doc_id = "8052155221530577";
     }
     else if (args[0] === "del") {
-      form.fb_api_req_friendly_name = "FriendingCometFriendRequestDeleteMutation";
-      form.doc_id = "7988363234586686";
+      friendly_name = "FriendingCometFriendRequestDeleteMutation";
+      doc_id = "7988363234586686";
     }
     else {
       return api.sendMessage("Please select <add | del > <target number | or \"all\">", event.threadID, event.messageID);
@@ -66,33 +55,57 @@ module.exports = {
         failed.push(`Can't find stt ${stt} in the list`);
         continue;
       }
-      const payload = {
-        ...form,
+
+      const requestForm = {
+        av: api.getCurrentUserID(),
+        fb_api_caller_class: "RelayModern",
+        fb_api_req_friendly_name: friendly_name,
+        doc_id: doc_id,
         variables: JSON.stringify({
-          ...form.variables,
           input: {
-            ...form.variables.input,
-            friend_requester_id: u.node.id
-          }
+            attribution_id_v2: "CometFriendRequestsRootQuery.react,comet.people.friendrequests,tap_search_bar,1731780000000,1234567,190055527696468,,",
+            friend_requester_id: u.node.id,
+            source: "friends_tab",
+            actor_id: api.getCurrentUserID(),
+            client_mutation_id: Math.round(Math.random() * 1000000).toString()
+          },
+          scale: 3,
+          refresh_num: 0
         })
       };
+
       newTargetIDs.push(u);
-      promiseFriends.push(api.httpPost("https://www.facebook.com/api/graphql/", payload));
+      promiseFriends.push(api.httpPost("https://www.facebook.com/api/graphql/", requestForm));
     }
 
     const lengthTarget = newTargetIDs.length;
     for (let i = 0; i < lengthTarget; i++) {
       try {
-        const friendRequest = await promiseFriends[i];
-        const response = JSON.parse(friendRequest);
-        if (response.errors) {
+        const response = await promiseFriends[i];
+        
+        const safeJsonParse = (str) => {
+          if (typeof str === 'object') return str;
+          try {
+            return JSON.parse(str);
+          } catch {
+            return null;
+          }
+        };
+
+        const friendRequest = safeJsonParse(response);
+        
+        if (friendRequest && friendRequest.errors && friendRequest.errors.length > 0) {
           failed.push(newTargetIDs[i].node.name);
         }
-        else {
+        else if (friendRequest && friendRequest.data) {
           success.push(newTargetIDs[i].node.name);
+        }
+        else {
+          failed.push(newTargetIDs[i].node.name);
         }
       }
       catch (e) {
+        console.log("Accept command error:", e.message);
         failed.push(newTargetIDs[i].node.name);
       }
     }
@@ -107,7 +120,7 @@ module.exports = {
     api.unsendMessage(messageID); // Unsend the message after it has been processed
   },
 
-  onStart: async function ({ event, api, commandName }) {
+  onStart: async function ({ event, api, commandName, message }) {
     try {
       const form = {
         av: api.getCurrentUserID(),
@@ -119,47 +132,51 @@ module.exports = {
       
       const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
       
-      let data;
-      try {
-        data = typeof response === 'string' ? JSON.parse(response) : response;
-      } catch (parseError) {
-        return api.sendMessage("❌ Failed to parse response. Please try again later.", event.threadID, event.messageID);
-      }
+      const safeJsonParse = (str) => {
+        if (typeof str === 'object') return str;
+        try {
+          return JSON.parse(str);
+        } catch {
+          return null;
+        }
+      };
+      
+      const data = safeJsonParse(response);
       
       if (!data || !data.data || !data.data.viewer || !data.data.viewer.friending_possibilities) {
-        return api.sendMessage("❌ Could not fetch friend requests. Please try again later.", event.threadID, event.messageID);
+        return message.reply("❌ Unable to fetch friend requests. Please try again later.");
       }
       
       const listRequest = data.data.viewer.friending_possibilities.edges;
       
       if (!listRequest || listRequest.length === 0) {
-        return api.sendMessage("✅ You have no pending friend requests.", event.threadID, event.messageID);
+        return message.reply("✅ You have no pending friend requests!");
       }
       
       let msg = "";
       let i = 0;
       for (const user of listRequest) {
         i++;
-        const timestamp = user.time || user.node.friending_time || user.node.time || Date.now() / 1000;
         msg += (`\n${i}. Name: ${user.node.name}`
           + `\nID: ${user.node.id}`
           + `\nUrl: ${user.node.url.replace("www.facebook", "fb")}`
-          + `\nTime: ${moment(timestamp * 1000).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
+          + `\nTime: ${moment(user.time * 1009).tz("Asia/Manila").format("DD/MM/YYYY HH:mm:ss")}\n`);
       }
       
-      api.sendMessage(`${msg}\nReply to this message with content: <add | del> <number | or "all"> to take action`, event.threadID, (e, info) => {
+      api.sendMessage(`${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`, event.threadID, (e, info) => {
         global.GoatBot.onReply.set(info.messageID, {
           commandName,
           messageID: info.messageID,
           listRequest,
           author: event.senderID,
           unsendTimeout: setTimeout(() => {
-            api.unsendMessage(info.messageID);
-          }, this.config.countDown * 1000)
+            api.unsendMessage(info.messageID); // Unsend the message after the countdown duration
+          }, this.config.countDown * 1000) // Convert countdown duration to milliseconds
         });
       }, event.messageID);
     } catch (error) {
-      return api.sendMessage(`❌ Error: ${error.message || "An unexpected error occurred"}`, event.threadID, event.messageID);
+      console.log("Accept command onStart error:", error.message);
+      return message.reply("❌ An error occurred while fetching friend requests. Please try again later.");
     }
   }
 };
