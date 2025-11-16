@@ -1,10 +1,9 @@
 const axios = require('axios');
-const fs = require('fs-extra');
 
 module.exports = {
         config: {
                 name: "pinterest",
-                version: "2.1",
+                version: "3.0",
                 author: "Advanced Pinterest Search",
                 countDown: 5,
                 role: 0,
@@ -83,16 +82,36 @@ module.exports = {
                 const loadingMsg = await message.reply(getLang("searching"));
 
                 try {
-                        // Use Pinterest's internal API (no authentication required)
-                        const searchUrl = `https://www.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${encodeURIComponent(query)}&data={"options":{"query":"${encodeURIComponent(query)}","scope":"pins","page_size":50},"context":{}}`;
+                        // Use Pinterest unofficial scraping API
+                        const apiUrl = `https://www.pinterest.com/resource/BaseSearchResource/get/`;
                         
-                        const response = await axios.get(searchUrl, {
+                        const params = {
+                                source_url: `/search/pins/?q=${encodeURIComponent(query)}`,
+                                data: JSON.stringify({
+                                        options: {
+                                                isPrefetch: false,
+                                                query: query,
+                                                scope: "pins",
+                                                no_fetch_context_on_resource: false
+                                        },
+                                        context: {}
+                                }),
+                                _: Date.now()
+                        };
+                        
+                        const response = await axios.get(apiUrl, {
+                                params,
                                 headers: {
-                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                                        'Accept': 'application/json',
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                                        'Accept': 'application/json, text/javascript, */*, q=0.01',
                                         'Accept-Language': 'en-US,en;q=0.9',
-                                        'Referer': 'https://www.pinterest.com/',
-                                        'X-Requested-With': 'XMLHttpRequest'
+                                        'Referer': `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`,
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-APP-VERSION': 'cb1b772',
+                                        'X-Pinterest-AppState': 'active',
+                                        'Sec-Fetch-Dest': 'empty',
+                                        'Sec-Fetch-Mode': 'cors',
+                                        'Sec-Fetch-Site': 'same-origin'
                                 }
                         });
 
@@ -214,15 +233,36 @@ async function sendPaginatedList(message, event, allPins, query, page, bookmark,
 
 async function fetchAndShowNextPage(message, event, query, currentPins, bookmark, currentPage, getLang) {
         try {
-                const searchUrl = `https://www.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${encodeURIComponent(query)}&data={"options":{"query":"${encodeURIComponent(query)}","scope":"pins","page_size":50,"bookmarks":["${bookmark}"]},"context":{}}`;
+                const apiUrl = `https://www.pinterest.com/resource/BaseSearchResource/get/`;
                 
-                const response = await axios.get(searchUrl, {
+                const params = {
+                        source_url: `/search/pins/?q=${encodeURIComponent(query)}`,
+                        data: JSON.stringify({
+                                options: {
+                                        isPrefetch: false,
+                                        query: query,
+                                        scope: "pins",
+                                        bookmarks: [bookmark],
+                                        no_fetch_context_on_resource: false
+                                },
+                                context: {}
+                        }),
+                        _: Date.now()
+                };
+                
+                const response = await axios.get(apiUrl, {
+                        params,
                         headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                                'Accept': 'application/json',
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                                'Accept': 'application/json, text/javascript, */*, q=0.01',
                                 'Accept-Language': 'en-US,en;q=0.9',
-                                'Referer': 'https://www.pinterest.com/',
-                                'X-Requested-With': 'XMLHttpRequest'
+                                'Referer': `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`,
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-APP-VERSION': 'cb1b772',
+                                'X-Pinterest-AppState': 'active',
+                                'Sec-Fetch-Dest': 'empty',
+                                'Sec-Fetch-Mode': 'cors',
+                                'Sec-Fetch-Site': 'same-origin'
                         }
                 });
 
