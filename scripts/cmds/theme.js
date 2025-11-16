@@ -125,16 +125,24 @@ module.exports = {
         };
 
         try {
-          const themeData = await api.fetchThemeData(themeId);
-          console.log("Current theme data:", JSON.stringify(themeData, null, 2));
+          const allThemes = await api.getTheme(event.threadID);
+          console.log("All themes fetched:", allThemes.length);
           
-          if (themeData) {
-            if (themeData.name) colorInfo = themeData.name;
+          const currentThemeData = allThemes.find(t => t.id === themeId);
+          console.log("Current theme data:", JSON.stringify(currentThemeData, null, 2));
+          
+          if (currentThemeData) {
+            if (currentThemeData.accessibility_label) colorInfo = currentThemeData.accessibility_label;
             
             let imageUrls = [];
             
-            if (themeData.backgroundImage) {
-              imageUrls.push({ url: themeData.backgroundImage, name: "theme_bg.png" });
+            if (currentThemeData.preview_image_urls) {
+              const urls = currentThemeData.preview_image_urls;
+              const lightUrl = extractUrl(urls.light_mode);
+              const darkUrl = extractUrl(urls.dark_mode);
+              console.log(`Current theme URLs - light: ${lightUrl}, dark: ${darkUrl}`);
+              if (lightUrl) imageUrls.push({ url: lightUrl, name: "current_theme_light.png" });
+              if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: "current_theme_dark.png" });
             }
             
             for (const imgData of imageUrls) {
@@ -150,7 +158,7 @@ module.exports = {
             }
           }
         } catch (err) {
-          console.error("Failed to fetch current theme data:", err.message);
+          console.error("Failed to fetch theme previews:", err.message);
         }
         
         const messageBody = attachments.length > 0 
