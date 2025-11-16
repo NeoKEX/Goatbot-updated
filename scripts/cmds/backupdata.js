@@ -22,7 +22,7 @@ module.exports = {
 			backedUp: "Đã sao lưu dữ liệu của bot vào thư mục scripts/cmds/tmp"
 		},
 		en: {
-			backedUp: "Bot data has been backed up to the scripts/cmds/tmp folder"
+			backedUp: "Bot data backed up to the scripts/cmds/tmp folder"
 		}
 	},
 

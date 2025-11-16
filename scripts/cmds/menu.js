@@ -26,7 +26,7 @@ module.exports = {
     if (args[0]) {
       const query = args[0].toLowerCase();
       const cmd = allCommands.get(query) || [...allCommands.values()].find(c => c.config.aliases?.includes(query));
-      if (!cmd) return message.reply(`❌ Command "${query}" not found.`);
+      if (!cmd) return message.reply(`× Command "${query}" not found.`);
 
       const { name, description, category, guide, author, version, aliases } = cmd.config;
       return message.reply(
@@ -45,7 +45,7 @@ module.exports = {
       "system": "🛠️",
       "AI-IMAGE": "🏜️",
       "info": "ℹ️",
-      "fun": "🎉",
+      "fun": "*_*",
       "media": "🎬",
       "economy": "💰",
       "games": "🎮",
@@ -63,7 +63,7 @@ module.exports = {
       msg += cmds.join("\n") + "\n\n";
     }
 
-    msg += `💡 Tip: Type "${prefix}help [command]" to view detailed info.`;
+    msg += `> Tip: Type "${prefix}help [command]" to view detailed info.`;
     return message.reply(msg);
   }
 };

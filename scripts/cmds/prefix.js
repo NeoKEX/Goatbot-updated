@@ -39,7 +39,7 @@ module.exports = {
 												myPrefix: "👋 Hey %1, did you ask for my prefix?\n➥ 🌐 Global: %2\n➥ 💬 This Chat: %3\nI'm %4 at your service 🫡"
 								},
 								en: {
-												reset: "Your prefix has been reset to default: %1",
+												reset: "Your prefix reset to default: %1",
 												onlyAdmin: "Only admin can change prefix of system bot",
 												confirmGlobal: "Please react to this message to confirm change prefix of system bot",
 												confirmThisThread: "Please react to this message to confirm change prefix in your box chat",

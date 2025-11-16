@@ -3,7 +3,7 @@ const axios = require("axios");
 const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ 🐐 | Goat Bot V2 ]";
+const doNotDelete = "[ 🐐: Goat Bot V2 ]";
 /**
 * @author NTKhang
 * @author: do not delete it
@@ -23,16 +23,16 @@ module.exports = {
                 },
                 category: "info",
                 guide: {
-                        vi: "   {pn} [để trống | <số trang> | <tên lệnh>]"
-                                + "\n   {pn} <command name> [-u | usage | -g | guide]: chỉ hiển thị phần hướng dẫn sử dụng lệnh"
-                                + "\n   {pn} <command name> [-i | info]: chỉ hiển thị phần thông tin về lệnh"
-                                + "\n   {pn} <command name> [-r | role]: chỉ hiển thị phần quyền hạn của lệnh"
-                                + "\n   {pn} <command name> [-a | alias]: chỉ hiển thị phần tên viết tắt của lệnh",
-                        en: "{pn} [empty | <page number> | <command name>]"
-                                + "\n   {pn} <command name> [-u | usage | -g | guide]: only show command usage"
-                                + "\n   {pn} <command name> [-i | info]: only show command info"
-                                + "\n   {pn} <command name> [-r | role]: only show command role"
-                                + "\n   {pn} <command name> [-a | alias]: only show command alias"
+                        vi: "   {pn} [để trống: <số trang>: <tên lệnh>]"
+                                + "\n   {pn} <command name> [-u: usage: -g: guide]: chỉ hiển thị phần hướng dẫn sử dụng lệnh"
+                                + "\n   {pn} <command name> [-i: info]: chỉ hiển thị phần thông tin về lệnh"
+                                + "\n   {pn} <command name> [-r: role]: chỉ hiển thị phần quyền hạn của lệnh"
+                                + "\n   {pn} <command name> [-a: alias]: chỉ hiển thị phần tên viết tắt của lệnh",
+                        en: "{pn} [empty: <page number>: <command name>]"
+                                + "\n   {pn} <command name> [-u: usage: -g: guide]: only show command usage"
+                                + "\n   {pn} <command name> [-i: info]: only show command info"
+                                + "\n   {pn} <command name> [-r: role]: only show command role"
+                                + "\n   {pn} <command name> [-a: alias]: only show command alias"
                 },
                 priority: 1
         },
@@ -62,25 +62,25 @@ module.exports = {
                                 + "\n│    để xem chi tiết"
                                 + "\n╰─────────────────╯"
                                 + "\n%4",
-                        commandNotFound: "❌ Lệnh \"%1\" không tồn tại",
+                        commandNotFound: "× Lệnh \"%1\" không tồn tại",
                         getInfoCommand: "╭━━━━━━━━━━━━━━━━━━━╮"
                                 + "\n┃  📖 CHI TIẾT LỆNH  ┃"
                                 + "\n╰━━━━━━━━━━━━━━━━━━━╯"
                                 + "\n"
                                 + "\n📌 Tên: %1"
-                                + "\n📝 Mô tả: %2"
+                                + "\n Mô tả: %2"
                                 + "\n🏷️  Tên khác: %3"
                                 + "\n🏷️  Tên trong nhóm: %4"
                                 + "\n📦 Version: %5"
                                 + "\n👤 Quyền: %6"
-                                + "\n⏱️  Cooldown: %7s"
+                                + "\n>️  Cooldown: %7s"
                                 + "\n✍️  Tác giả: %8"
                                 + "\n"
                                 + "\n╭── 📚 HƯỚNG DẪN ──╮"
                                 + "\n│%9"
                                 + "\n╰──────────────────╯"
                                 + "\n"
-                                + "\n💡 Ghi chú:"
+                                + "\n> Ghi chú:"
                                 + "\n• <XXXXX> = Có thể thay đổi"
                                 + "\n• [a|b|c] = Chọn a hoặc b hoặc c",
                         onlyInfo: "╭━━━━━━━━━━━━━━━━━━━╮"
@@ -88,12 +88,12 @@ module.exports = {
                                 + "\n╰━━━━━━━━━━━━━━━━━━━╯"
                                 + "\n"
                                 + "\n📌 Tên: %1"
-                                + "\n📝 Mô tả: %2"
+                                + "\n Mô tả: %2"
                                 + "\n🏷️  Tên khác: %3"
                                 + "\n🏷️  Tên trong nhóm: %4"
                                 + "\n📦 Version: %5"
                                 + "\n👤 Quyền: %6"
-                                + "\n⏱️  Cooldown: %7s"
+                                + "\n>️  Cooldown: %7s"
                                 + "\n✍️  Tác giả: %8",
                         onlyUsage: "╭━━━━━━━━━━━━━━━━━━━╮"
                                 + "\n┃  📚 HƯỚNG DẪN SỬ DỤNG ┃"
@@ -119,7 +119,7 @@ module.exports = {
                         roleText4: "4 (Nhà phát triển)",
                         roleText0setRole: "0 (set role, tất cả người dùng)",
                         roleText1setRole: "1 (set role, quản trị viên nhóm)",
-                        pageNotFound: "❌ Trang %1 không tồn tại"
+                        pageNotFound: "× Trang %1 không tồn tại"
                 },
                 en: {
                         help: "╭━━━━━━━━━━━━━━━━━━━╮"
@@ -145,25 +145,25 @@ module.exports = {
                                 + "\n│    for details"
                                 + "\n╰─────────────────╯"
                                 + "\n%4",
-                        commandNotFound: "❌ Command \"%1\" does not exist",
+                        commandNotFound: "× Command \"%1\" does not exist",
                         getInfoCommand: "╭━━━━━━━━━━━━━━━━━━━╮"
                                 + "\n┃  📖 COMMAND DETAILS  ┃"
                                 + "\n╰━━━━━━━━━━━━━━━━━━━╯"
                                 + "\n"
                                 + "\n📌 Name: %1"
-                                + "\n📝 Description: %2"
+                                + "\n Description: %2"
                                 + "\n🏷️  Aliases: %3"
                                 + "\n🏷️  Group aliases: %4"
                                 + "\n📦 Version: %5"
                                 + "\n👤 Role: %6"
-                                + "\n⏱️  Cooldown: %7s"
+                                + "\n>️  Cooldown: %7s"
                                 + "\n✍️  Author: %8"
                                 + "\n"
                                 + "\n╭── 📚 USAGE GUIDE ──╮"
                                 + "\n│%9"
                                 + "\n╰──────────────────╯"
                                 + "\n"
-                                + "\n💡 Notes:"
+                                + "\n> Notes:"
                                 + "\n• <XXXXX> = Can be changed"
                                 + "\n• [a|b|c] = Choose a or b or c",
                         onlyInfo: "╭━━━━━━━━━━━━━━━━━━━╮"
@@ -171,12 +171,12 @@ module.exports = {
                                 + "\n╰━━━━━━━━━━━━━━━━━━━╯"
                                 + "\n"
                                 + "\n📌 Name: %1"
-                                + "\n📝 Description: %2"
+                                + "\n Description: %2"
                                 + "\n🏷️  Aliases: %3"
                                 + "\n🏷️  Group aliases: %4"
                                 + "\n📦 Version: %5"
                                 + "\n👤 Role: %6"
-                                + "\n⏱️  Cooldown: %7s"
+                                + "\n>️  Cooldown: %7s"
                                 + "\n✍️  Author: %8",
                         onlyUsage: "╭━━━━━━━━━━━━━━━━━━━╮"
                                 + "\n┃  📚 USAGE GUIDE  ┃"
@@ -202,7 +202,7 @@ module.exports = {
                         roleText4: "4 (Bot developers)",
                         roleText0setRole: "0 (set role, all users)",
                         roleText1setRole: "1 (set role, group administrators)",
-                        pageNotFound: "❌ Page %1 does not exist"
+                        pageNotFound: "× Page %1 does not exist"
                 }
         },
 

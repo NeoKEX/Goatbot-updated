@@ -16,10 +16,10 @@ module.exports = {
 		},
 		category: "owner",
 		guide: {
-			vi: "   {pn} [on | off]: bật/tắt chế độ chỉ admin mới có thể sử dụng bot"
-				+ "\n   {pn} noti [on | off]: bật/tắt thông báo khi người dùng không phải là admin sử dụng bot",
-			en: "   {pn} [on | off]: turn on/off the mode only admin can use bot"
-				+ "\n   {pn} noti [on | off]: turn on/off the notification when user is not admin use bot"
+			vi: "   {pn} [on: off]: bật/tắt chế độ chỉ admin mới có thể sử dụng bot"
+				+ "\n   {pn} noti [on: off]: bật/tắt thông báo khi người dùng không phải là admin sử dụng bot",
+			en: "   {pn} [on: off]: turn on/off the mode only admin can use bot"
+				+ "\n   {pn} noti [on: off]: turn on/off the notification when user is not admin use bot"
 		}
 	},
 

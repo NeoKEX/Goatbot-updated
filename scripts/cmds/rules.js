@@ -13,24 +13,24 @@ module.exports = {
 		},
 		category: "box chat",
 		guide: {
-			vi: "   {pn} [add | -a] <nội quy muốn thêm>: thêm nội quy cho nhóm."
+			vi: "   {pn} [add: -a] <nội quy muốn thêm>: thêm nội quy cho nhóm."
 				+ "\n   {pn}: xem nội quy của nhóm."
-				+ "\n   {pn} [edit | -e] <n> <nội dung sau khi sửa>: chỉnh sửa lại nội quy thứ n."
-				+ "\n   {pn} [move | -m] <stt1> <stt2> hoán đổi vị trí của nội quy thứ <stt1> và <stt2> với nhau."
-				+ "\n   {pn} [delete | -d] <n>: xóa nội quy theo số thứ tự thứ n."
-				+ "\n   {pn} [remove | -r]: xóa tất cả nội quy của nhóm."
+				+ "\n   {pn} [edit: -e] <n> <nội dung sau khi sửa>: chỉnh sửa lại nội quy thứ n."
+				+ "\n   {pn} [move: -m] <stt1> <stt2> hoán đổi vị trí của nội quy thứ <stt1> và <stt2> với nhau."
+				+ "\n   {pn} [delete: -d] <n>: xóa nội quy theo số thứ tự thứ n."
+				+ "\n   {pn} [remove: -r]: xóa tất cả nội quy của nhóm."
 				+ "\n"
 				+ "\n   Ví dụ:"
 				+ "\n    {pn} add không spam"
 				+ "\n    {pn} move 1 3"
 				+ "\n    {pn} -e 1 không spam tin nhắn trong nhóm"
 				+ "\n    {pn} -r",
-			en: "   {pn} [add | -a] <rule to add>: add rule for group."
+			en: "   {pn} [add: -a] <rule to add>: add rule for group."
 				+ "\n   {pn}: view group rules."
-				+ "\n   {pn} [edit | -e] <n> <content after edit>: edit rule number n."
-				+ "\n   {pn} [move | -m] <stt1> <stt2> swap position of rule number <stt1> and <stt2>."
-				+ "\n   {pn} [delete | -d] <n>: delete rule number n."
-				+ "\n   {pn} [remove | -r]: delete all rules of group."
+				+ "\n   {pn} [edit: -e] <n> <content after edit>: edit rule number n."
+				+ "\n   {pn} [move: -m] <stt1> <stt2> swap position of rule number <stt1> and <stt2>."
+				+ "\n   {pn} [delete: -d] <n>: delete rule number n."
+				+ "\n   {pn} [remove: -r]: delete all rules of group."
 				+ "\n"
 				+ "\n   Example:"
 				+ "\n    {pn} add don't spam"
@@ -63,7 +63,7 @@ module.exports = {
 			rulesNotExistDelete: "Không tồn tại nội quy thứ %1",
 			successDelete: "Đã xóa nội quy thứ %1 của nhóm, nội dung: %2",
 			noPermissionRemove: "Chỉ có quản trị viên nhóm mới có thể xoá bỏ tất cả nội quy của nhóm",
-			confirmRemove: "⚠️ Thả cảm xúc bất kỳ vào tin nhắn này để xác nhận xóa toàn bộ nội quy của nhóm",
+			confirmRemove: "! Thả cảm xúc bất kỳ vào tin nhắn này để xác nhận xóa toàn bộ nội quy của nhóm",
 			successRemove: "Đã xóa toàn bộ nội quy của nhóm thành công",
 			invalidNumberView: "Vui lòng nhập số thứ tự của nội quy bạn muốn xem"
 		},
@@ -71,27 +71,27 @@ module.exports = {
 			yourRules: "Your group rules\n%1",
 			noRules: "Your group has no rules, to add rules for group use `%1rules add`",
 			noPermissionAdd: "Only admins can add rules for group",
-			noContent: "Please enter the content for the rule you want to add",
-			success: "Added new rule for group successfully",
+			noContent: "Enter the content for the rule you want to add",
+			success: "Added new rule for group ",
 			noPermissionEdit: "Only admins can edit group rules",
-			invalidNumber: "Please enter the number of the rule you want to edit",
+			invalidNumber: "Enter the number of the rule you want to edit",
 			rulesNotExist: "Rule number %1 does not exist",
 			numberRules: "Your group only has %1 rules",
-			noContentEdit: "Please enter the content you want to change for rule number %1",
+			noContentEdit: "Enter the content you want to change for rule number %1",
 			successEdit: "Edited rule number %1 to: %2",
 			noPermissionMove: "Only admins can move group rules",
-			invalidNumberMove: "Please enter the number of 2 group rules you want to swap",
+			invalidNumberMove: "Enter the number of 2 group rules you want to swap",
 			sameNumberMove: "Cannot swap position of 2 same rules",
 			rulesNotExistMove2: "Rule number %1 and %2 does not exist",
-			successMove: "Swapped position of rule number %1 and %2 successfully",
+			successMove: "Swapped position of rule number %1 and %2 ",
 			noPermissionDelete: "Only admins can delete group rules",
-			invalidNumberDelete: "Please enter the number of the rule you want to delete",
+			invalidNumberDelete: "Enter the number of the rule you want to delete",
 			rulesNotExistDelete: "Rule number %1 does not exist",
 			successDelete: "Deleted rule number %1 of group, content: %2",
 			noPermissionRemove: "Only group admins can remove all group rules",
-			confirmRemove: "⚠️ React to this message with any emoji to confirm remove all group rules",
-			successRemove: "Removed all group rules successfully",
-			invalidNumberView: "Please enter the number of the rule you want to view"
+			confirmRemove: "! React to this message with any emoji to confirm remove all group rules",
+			successRemove: "Removed all group rules ",
+			invalidNumberView: "Enter the number of the rule you want to view"
 		}
 	},
 

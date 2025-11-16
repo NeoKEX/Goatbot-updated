@@ -20,10 +20,10 @@ module.exports = {
 
 	langs: {
 		vi: {
-			error: "❌ Đã có lỗi xảy ra:"
+			error: "× Đã có lỗi xảy ra:"
 		},
 		en: {
-			error: "❌ An error occurred:"
+			error: "× An error occurred:"
 		}
 	},
 

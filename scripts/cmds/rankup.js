@@ -15,7 +15,7 @@ module.exports = {
 		},
 		category: "rank",
 		guide: {
-			en: "{pn} [on | off]"
+			en: "{pn} [on: off]"
 		},
 		envConfig: {
 			deltaNext: 5
@@ -27,13 +27,13 @@ module.exports = {
 			syntaxError: "Sai cú pháp, chỉ có thể dùng {pn} on hoặc {pn} off",
 			turnedOn: "Đã bật thông báo level up",
 			turnedOff: "Đã tắt thông báo level up",
-			notiMessage: "🎉🎉 chúc mừng bạn đạt level %1"
+			notiMessage: "*_**_* chúc mừng bạn đạt level %1"
 		},
 		en: {
-			syntaxError: "Syntax error, only use {pn} on or {pn} off",
+			syntaxError: "Error, only use {pn} on or {pn} off",
 			turnedOn: "Turned on level up notification",
 			turnedOff: "Turned off level up notification",
-			notiMessage: "🎉🎉 Congratulations on reaching level %1"
+			notiMessage: "*_**_* Congratulations on reaching level %1"
 		}
 	},
 

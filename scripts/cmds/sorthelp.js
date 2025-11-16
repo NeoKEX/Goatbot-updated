@@ -11,7 +11,7 @@ module.exports = {
 		},
 		category: "image",
 		guide: {
-			en: "{pn} [name | category]"
+			en: "{pn} [name: category]"
 		}
 	},
 

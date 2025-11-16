@@ -15,7 +15,7 @@ module.exports = {
 		category: "custom",
 		guide: {
 			vi: {
-				body: "   {pn} text [<nội dung> | reset]: chỉnh sửa nội dung văn bản hoặc reset về mặc định, với những shortcut có sẵn:"
+				body: "   {pn} text [<nội dung>: reset]: chỉnh sửa nội dung văn bản hoặc reset về mặc định, với những shortcut có sẵn:"
 					+ "\n  + {userName}: tên của thành viên mới"
 					+ "\n  + {userNameTag}: tên của thành viên mới (tag)"
 					+ "\n  + {boxName}:  tên của nhóm chat"
@@ -32,7 +32,7 @@ module.exports = {
 				}
 			},
 			en: {
-				body: "   {pn} text [<content> | reset]: edit text content or reset to default, with some shortcuts:"
+				body: "   {pn} text [<content>: reset]: edit text content or reset to default, with some shortcuts:"
 					+ "\n  + {userName}: new member name"
 					+ "\n  + {userNameTag}: new member name (tag)"
 					+ "\n  + {boxName}:  group chat name"
@@ -66,11 +66,11 @@ module.exports = {
 		en: {
 			turnedOn: "Turned on welcome message",
 			turnedOff: "Turned off welcome message",
-			missingContent: "Please enter welcome message content",
+			missingContent: "Enter welcome message content",
 			edited: "Edited welcome message content of your group to: %1",
 			reseted: "Reseted welcome message content",
 			noFile: "No file attachments to delete",
-			resetedFile: "Reseted file attachments successfully",
+			resetedFile: "Reseted file attachments ",
 			missingFile: "Please reply this message with image/video/audio file",
 			addedFile: "Added %1 file attachments to your group welcome message"
 		}

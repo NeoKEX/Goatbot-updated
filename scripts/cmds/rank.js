@@ -31,8 +31,8 @@ module.exports = {
 		},
 		category: "rank",
 		guide: {
-			vi: "   {pn} [để trống | @tags]",
-			en: "   {pn} [empty | @tags]"
+			vi: "   {pn} [để trống: @tags]",
+			en: "   {pn} [empty: @tags]"
 		},
 		envConfig: {
 			deltaNext: 5

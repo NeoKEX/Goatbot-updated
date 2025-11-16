@@ -482,10 +482,10 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                                         }
                                         
                                         const similarCommands = findSimilarCommands(commandName, GoatBot.commands, 0.4);
-                                        let replyMsg = `❌ Command "${commandName}" not found.`;
+                                        let replyMsg = `× Command "${commandName}" not found.`;
                                         
                                         if (similarCommands.length > 0) {
-                                                replyMsg += `\n\n💡 Did you mean:\n`;
+                                                replyMsg += `\n\n> Did you mean:\n`;
                                                 similarCommands.forEach((cmd, idx) => {
                                                         replyMsg += `${idx + 1}. ${prefix}${cmd.name}\n`;
                                                 });
@@ -518,9 +518,9 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2", commandName));
                                         else if (needRole == 3)
-                                                return await message.reply(`⭐ The command "${commandName}" requires premium status (2000+ balance). Your current role: ${role}`);
+                                                return await message.reply(`* The command "${commandName}" requires premium status (2000+ balance). Your current role: ${role}`);
                                         else if (needRole == 4)
-                                                return await message.reply(`🔒 The command "${commandName}" is for bot developers only. Your current role: ${role}`);
+                                                return await message.reply(`> The command "${commandName}" is for bot developers only. Your current role: ${role}`);
                                 }
                                 else {
                                         return true;

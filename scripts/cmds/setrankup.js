@@ -42,7 +42,7 @@ module.exports = {
 		en: {
 			changedMessage: "Changed rankup message to: %1",
 			missingAttachment: "You must attach an image to configure the rankup image",
-			changedAttachment: "Successfully added %1 attachment to rankup"
+			changedAttachment: "added %1 attachment to rankup"
 		}
 	},
 

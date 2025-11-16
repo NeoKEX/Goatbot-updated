@@ -14,7 +14,7 @@ module.exports = {
 		},
 		category: "box chat",
 		guide: {
-			en: "   {pn} [link profile | uid]"
+			en: "   {pn} [link profile: uid]"
 		}
 	},
 
@@ -31,10 +31,10 @@ module.exports = {
 		},
 		en: {
 			alreadyInGroup: "Already in group",
-			successAdd: "- Successfully added %1 members to the group",
+			successAdd: "- added %1 members to the group",
 			failedAdd: "- Failed to add %1 members to the group",
 			approve: "- Added %1 members to the approval list",
-			invalidLink: "Please enter a valid facebook link",
+			invalidLink: "Enter a valid facebook link",
 			cannotGetUid: "Cannot get uid of this user",
 			linkNotExist: "This profile url does not exist",
 			cannotAddUser: "Bot is blocked or this user blocked strangers from adding to the group"

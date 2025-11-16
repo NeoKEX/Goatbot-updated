@@ -47,12 +47,12 @@ module.exports = {
 		},
 		en: {
 			apiKeyEmpty: "Please provide api key for openai at file scripts/cmds/gpt.js",
-			invalidContentDraw: "Please enter the content you want to draw",
+			invalidContentDraw: "Enter the content you want to draw",
 			yourAreUsing: "You are using gpt chat, please wait until the previous request ends",
 			processingRequest: "Processing your request, this process may take a few minutes, please wait",
-			invalidContent: "Please enter the content you want to chat",
+			invalidContent: "Enter the content you want to chat",
 			error: "An error has occurred\n%1",
-			clearHistory: "Your chat history with gpt has been deleted"
+			clearHistory: "Your chat history with gpt deleted"
 		}
 	},
 

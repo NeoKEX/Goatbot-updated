@@ -32,15 +32,15 @@ module.exports = {
         langs: {
                 vi: {
                         fetching: "🔍 Đang lấy ảnh đại diện...",
-                        success: "✅ Ảnh đại diện của %1",
-                        error: "❌ Không thể lấy ảnh đại diện: %1",
-                        invalidUID: "⚠️ UID không hợp lệ"
+                        success: "✓ Ảnh đại diện của %1",
+                        error: "× Không thể lấy ảnh đại diện: %1",
+                        invalidUID: "! UID không hợp lệ"
                 },
                 en: {
                         fetching: "🔍 Fetching profile picture...",
-                        success: "✅ Profile picture of %1",
-                        error: "❌ Could not fetch profile picture: %1",
-                        invalidUID: "⚠️ Invalid UID"
+                        success: "✓ Profile picture of %1",
+                        error: "× Could not fetch profile picture: %1",
+                        invalidUID: "! Invalid UID"
                 }
         },
 

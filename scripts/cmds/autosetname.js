@@ -22,15 +22,15 @@ module.exports = {
 				+ '\n   + {userID}: id thành viên'
 				+ '\n   Ví dụ:'
 				+ '\n    {pn} set {userName} 🚀'
-				+ '\n\n   {pn} [on | off]: dùng để bật/tắt tính năng này'
-				+ '\n\n   {pn} [view | info]: hiển thị cấu hình hiện tại',
+				+ '\n\n   {pn} [on: off]: dùng để bật/tắt tính năng này'
+				+ '\n\n   {pn} [view: info]: hiển thị cấu hình hiện tại',
 			en: '   {pn} set <nickname>: use to set config to auto change nickname, with some shortcuts:'
 				+ '\n   + {userName}: name of new member'
 				+ '\n   + {userID}: member id'
 				+ '\n   Example:'
 				+ '\n    {pn} set {userName} 🚀'
-				+ '\n\n   {pn} [on | off]: use to turn on/off this feature'
-				+ '\n\n   {pn} [view | info]: show current config'
+				+ '\n\n   {pn} [on: off]: use to turn on/off this feature'
+				+ '\n\n   {pn} [view: info]: show current config'
 		}
 	},
 
@@ -46,13 +46,13 @@ module.exports = {
 			error: "Đã có lỗi xảy ra khi sử dụng chức năng autoSetName, thử tắt tính năng liên kết mời trong nhóm và thử lại sau"
 		},
 		en: {
-			missingConfig: "Please enter the required configuration",
-			configSuccess: "The configuration has been set successfully",
+			missingConfig: "Enter the required configuration",
+			configSuccess: "The configuration set ",
 			currentConfig: "The current autoSetName configuration in your chat group is:\n%1",
 			notSetConfig: "Your group has not set the autoSetName configuration",
-			syntaxError: "Syntax error, only \"{pn} on\" or \"{pn} off\" can be used",
-			turnOnSuccess: "The autoSetName feature has been turned on",
-			turnOffSuccess: "The autoSetName feature has been turned off",
+			syntaxError: "Error, only \"{pn} on\" or \"{pn} off\" can be used",
+			turnOnSuccess: "The autoSetName feature turned on",
+			turnOffSuccess: "The autoSetName feature turned off",
 			error: "An error occurred while using the autoSetName feature, try turning off the invite link feature in the group and try again later"
 		}
 	},

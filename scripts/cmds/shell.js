@@ -23,25 +23,25 @@ module.exports = {
 
         langs: {
                 vi: {
-                        missingCommand: "⚠️ Vui lòng nhập lệnh cần thực thi",
+                        missingCommand: "! Vui lòng nhập lệnh cần thực thi",
                         executing: "⏳ Đang thực thi...",
-                        success: "✅ Kết quả:\n\n%1",
-                        error: "❌ Lỗi:\n\n%1",
-                        timeout: "⏱️ Lệnh vượt quá thời gian cho phép (30s)"
+                        success: "✓ Kết quả:\n\n%1",
+                        error: "× Lỗi:\n\n%1",
+                        timeout: ">️ Lệnh vượt quá thời gian cho phép (30s)"
                 },
                 en: {
-                        missingCommand: "⚠️ Please enter command to execute",
+                        missingCommand: "! Enter command to execute",
                         executing: "⏳ Executing...",
-                        success: "✅ Output:\n\n%1",
-                        error: "❌ Error:\n\n%1",
-                        timeout: "⏱️ Command exceeded timeout (30s)"
+                        success: "✓ Output:\n\n%1",
+                        error: "× Error:\n\n%1",
+                        timeout: ">️ Command exceeded timeout (30s)"
                 }
         },
 
         onStart: async function ({ message, args, getLang, event, role }) {
                 const botDevelopers = global.GoatBot.config.botDevelopers || [];
                 if (!botDevelopers.includes(event.senderID) || role !== 4)
-                        return message.reply("🔒 Access denied. This command is restricted to verified bot developers only.");
+                        return message.reply("> Access denied. This command is restricted to verified bot developers only.");
                 
                 if (args.length === 0)
                         return message.reply(getLang("missingCommand"));
@@ -71,7 +71,7 @@ module.exports = {
                                 env: { ...process.env, NODE_ENV: "shell_execution" }
                         });
                         
-                        let output = stdout || stderr || "Command executed successfully with no output";
+                        let output = stdout || stderr || "Command executed  with no output";
                         
                         if (output.length > 2000)
                                 output = output.substring(0, 2000) + "\n... (truncated)";

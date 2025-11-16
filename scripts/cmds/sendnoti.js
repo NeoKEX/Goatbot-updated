@@ -21,7 +21,7 @@ module.exports = {
 				+ "\n\n   {pn} info <groupName>: xem thông tin của group noti <groupName>"
 				+ "\n\n   {pn} delete: xóa box chat hiện tại khỏi group noti <groupName> (bạn phải là người tạo group noti này)"
 				+ "\n   Ví dụ:\n    {pn} delete TEAM1"
-				+ "\n\n   {pn} send <groupName> | <message>: gửi thông báo tới tất cả các nhóm trong group noti <groupName> (bạn phải là quản trị viên của những box đó)"
+				+ "\n\n   {pn} send <groupName>: <message>: gửi thông báo tới tất cả các nhóm trong group noti <groupName> (bạn phải là quản trị viên của những box đó)"
 				+ "\n   Ví dụ:\n    {pn} remove TEAM1"
 				+ "\n\n   {pn} remove <groupName>: xóa group noti <groupName> (bạn phải là người tạo group noti <groupName>)"
 				+ "\n   Ví dụ:\n    {pn} remove TEAM1",
@@ -33,7 +33,7 @@ module.exports = {
 				+ "\n\n   {pn} info <groupName>: view info of notification group <groupName>"
 				+ "\n\n   {pn} delete: remove current box chat from notification group <groupName> (you must be creator of this group)"
 				+ "\n   Example:\n    {pn} delete TEAM1"
-				+ "\n\n   {pn} send <groupName> | <message>: send notification to all groups in notification group <groupName> (you must be admin of those groups)"
+				+ "\n\n   {pn} send <groupName>: <message>: send notification to all groups in notification group <groupName> (you must be admin of those groups)"
 				+ "\n   Example:\n    {pn} remove TEAM1"
 				+ "\n\n   {pn} remove <groupName>: remove notification group <groupName> (you must be creator of notification group <groupName>)"
 				+ "\n   Example:\n    {pn} remove TEAM1"
@@ -68,27 +68,27 @@ module.exports = {
 			noGroup: "Hiện tại bạn chưa tạo/quản lý group noti nào"
 		},
 		en: {
-			missingGroupName: "Please enter groupNoti name",
-			groupNameExists: "Notification group with name %1 has been created by you before, please choose another name",
-			createdGroup: "Created notification group successfully:\n- Name: %1\n- ID: %2",
-			missingGroupNameToAdd: "Please enter groupNoti name you want to add this group chat to",
+			missingGroupName: "Enter groupNoti name",
+			groupNameExists: "Notification group with name %1 created by you before, please choose another name",
+			createdGroup: "Created notification group :\n- Name: %1\n- ID: %2",
+			missingGroupNameToAdd: "Enter groupNoti name you want to add this group chat to",
 			groupNameNotExists: "You have not created/manage any notification group with name: %1",
 			notAdmin: "You are not admin of this group chat",
 			added: "Added current group chat to notification group: %1",
-			missingGroupNameToDelete: "Please enter groupNoti name you want to delete this group chat from list",
+			missingGroupNameToDelete: "Enter groupNoti name you want to delete this group chat from list",
 			notInGroup: "Current group chat is not in notification group %1",
 			emptyList: "You have not created/manage any notification group",
 			showList: "List of notification groups you are managing:\nShow in format:\n<Notification group name> - <Number of groups in notification group>\n%1",
 			deleted: "Deleted current group chat from notification group: %1",
 			failed: "Failed to send notification to %1 group chats: \n%2",
-			missingGroupNameToRemove: "Please enter groupNoti name you want to remove",
+			missingGroupNameToRemove: "Enter groupNoti name you want to remove",
 			removed: "Removed notification group: %1",
-			missingGroupNameToSend: "Please enter groupNoti name you want to send message",
+			missingGroupNameToSend: "Enter groupNoti name you want to send message",
 			groupIsEmpty: "Notification group \"%1\" is empty",
 			sending: "Sending notification to %1 group chats",
-			success: "Sent notification to %1 group chats in notification group \"%2\" successfully",
+			success: "Sent notification to %1 group chats in notification group \"%2\" ",
 			notAdminOfGroup: "You are not admin of this group",
-			missingGroupNameToView: "Please enter groupNoti name you want to view info",
+			missingGroupNameToView: "Enter groupNoti name you want to view info",
 			groupInfo: "- Group Name: %1\n - ID: %2\n - Created at: %3\n%4 ",
 			groupInfoHasGroup: "- Has group chats: \n%1",
 			noGroup: "You have not created/manage any notification group"

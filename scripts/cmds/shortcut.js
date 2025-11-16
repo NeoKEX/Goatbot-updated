@@ -20,7 +20,7 @@ module.exports = {
 				+ '\n   {pn} del <word>: xóa một phím tắt'
 				+ '\n   Ví dụ:\n    {pn} del hi'
 				+ '\n'
-				+ '\n   {pn} [remove | reset]: xóa bỏ tất cả các phím tắt trong nhóm chat của bạn'
+				+ '\n   {pn} [remove: reset]: xóa bỏ tất cả các phím tắt trong nhóm chat của bạn'
 				+ '\n'
 				+ '\n   {pn} list: xem danh sách tất cả các phím tắt của bạn'
 				+ '\n   {pn} list start <keyword>: xem danh sách các phím tắt của bạn bắt đầu bằng từ khóa <keyword>'
@@ -67,12 +67,12 @@ module.exports = {
 			removedAll: 'Đã xóa tất cả các shortcut trong nhóm chat của bạn'
 		},
 		en: {
-			missingContent: 'Please enter the message content',
+			missingContent: 'Enter the message content',
 			shortcutExists: 'Shortcut "%1" already exists, react to this message to replace the content of the shortcut',
-			shortcutExistsByOther: 'Shortcut %1 has been added by other member, please try another keyword',
+			shortcutExistsByOther: 'Shortcut %1 added by other member, please try another keyword',
 			added: 'Added shortcut %1 => %2',
 			addedAttachment: ' with %1 attachment(s)',
-			missingKey: 'Please enter the keyword of the shortcut you want to delete',
+			missingKey: 'Enter the keyword of the shortcut you want to delete',
 			notFound: 'No shortcut found for keyword %1 in your group chat',
 			onlyAdmin: 'Only administrators can delete other people\'s shortcuts',
 			deleted: 'Deleted shortcut %1',

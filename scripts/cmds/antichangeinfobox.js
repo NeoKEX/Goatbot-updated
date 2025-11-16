@@ -13,16 +13,16 @@ module.exports = {
 		},
 		category: "box chat",
 		guide: {
-			vi: "   {pn} avt [on | off]: chống đổi avatar box chat"
-				+ "\n   {pn} name [on | off]: chống đổi tên box chat"
-				+ "\n   {pn} nickname [on | off]: chống đổi nickname trong box chat"
-				+ "\n   {pn} theme [on | off]: chống đổi theme (chủ đề) box chat"
-				+ "\n   {pn} emoji [on | off]: chống đổi trạng emoji box chat",
-			en: "   {pn} avt [on | off]: anti change avatar box chat"
-				+ "\n   {pn} name [on | off]: anti change name box chat"
-				+ "\n   {pn} nickname [on | off]: anti change nickname in box chat"
-				+ "\n   {pn} theme [on | off]: anti change theme (chủ đề) box chat"
-				+ "\n   {pn} emoji [on | off]: anti change emoji box chat"
+			vi: "   {pn} avt [on: off]: chống đổi avatar box chat"
+				+ "\n   {pn} name [on: off]: chống đổi tên box chat"
+				+ "\n   {pn} nickname [on: off]: chống đổi nickname trong box chat"
+				+ "\n   {pn} theme [on: off]: chống đổi theme (chủ đề) box chat"
+				+ "\n   {pn} emoji [on: off]: chống đổi trạng emoji box chat",
+			en: "   {pn} avt [on: off]: anti change avatar box chat"
+				+ "\n   {pn} name [on: off]: anti change name box chat"
+				+ "\n   {pn} nickname [on: off]: anti change nickname in box chat"
+				+ "\n   {pn} theme [on: off]: anti change theme (chủ đề) box chat"
+				+ "\n   {pn} emoji [on: off]: anti change emoji box chat"
 		}
 	},
 

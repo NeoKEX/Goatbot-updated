@@ -48,7 +48,7 @@ module.exports = {
 			today: "Thời tiết hôm nay: %1\n%2\n🌡 Nhiệt độ thấp nhất - cao nhất %3°C - %4°C\n🌡 Nhiệt độ cảm nhận được %5°C - %6°C\n🌅 Mặt trời mọc %7\n🌄 Mặt trời lặn %8\n🌃 Mặt trăng mọc %9\n🏙️ Mặt trăng lặn %10\n🌞 Ban ngày: %11\n🌙 Ban đêm: %12"
 		},
 		en: {
-			syntaxError: "Please enter a location",
+			syntaxError: "Enter a location",
 			notFound: "Location not found: %1",
 			error: "An error has occurred: %1",
 			today: "Today's weather: %1\n%2\n🌡 Low - high temperature %3°C - %4°C\n🌡 Feels like %5°C - %6°C\n🌅 Sunrise %7\n🌄 Sunset %8\n🌃 Moonrise %9\n🏙️ Moonset %10\n🌞 Day: %11\n🌙 Night: %12"
@@ -79,7 +79,7 @@ module.exports = {
 			dataWeather = (await axios.get(`http://api.accuweather.com/forecasts/v1/daily/10day/${areaKey}?apikey=${apikey}&details=true&language=vi`)).data;
 		}
 		catch (err) {
-			return message.reply(`❌ Đã xảy ra lỗi: ${err.response.data.Message}`);
+			return message.reply(`× Đã xảy ra lỗi: ${err.response.data.Message}`);
 		}
 
 		const dataWeatherDaily = dataWeather.DailyForecasts;

@@ -219,9 +219,9 @@ ctx.restore();
     const infoLines = [
       `🆔 User ID: ${uid}`,
       `✏️ Nickname: ${name}`,
-      `👥 Gender: ${genderText}`,
+      ` Gender: ${genderText}`,
       `🌐 Username: ${username}`,
-      `⭐ Level: ${levelUser}`,
+      `* Level: ${levelUser}`,
       `⚡ Exp: ${exp}`,
       `💰 Money: $${formatMoney(money)}`,
       `💬 Messages: ${formatNumber(messages)}`,

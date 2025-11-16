@@ -57,7 +57,7 @@ module.exports = {
 
           return sendBeautifulMessage(
             "\n" +
-            `╭─❯ 👑 𝐍𝐚𝐦𝐞\n╰ ${item.itemName}\n\n` +
+            `╭─❯  𝐍𝐚𝐦𝐞\n╰ ${item.itemName}\n\n` +
             `╭─❯ 🆔 𝐈𝐃\n╰ ${item.itemID}\n\n` +
             `╭─❯ ⚙️ 𝐓𝐲𝐩𝐞\n╰ ${item.type || 'Unknown'}\n\n` +
             `╭─❯ 👨‍💻 𝐀𝐮𝐭𝐡𝐨𝐫\n╰ ${item.authorName}\n\n` +
@@ -79,7 +79,7 @@ module.exports = {
             `╭─❯ ${index + 1}. 📦 ${item.itemName}\n` +
             `├ 🆔 𝐈𝐃: ${item.itemID}\n` +
             `├ ⚙️ 𝐓𝐲𝐩𝐞: ${item.type}\n` +
-            `├ 📝 𝐃𝐞𝐬𝐜: ${item.description}\n` +
+            `├  𝐃𝐞𝐬𝐜: ${item.description}\n` +
             `╰ 👨‍💻 𝐀𝐮𝐭𝐡𝐨𝐫: ${item.authorName}\n`
           ).join("\n");
           return sendBeautifulMessage(`\n📄 𝐏𝐚𝐠𝐞 ${page}/${totalPages}\n\n${itemsList}`);
@@ -90,14 +90,14 @@ module.exports = {
           if (!query) return sendBeautifulMessage("\n[⚜️]➜ 𝐏𝐥𝐞𝐚𝐬𝐞 𝐩𝐫𝐨𝐯𝐢𝐝𝐞 𝐚 𝐬𝐞𝐚𝐫𝐜𝐡 𝐪𝐮𝐞𝐫𝐲. ");
           const { data } = await axios.get(`${GoatStor}/api/items?search=${encodeURIComponent(query)}`);
           const results = data.items;
-          if (!results.length) return sendBeautifulMessage("\n❌ 𝐍𝐨 𝐦𝐚𝐭𝐜𝐡𝐢𝐧𝐠 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐬 𝐟𝐨𝐮𝐧𝐝.");
+          if (!results.length) return sendBeautifulMessage("\n× 𝐍𝐨 𝐦𝐚𝐭𝐜𝐡𝐢𝐧𝐠 𝐜𝐨𝐦𝐦𝐚𝐧𝐝𝐬 𝐟𝐨𝐮𝐧𝐝.");
           const searchList = results.slice(0, 5).map((item, index) =>
             `╭─❯ ${index + 1}. 📦 ${item.itemName}\n` +
             `├ 🆔 𝐈𝐃: ${item.itemID}\n` +
             `├ ⚙️ 𝐓𝐲𝐩𝐞: ${item.type}\n` +
             `╰ 👨‍💻 𝐀𝐮𝐭𝐡𝐨𝐫: ${item.authorName}\n`
           ).join("\n");
-          return sendBeautifulMessage(`\n📝 Query: "${query}"\n\n${searchList}`);
+          return sendBeautifulMessage(`\n Query: "${query}"\n\n${searchList}`);
         }
 
         case "trending": {
@@ -126,8 +126,8 @@ module.exports = {
           return sendBeautifulMessage(
             `\n╭─❯ 📦 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬\n╰ ${totalCommands}\n\n` +
             `╭─❯ 💝 𝐓𝐨𝐭𝐚𝐥 𝐋𝐢𝐤𝐞𝐬\n╰ ${totalLikes}\n\n` +
-            `╭─❯ 👥 𝐃𝐚𝐢𝐥𝐲 𝐔𝐬𝐞𝐫𝐬\n╰ ${dailyActiveUsers}\n\n` +
-            `╭─❯ 👑 𝐓𝐨𝐩 𝐀𝐮𝐭𝐡𝐨𝐫𝐬\n╰${authorList}\n\n` +
+            `╭─❯  𝐃𝐚𝐢𝐥𝐲 𝐔𝐬𝐞𝐫𝐬\n╰ ${dailyActiveUsers}\n\n` +
+            `╭─❯  𝐓𝐨𝐩 𝐀𝐮𝐭𝐡𝐨𝐫𝐬\n╰${authorList}\n\n` +
             `╭─❯ 🔥 𝐓𝐨𝐩 𝐕𝐢𝐞𝐰𝐞𝐝\n╰${viewedList}\n\n` +
             `╭─❯ 🏷️ 𝐏𝐨𝐩𝐮𝐥𝐚𝐫 𝐓𝐚𝐠𝐬\n╰${tagList}\n\n` +
             `      🌐 𝐇𝐨𝐬𝐭𝐢𝐧𝐠 𝐈𝐧𝐟𝐨\n\n` +
@@ -141,11 +141,11 @@ module.exports = {
 
         case "like": {
           const likeItemId = parseInt(args[1]);
-          if (isNaN(likeItemId)) return sendBeautifulMessage("\n[⚠️]➜ Please provide a valid item ID.");
+          if (isNaN(likeItemId)) return sendBeautifulMessage("\n[!]➜ Please provide a valid item ID.");
           const { data } = await axios.post(`${GoatStor}/api/items/${likeItemId}/like`);
           if (data.success) {
             return sendBeautifulMessage(
-              `\n╭─❯ ✨ 𝐒𝐭𝐚𝐭𝐮𝐬\n╰ Successfully liked!\n\n╭─❯ 💝 𝐓𝐨𝐭𝐚𝐥 𝐋𝐢𝐤𝐞𝐬\n╰ ${data.likes}`
+              `\n╭─❯ ✨ 𝐒𝐭𝐚𝐭𝐮𝐬\n╰ liked!\n\n╭─❯ 💝 𝐓𝐨𝐭𝐚𝐥 𝐋𝐢𝐤𝐞𝐬\n╰ ${data.likes}`
             );
           } else {
             return sendBeautifulMessage("\n[⚜️]➜ Failed to like command.");
@@ -156,7 +156,7 @@ module.exports = {
           const commandName = args[1];
           if (!commandName) return sendBeautifulMessage("\n[⚜️]➜ 𝐏𝐥𝐞𝐚𝐬𝐞 𝐩𝐫𝐨𝐯𝐢𝐝𝐞 𝐚 𝐜𝐨𝐦𝐦𝐚𝐧𝐝 𝐧𝐚𝐦𝐞.");
           const commandPath = path.join(process.cwd(), 'scripts', 'cmds', `${commandName}.js`);
-          if (!fs.existsSync(commandPath)) return sendBeautifulMessage(`\n❌ File '${commandName}.js' not found.`);
+          if (!fs.existsSync(commandPath)) return sendBeautifulMessage(`\n× File '${commandName}.js' not found.`);
           try {
             const code = fs.readFileSync(commandPath, 'utf8');
             let commandFile;
@@ -177,8 +177,8 @@ module.exports = {
               const { itemID, link } = response.data;
               return sendBeautifulMessage(
                 "\n" +
-                `╭─❯ ✅ 𝐒𝐭𝐚𝐭𝐮𝐬\n╰ Command uploaded successfully!\n\n` +
-                `╭─❯ 👑 𝐍𝐚𝐦𝐞\n╰ ${uploadData.itemName}\n\n` +
+                `╭─❯ ✓ 𝐒𝐭𝐚𝐭𝐮𝐬\n╰ Command uploaded !\n\n` +
+                `╭─❯  𝐍𝐚𝐦𝐞\n╰ ${uploadData.itemName}\n\n` +
                 `╭─❯ 🆔 𝐈𝐃\n╰ ${itemID}\n\n` +
                 `╭─❯ 👨‍💻 𝐀𝐮𝐭𝐡𝐨𝐫\n╰ ${uploadData.authorName}\n\n`  +
                 `╭─❯ 🔗 𝐂𝐨𝐝𝐞\n╰ ${link}`

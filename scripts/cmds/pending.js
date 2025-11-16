@@ -24,7 +24,7 @@ module.exports = {
       try {
         await api.unsendMessage(messageID);
         return api.sendMessage(
-          ` Operation has been canceled!`,
+          ` Operation canceled!`,
           threadID
         );
       } catch {
@@ -48,7 +48,7 @@ module.exports = {
 
       try {
         await api.sendMessage(
-          `✅ Group has been Successfully Approved\n\n📜 Type ${global.GoatBot.config.prefix}help to See Cmds!`,
+          `✓ Group Approved\n\n📜 Type ${global.GoatBot.config.prefix}help to See Cmds!`,
           group.threadID
         );
 
@@ -72,7 +72,7 @@ module.exports = {
     }
 
     return api.sendMessage(
-      `✅ | [ Successfully ] 🎉 Approved ${count} Groups✨!`,
+      `✓: [ ] *_* Approved ${count} Groups✨!`,
       threadID
     );
   },
@@ -120,7 +120,7 @@ module.exports = {
       msg += `✨ Reply with "c" to Cancel.\n`;
 
       return api.sendMessage(
-        `✨ | [ Pending Groups & Users ${type
+        `✨: [ Pending Groups & Users ${type
           .charAt(0)
           .toUpperCase()}${type.slice(1)} List ✨ ]\n\n${msg}`,
         threadID,

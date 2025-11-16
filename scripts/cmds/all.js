@@ -11,8 +11,8 @@ module.exports = {
 		},
 		category: "box chat",
 		guide: {
-			vi: "   {pn} [nội dung | để trống]",
-			en: "   {pn} [content | empty]"
+			vi: "   {pn} [nội dung: để trống]",
+			en: "   {pn} [content: empty]"
 		}
 	},
 

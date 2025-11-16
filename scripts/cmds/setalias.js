@@ -15,8 +15,8 @@ module.exports = {
 				+ "\n   {pn} add <tên gọi khác> <tên lệnh>: dùng để thêm tên gọi khác cho lệnh trong nhóm chat của bạn"
 				+ "\n   {pn} add <tên gọi khác> <tên lệnh> -g: dùng để thêm tên gọi khác cho lệnh trong toàn hệ thống (chỉ admin bot)"
 				+ "\nVí dụ:\n    {pn} add ctrk customrankcard"
-				+ "\n\n   {pn} [remove | rm] <tên gọi khác> <tên lệnh>: dùng để xóa tên gọi khác của lệnh trong nhóm chat của bạn"
-				+ "\n   {pn} [remove | rm] <tên gọi khác> <tên lệnh> -g: dùng để xóa tên gọi khác của lệnh trong toàn hệ thống (chỉ admin bot)"
+				+ "\n\n   {pn} [remove: rm] <tên gọi khác> <tên lệnh>: dùng để xóa tên gọi khác của lệnh trong nhóm chat của bạn"
+				+ "\n   {pn} [remove: rm] <tên gọi khác> <tên lệnh> -g: dùng để xóa tên gọi khác của lệnh trong toàn hệ thống (chỉ admin bot)"
 				+ "\nVí dụ:\n    {pn} rm ctrk customrankcard"
 				+ "\n\n   {pn} list: dùng để xem danh sách tên gọi khác của các lệnh trong nhóm bạn"
 				+ "\n   {pn} list -g: dùng để xem danh sách tên gọi khác của các lệnh trong nhóm bạn",
@@ -24,8 +24,8 @@ module.exports = {
 				+ "\n   {pn} add <alias> <command>: add an alias for the command in your group"
 				+ "\n   {pn} add <alias> <command> -g: add an alias for the command in the whole system (only bot admin)"
 				+ "\nExample:\n    {pn} add ctrk customrankcard"
-				+ "\n\n   {pn} [remove | rm] <alias> <command>: remove an alias for the command in your group"
-				+ "\n   {pn} [remove | rm] <alias> <command> -g: remove an alias for the command in the whole system (only bot admin)"
+				+ "\n\n   {pn} [remove: rm] <alias> <command>: remove an alias for the command in your group"
+				+ "\n   {pn} [remove: rm] <alias> <command> -g: remove an alias for the command in the whole system (only bot admin)"
 				+ "\nExample:\n    {pn} rm ctrk customrankcard"
 				+ "\n\n   {pn} list: list all alias for commands in your group"
 				+ "\n   {pn} list -g: list all alias for commands in the whole system"
@@ -34,39 +34,39 @@ module.exports = {
 
 	langs: {
 		vi: {
-			commandNotExist: "❌ Lệnh \"%1\" không tồn tại",
-			aliasExist: "❌ Tên gọi \"%1\" đã tồn tại cho lệnh \"%2\" trong hệ thống",
-			addAliasSuccess: "✅ Đã thêm tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
-			noPermissionAdd: "❌ Bạn không có quyền thêm tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
-			aliasIsCommand: "❌ Tên gọi \"%1\" trùng với tên lệnh khác trong hệ thống bot",
-			aliasExistInGroup: "❌ Tên gọi \"%1\" đã tồn tại cho lệnh \"%2\" trong nhóm này",
-			addAliasToGroupSuccess: "✅ Đã thêm tên gọi \"%1\" cho lệnh \"%2\" trong nhóm chat của bạn",
-			aliasNotExist: "❌ Tên gọi \"%1\" không tồn tại trong lệnh \"%2\"",
-			removeAliasSuccess: "✅ Đã xóa tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
-			noPermissionDelete: "❌ Bạn không có quyền xóa tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
-			noAliasInGroup: "❌ Lệnh \"%1\" không có tên gọi khác nào trong nhóm của bạn",
-			removeAliasInGroupSuccess: "✅ Đã xóa tên gọi \"%1\" khỏi lệnh \"%2\" trong nhóm chat của bạn",
+			commandNotExist: "× Lệnh \"%1\" không tồn tại",
+			aliasExist: "× Tên gọi \"%1\" đã tồn tại cho lệnh \"%2\" trong hệ thống",
+			addAliasSuccess: "✓ Đã thêm tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
+			noPermissionAdd: "× Bạn không có quyền thêm tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
+			aliasIsCommand: "× Tên gọi \"%1\" trùng với tên lệnh khác trong hệ thống bot",
+			aliasExistInGroup: "× Tên gọi \"%1\" đã tồn tại cho lệnh \"%2\" trong nhóm này",
+			addAliasToGroupSuccess: "✓ Đã thêm tên gọi \"%1\" cho lệnh \"%2\" trong nhóm chat của bạn",
+			aliasNotExist: "× Tên gọi \"%1\" không tồn tại trong lệnh \"%2\"",
+			removeAliasSuccess: "✓ Đã xóa tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
+			noPermissionDelete: "× Bạn không có quyền xóa tên gọi \"%1\" cho lệnh \"%2\" trong hệ thống",
+			noAliasInGroup: "× Lệnh \"%1\" không có tên gọi khác nào trong nhóm của bạn",
+			removeAliasInGroupSuccess: "✓ Đã xóa tên gọi \"%1\" khỏi lệnh \"%2\" trong nhóm chat của bạn",
 			aliasList: "📜 Danh sách tên gọi khác của các lệnh trong hệ thống:\n%1",
-			noAliasInSystem: "⚠️ Hiện tại không có tên gọi nào trong hệ thống",
-			notExistAliasInGroup: "⚠️ Nhóm bạn chưa cài đặt tên gọi khác cho lệnh nào cả",
+			noAliasInSystem: "! Hiện tại không có tên gọi nào trong hệ thống",
+			notExistAliasInGroup: "! Nhóm bạn chưa cài đặt tên gọi khác cho lệnh nào cả",
 			aliasListInGroup: "📜 Danh sách tên gọi khác của các lệnh trong nhóm chat của bạn:\n%1"
 		},
 		en: {
-			commandNotExist: "❌ Command \"%1\" does not exist",
-			aliasExist: "❌ Alias \"%1\" already exists for command \"%2\" in the system",
-			addAliasSuccess: "✅ Added alias \"%1\" for command \"%2\" in the system",
-			noPermissionAdd: "❌ You do not have permission to add alias \"%1\" for command \"%2\" in the system",
-			aliasIsCommand: "❌ Alias \"%1\" is the same as another command in the system",
-			aliasExistInGroup: "❌ Alias \"%1\" already exists for command \"%2\" in this group",
-			addAliasToGroupSuccess: "✅ Added alias \"%1\" for command \"%2\" in your group chat",
-			aliasNotExist: "❌ Alias \"%1\" does not exist for command \"%2\"",
-			removeAliasSuccess: "✅ Removed alias \"%1\" for command \"%2\" in the system",
-			noPermissionDelete: "❌ You do not have permission to remove alias \"%1\" for command \"%2\" in the system",
-			noAliasInGroup: "❌ Command \"%1\" does not have any other alias in your group",
-			removeAliasInGroupSuccess: "✅ Removed alias \"%1\" for command \"%2\" in your group chat",
+			commandNotExist: "× Command \"%1\" does not exist",
+			aliasExist: "× Alias \"%1\" already exists for command \"%2\" in the system",
+			addAliasSuccess: "✓ Added alias \"%1\" for command \"%2\" in the system",
+			noPermissionAdd: "× You do not have permission to add alias \"%1\" for command \"%2\" in the system",
+			aliasIsCommand: "× Alias \"%1\" is the same as another command in the system",
+			aliasExistInGroup: "× Alias \"%1\" already exists for command \"%2\" in this group",
+			addAliasToGroupSuccess: "✓ Added alias \"%1\" for command \"%2\" in your group chat",
+			aliasNotExist: "× Alias \"%1\" does not exist for command \"%2\"",
+			removeAliasSuccess: "✓ Removed alias \"%1\" for command \"%2\" in the system",
+			noPermissionDelete: "× You do not have permission to remove alias \"%1\" for command \"%2\" in the system",
+			noAliasInGroup: "× Command \"%1\" does not have any other alias in your group",
+			removeAliasInGroupSuccess: "✓ Removed alias \"%1\" for command \"%2\" in your group chat",
 			aliasList: "📜 List of other aliases for commands in the system:\n%1",
-			noAliasInSystem: "⚠️ There are no aliases in the system",
-			notExistAliasInGroup: "⚠️ Your group has not set any other aliases for commands",
+			noAliasInSystem: "! There are no aliases in the system",
+			notExistAliasInGroup: "! Your group has not set any other aliases for commands",
 			aliasListInGroup: "📜 List of other aliases for commands in your group chat:\n%1"
 		}
 	},

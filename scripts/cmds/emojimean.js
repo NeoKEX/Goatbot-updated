@@ -32,19 +32,19 @@ module.exports = {
 
 	langs: {
 		vi: {
-			missingEmoji: "⚠️ Bạn chưa nhập emoji",
-			meaningOfEmoji: "📌 Ý nghĩa của emoji %1:\n\n📄 Nghĩa đầu tiên: %2\n\n📑 Nghĩa khác: %3%4\n\n📄 Shortcode: %5\n\n©️ Nguồn: %6\n\n📺 Dưới đây là hình ảnh hiện thị của emoji trên một số nền tảng:",
-			meaningOfWikipedia: "\n\n📝 Reaction tin nhắn này để xem nghĩa \"%1\" từ Wikipedia",
-			meanOfWikipedia: "📑 Nghĩa của \"%1\" trên Wikipedia:\n%2",
-			manyRequest: "⚠️ Hiện tại bot đã gửi quá nhiều yêu cầu, vui lòng thử lại sau",
+			missingEmoji: "! Bạn chưa nhập emoji",
+			meaningOfEmoji: "📌 Ý nghĩa của emoji %1:\n\n📄 Nghĩa đầu tiên: %2\n\n Nghĩa khác: %3%4\n\n📄 Shortcode: %5\n\n©️ Nguồn: %6\n\n📺 Dưới đây là hình ảnh hiện thị của emoji trên một số nền tảng:",
+			meaningOfWikipedia: "\n\n Reaction tin nhắn này để xem nghĩa \"%1\" từ Wikipedia",
+			meanOfWikipedia: " Nghĩa của \"%1\" trên Wikipedia:\n%2",
+			manyRequest: "! Hiện tại bot đã gửi quá nhiều yêu cầu, vui lòng thử lại sau",
 			notHave: "Không có"
 		},
 		en: {
-			missingEmoji: "⚠️ You have not entered an emoji",
-			meaningOfEmoji: "📌 Meaning of emoji %1:\n\n📄 First meaning: %2\n\n📑 More meaning: %3%4\n\n📄 Shortcode: %5\n\n©️ Source: %6\n\n📺 Below are images of the emoji displayed on some platforms:",
-			meaningOfWikipedia: "\n\n📝 React to this message to see the meaning \"%1\" from Wikipedia",
-			meanOfWikipedia: "📑 Meaning of \"%1\" on Wikipedia:\n%2",
-			manyRequest: "⚠️ The bot has sent too many requests, please try again later",
+			missingEmoji: "! You have not entered an emoji",
+			meaningOfEmoji: "📌 Meaning of emoji %1:\n\n📄 First meaning: %2\n\n More meaning: %3%4\n\n📄 Shortcode: %5\n\n©️ Source: %6\n\n📺 Below are images of the emoji displayed on some platforms:",
+			meaningOfWikipedia: "\n\n React to this message to see the meaning \"%1\" from Wikipedia",
+			meanOfWikipedia: " Meaning of \"%1\" on Wikipedia:\n%2",
+			manyRequest: "! The bot has sent too many requests, please try again later",
 			notHave: "Not have"
 		}
 	},

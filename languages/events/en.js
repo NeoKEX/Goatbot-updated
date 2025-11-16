@@ -3,7 +3,7 @@ module.exports = {
 	autoUpdateThreadInfo: {},
 	checkwarn: {
 		text: {
-			warn: "Member %1 has been warned 3 times before and has been banned from the chat box\n- Name: %1\n- Uid: %2\n- To unban, please use the \"%3warn unban <uid>\" command (with uid is the uid of the person you want to unban)",
+			warn: "Member %1 warned 3 times before and banned from the chat box\n- Name: %1\n- Uid: %2\n- To unban, please use the \"%3warn unban <uid>\" command (with uid is the uid of the person you want to unban)",
 			needPermission: "Bot needs administrator permission to kick banned members"
 		}
 	},
@@ -20,8 +20,8 @@ module.exports = {
 	logsbot: {
 		text: {
 			title: "====== Bot logs ======",
-			added: "\n✅\nEvent: bot has been added to a new group\n- Added by: %1",
-			kicked: "\n❌\nEvent: bot has been kicked\n- Kicked by: %1",
+			added: "\n✓\nEvent: bot added to a new group\n- Added by: %1",
+			kicked: "\n×\nEvent: bot kicked\n- Kicked by: %1",
 			footer: "\n- User ID: %1\n- Group: %2\n- Group ID: %3\n- Time: %4"
 		}
 	},

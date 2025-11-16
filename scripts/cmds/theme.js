@@ -29,46 +29,46 @@ module.exports = {
 
   langs: {
     vi: {
-      missingPrompt: "⚠️ | Vui lòng nhập mô tả cho chủ đề AI hoặc ID chủ đề để áp dụng\n\nVí dụ:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
-      generating: "🎨 | Đang tạo chủ đề AI, vui lòng chờ...",
-      preview: "✨ | Đã tạo %1 chủ đề AI!\n\nMô tả: %2\n\n%3\n\n💡 Trả lời tin nhắn này với số (1-%1) để áp dụng chủ đề",
+      missingPrompt: "!: Vui lòng nhập mô tả cho chủ đề AI hoặc ID chủ đề để áp dụng\n\nVí dụ:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
+      generating: "🎨: Đang tạo chủ đề AI, vui lòng chờ...",
+      preview: "✨: Đã tạo %1 chủ đề AI!\n\nMô tả: %2\n\n%3\n\n> Trả lời tin nhắn này với số (1-%1) để áp dụng chủ đề",
       themeInfo: "%1. ID: %2\n   Màu gradient: %3\n   Phong cách: AI Generated",
-      applying: "🎨 | Đang áp dụng chủ đề...",
-      applied: "✅ | Đã áp dụng chủ đề thành công!",
-      error: "❌ | Đã xảy ra lỗi:\n%1",
-      applyError: "❌ | Đã xảy ra lỗi khi áp dụng chủ đề:\n%1",
-      noThemes: "⚠️ | Không thể tạo chủ đề với mô tả này, vui lòng thử mô tả khác",
-      invalidSelection: "⚠️ | Vui lòng nhập số từ 1 đến %1",
-      notAuthor: "⚠️ | Chỉ người tạo yêu cầu mới có thể chọn chủ đề",
-      missingThemeId: "⚠️ | Vui lòng nhập ID chủ đề\nVí dụ: {pn} apply 739785333579430",
-      applyingById: "🎨 | Đang áp dụng chủ đề ID: %1...",
-      appliedById: "✅ | Đã áp dụng chủ đề ID: %1 thành công!",
-      currentTheme: "🎨 | Chủ đề hiện tại của nhóm:\n\n📌 Theme ID: %1\n🎨 Màu sắc: %2\n\n💡 Sử dụng {pn} apply <ID> để thay đổi chủ đề",
-      fetchingCurrent: "🔍 | Đang lấy thông tin chủ đề hiện tại...",
-      noCurrentTheme: "ℹ️ | Nhóm này đang dùng chủ đề mặc định",
-      showingPreviews: "🖼️ | Đang hiển thị xem trước chủ đề (Sáng & Tối)...",
-      previousTheme: "📋 | Chủ đề trước đó:\n📌 Theme ID: %1\n🎨 Màu sắc: %2"
+      applying: "🎨: Đang áp dụng chủ đề...",
+      applied: "✓: Đã áp dụng chủ đề thành công!",
+      error: "×: Đã xảy ra lỗi:\n%1",
+      applyError: "×: Đã xảy ra lỗi khi áp dụng chủ đề:\n%1",
+      noThemes: "!: Không thể tạo chủ đề với mô tả này, vui lòng thử mô tả khác",
+      invalidSelection: "!: Vui lòng nhập số từ 1 đến %1",
+      notAuthor: "!: Chỉ người tạo yêu cầu mới có thể chọn chủ đề",
+      missingThemeId: "!: Vui lòng nhập ID chủ đề\nVí dụ: {pn} apply 739785333579430",
+      applyingById: "🎨: Đang áp dụng chủ đề ID: %1...",
+      appliedById: "✓: Đã áp dụng chủ đề ID: %1 thành công!",
+      currentTheme: "🎨: Chủ đề hiện tại của nhóm:\n\n📌 Theme ID: %1\n🎨 Màu sắc: %2\n\n> Sử dụng {pn} apply <ID> để thay đổi chủ đề",
+      fetchingCurrent: "🔍: Đang lấy thông tin chủ đề hiện tại...",
+      noCurrentTheme: "ℹ️: Nhóm này đang dùng chủ đề mặc định",
+      showingPreviews: "🖼️: Đang hiển thị xem trước chủ đề (Sáng & Tối)...",
+      previousTheme: "📋: Chủ đề trước đó:\n📌 Theme ID: %1\n🎨 Màu sắc: %2"
     },
     en: {
-      missingPrompt: "⚠️ | Please enter a description for AI theme or theme ID to apply\n\nExamples:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
+      missingPrompt: "!: Enter a description for AI theme or theme ID to apply\n\nExamples:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
       generating: "Please wait...",
-      preview: "✨ | Generated %1 AI theme(s)!\n\nDescription: %2\n\n%3\n\n💡 Reply to this message with a number (1-%1) to apply the theme",
+      preview: "✨: Generated %1 AI theme(s)!\n\nDescription: %2\n\n%3\n\n> Reply to this message with a number (1-%1) to apply the theme",
       themeInfo: "%1. ID: %2\n   Gradient Color: %3\n   Style: AI Generated",
-      applying: " | Applying theme...",
-      applied: "✅ | Theme applied successfully!",
-      error: "❌ | An error occurred:\n%1",
-      applyError: "❌ | An error occurred while applying theme:\n%1",
-      noThemes: "⚠️ | Unable to create theme with this description, please try another description",
-      invalidSelection: "⚠️ | Please enter a number from 1 to %1",
-      notAuthor: "⚠️ | Only the person who requested can select the theme",
-      missingThemeId: "⚠️ | Please enter theme ID\nExample: {pn} apply 739785333579430",
-      applyingById: " | Applying theme ID: %1...",
-      appliedById: "✅ | Successfully applied theme ID: %1!",
-      currentTheme: "🎨 | Current group theme:\n\n📌 Theme ID: %1\n🎨 Color: %2\n\n💡 Use {pn} apply <ID> to change theme",
-      fetchingCurrent: "🔍 | Fetching current theme information...",
-      noCurrentTheme: "ℹ️ | This group is using the default theme",
-      showingPreviews: "🖼️ | Showing theme previews...",
-      previousTheme: "📋 | Previous theme:\n📌 Theme ID: %1\n🎨 Color: %2"
+      applying: ": Applying theme...",
+      applied: "✓: Theme applied !",
+      error: "×: An error occurred:\n%1",
+      applyError: "×: An error occurred while applying theme:\n%1",
+      noThemes: "!: Unable to create theme with this description, please try another description",
+      invalidSelection: "!: Enter a number from 1 to %1",
+      notAuthor: "!: Only the person who requested can select the theme",
+      missingThemeId: "!: Enter theme ID\nExample: {pn} apply 739785333579430",
+      applyingById: ": Applying theme ID: %1...",
+      appliedById: "✓: applied theme ID: %1!",
+      currentTheme: "🎨: Current group theme:\n\n📌 Theme ID: %1\n🎨 Color: %2\n\n> Use {pn} apply <ID> to change theme",
+      fetchingCurrent: "🔍: Fetching current theme information...",
+      noCurrentTheme: "ℹ️: This group is using the default theme",
+      showingPreviews: "🖼️: Showing theme previews...",
+      previousTheme: "📋: Previous theme:\n📌 Theme ID: %1\n🎨 Color: %2"
     }
   },
 
@@ -79,7 +79,7 @@ module.exports = {
       try {
         const threadInfo = await api.getThreadInfo(event.threadID);
         const themeId = threadInfo?.threadTheme?.id || threadInfo?.color || "Unknown";
-        return message.reply(`~_~ | Current Theme ID: ${themeId}`);
+        return message.reply(`~_~: Current Theme ID: ${themeId}`);
       } catch (error) {
         return message.reply(getLang("error", error.message || error));
       }
@@ -146,7 +146,7 @@ module.exports = {
               try {
                 const stream = await getStreamFromURL(imgData.url, imgData.name);
                 if (stream) {
-                  console.log(`Successfully downloaded: ${imgData.name}`);
+                  console.log(`downloaded: ${imgData.name}`);
                   attachments.push(stream);
                 }
               } catch (downloadErr) {
@@ -259,7 +259,7 @@ module.exports = {
             console.log(`Downloading: ${imgData.url}`);
             const stream = await getStreamFromURL(imgData.url, imgData.name);
             if (stream) {
-              console.log(`Successfully downloaded: ${imgData.name}`);
+              console.log(`downloaded: ${imgData.name}`);
               attachments.push(stream);
             } else {
               console.log(`Stream is null for: ${imgData.name}`);

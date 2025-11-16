@@ -54,7 +54,7 @@ module.exports = {
 
         langs: {
                 vi: {
-                        error: "❌ Đã xảy ra lỗi: %1",
+                        error: "× Đã xảy ra lỗi: %1",
                         noResult: "⭕ Không có kết quả tìm kiếm nào phù hợp với từ khóa %1",
                         choose: "%1Reply tin nhắn với số để chọn hoặc nội dung bất kì để gỡ",
                         video: "video",
@@ -63,11 +63,11 @@ module.exports = {
                         downloading2: "⬇️ Đang tải xuống %1 \"%2\"\n🔃 Tốc độ: %3MB/s\n⏸️ Đã tải: %4/%5MB (%6%)\n⏳ Ước tính thời gian còn lại: %7 giây",
                         noVideo: "⭕ Rất tiếc, không tìm thấy video nào có dung lượng nhỏ hơn 83MB",
                         noAudio: "⭕ Rất tiếc, không tìm thấy audio nào có dung lượng nhỏ hơn 26MB",
-                        info: "💠 Tiêu đề: %1\n🏪 Channel: %2\n👨‍👩‍👧‍👦 Subscriber: %3\n⏱ Thời gian video: %4\n👀 Lượt xem: %5\n👍 Lượt thích: %6\n🆙 Ngày tải lên: %7\n🔠 ID: %8\n🔗 Link: %9",
+                        info: "💠 Tiêu đề: %1\n🏪 Channel: %2\n👨‍👩‍👧‍👦 Subscriber: %3\n> Thời gian video: %4\n👀 Lượt xem: %5\n👍 Lượt thích: %6\n🆙 Ngày tải lên: %7\n🔠 ID: %8\n🔗 Link: %9",
                         listChapter: "\n📖 Danh sách phân đoạn: %1\n"
                 },
                 en: {
-                        error: "❌ An error occurred: %1",
+                        error: "× An error occurred: %1",
                         noResult: "⭕ No search results match the keyword %1",
                         choose: "%1Reply to the message with a number to choose or any content to cancel",
                         video: "video",
@@ -76,7 +76,7 @@ module.exports = {
                         downloading2: "⬇️ Downloading %1 \"%2\"\n🔃 Speed: %3MB/s\n⏸️ Downloaded: %4/%5MB (%6%)\n⏳ Estimated time remaining: %7 seconds",
                         noVideo: "⭕ Sorry, no video was found with a size less than 83MB",
                         noAudio: "⭕ Sorry, no audio was found with a size less than 26MB",
-                        info: "💠 Title: %1\n🏪 Channel: %2\n👨‍👩‍👧‍👦 Subscriber: %3\n⏱ Video duration: %4\n👀 View count: %5\n👍 Like count: %6\n🆙 Upload date: %7\n🔠 ID: %8\n🔗 Link: %9",
+                        info: "💠 Title: %1\n🏪 Channel: %2\n👨‍👩‍👧‍👦 Subscriber: %3\n> Video duration: %4\n👀 View count: %5\n👍 Like count: %6\n🆙 Upload date: %7\n🔠 ID: %8\n🔗 Link: %9",
                         listChapter: "\n📖 List chapter: %1\n"
                 }
         },

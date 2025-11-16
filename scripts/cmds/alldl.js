@@ -39,7 +39,7 @@ async function download({ videoUrl, message, event }) {
       writer.on('error', reject);
     });
 
-    message.reaction("✅", event.messageID);
+    message.reaction("✓", event.messageID);
 
     // Reply body as requested (no bolding)
     await message.reply({
@@ -50,7 +50,7 @@ async function download({ videoUrl, message, event }) {
     fs.unlinkSync(tempFilePath);
 
   } catch (error) {
-    message.reaction("❌", event.messageID);
+    message.reaction("×", event.messageID);
     console.error("Download Error:", error.message || error);
     message.reply("An error occurred during download. Please check the URL and try again.");
     const tempFilePath = path.join(__dirname, 'cache', `${Date.now()}_temp.mp4`); 
@@ -80,7 +80,7 @@ module.exports = {
         const choice = args[0] === 'on' || args[1] === 'on';
         await threadsData.set(event.threadID, { data: { autoDownload: choice } });
         // No bolding here as requested globally
-        return message.reply(`Auto-download has been turned ${choice ? 'on' : 'off'} for this group.`);
+        return message.reply(`Auto-download turned ${choice ? 'on' : 'off'} for this group.`);
       } else {
         return message.reply("You don't have permission to toggle auto-download.");
       }

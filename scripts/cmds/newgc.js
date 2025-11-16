@@ -11,7 +11,7 @@ config: {
 		longDescription: "Create a new chat group with the tag",
 		category: "owner",
 		guide: {
- en: '"{pn} [tag] | [New group name] or "{pn} me [tag] | [New group name]"',
+ en: '"{pn} [tag]: [New group name] or "{pn} me [tag]: [New group name]"',
  }
 	},
 
@@ -47,6 +47,6 @@ if (!checkPermissionAndSendMessage(adminBotPermission, permissionMessage)) {
  var groupTitle = main.slice(main.indexOf("|") +2)
  for (var i = 0; i < Object.keys(event.mentions).length; i++)
 id.push(Object.keys(event.mentions)[i]);
- api.createNewGroup(id, groupTitle,() => {api.sendMessage(`✔| Successfully created group: ${groupTitle}`, event.threadID)})
+ api.createNewGroup(id, groupTitle,() => {api.sendMessage(`✔| created group: ${groupTitle}`, event.threadID)})
  }
 };

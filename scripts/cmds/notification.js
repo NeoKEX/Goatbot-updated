@@ -26,14 +26,14 @@ module.exports = {
 			missingMessage: "Vui lòng nhập tin nhắn bạn muốn gửi đến tất cả các nhóm",
 			notification: "Thông báo từ admin bot đến tất cả nhóm chat (không phản hồi tin nhắn này)",
 			sendingNotification: "Bắt đầu gửi thông báo từ admin bot đến %1 nhóm chat",
-			sentNotification: "✅ Đã gửi thông báo đến %1 nhóm thành công",
+			sentNotification: "✓ Đã gửi thông báo đến %1 nhóm thành công",
 			errorSendingNotification: "Có lỗi xảy ra khi gửi đến %1 nhóm:\n%2"
 		},
 		en: {
-			missingMessage: "Please enter the message you want to send to all groups",
+			missingMessage: "Enter the message you want to send to all groups",
 			notification: "Notification from admin bot to all chat groups (do not reply to this message)",
 			sendingNotification: "Start sending notification from admin bot to %1 chat groups",
-			sentNotification: "✅ Sent notification to %1 groups successfully",
+			sentNotification: "✓ Sent notification to %1 groups ",
 			errorSendingNotification: "An error occurred while sending to %1 groups:\n%2"
 		}
 	},

@@ -27,7 +27,7 @@ module.exports = {
 			noResult: "Không tìm thấy kết quả nào cho từ khóa %1"
 		},
 		en: {
-			missingKeyword: "You haven't entered any keyword",
+			missingKeyword: "Missing any keyword",
 			noResult: "No result found for keyword %1"
 		}
 	},

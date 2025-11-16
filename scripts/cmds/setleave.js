@@ -17,7 +17,7 @@ module.exports = {
 			vi: {
 				body: "   {pn} on: Bật tin nhắn tạm biệt"
 					+ "\n   {pn} off: Tắt tin nhắn tạm biệt"
-					+ "\n   {pn} text [<nội dung> | reset]: chỉnh sửa nội dung văn bản hoặc reset về mặc định, những shortcut có sẵn:"
+					+ "\n   {pn} text [<nội dung>: reset]: chỉnh sửa nội dung văn bản hoặc reset về mặc định, những shortcut có sẵn:"
 					+ "\n  + {userName}: tên của thành viên rời khỏi nhóm"
 					+ "\n  + {userNameTag}: tên của thành viên rời khỏi nhóm (tag)"
 					+ "\n  + {boxName}:  tên của nhóm chat"
@@ -36,7 +36,7 @@ module.exports = {
 			en: {
 				body: "   {pn} on: Turn on leave message"
 					+ "\n   {pn} off: Turn off leave message"
-					+ "\n   {pn} text [<content> | reset]: edit text content or reset to default, available shortcuts:"
+					+ "\n   {pn} text [<content>: reset]: edit text content or reset to default, available shortcuts:"
 					+ "\n  + {userName}: name of member who leave group"
 					+ "\n  + {userNameTag}: name of member who leave group (tag)"
 					+ "\n  + {boxName}: name of group chat"
@@ -68,13 +68,13 @@ module.exports = {
 			addedFile: "Đã thêm %1 tệp đính kèm vào tin nhắn tạm biệt của nhóm bạn"
 		},
 		en: {
-			turnedOn: "Turned on leave message successfully",
-			turnedOff: "Turned off leave message successfully",
-			missingContent: "Please enter content",
+			turnedOn: "Turned on leave message ",
+			turnedOff: "Turned off leave message ",
+			missingContent: "Enter content",
 			edited: "Edited leave message content of your group to:\n%1",
 			reseted: "Reseted leave message content",
 			noFile: "No leave message attachment file to reset",
-			resetedFile: "Reseted leave message attachment file successfully",
+			resetedFile: "Reseted leave message attachment file ",
 			missingFile: "Please reply this message with image/video/audio file",
 			addedFile: "Added %1 attachment file to your leave message"
 		}

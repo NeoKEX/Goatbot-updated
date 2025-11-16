@@ -11,14 +11,14 @@ module.exports = {
                 },
                 category: "admin",
                 guide: {
-                        vi: '   {pn} [view | -v] <uid | @tag>: Xem vai trò của người dùng'
-                                + '\n   {pn} [set | -s] <uid | @tag> <role>: Đặt vai trò cho người dùng'
-                                + '\n   {pn} [list | -l]: Liệt kê tất cả vai trò'
-                                + '\n   {pn} [info | -i]: Xem thông tin về hệ thống vai trò',
-                        en: '   {pn} [view | -v] <uid | @tag>: View user role'
-                                + '\n   {pn} [set | -s] <uid | @tag> <role>: Set user role'
-                                + '\n   {pn} [list | -l]: List all roles'
-                                + '\n   {pn} [info | -i]: View role system information'
+                        vi: '   {pn} [view: -v] <uid: @tag>: Xem vai trò của người dùng'
+                                + '\n   {pn} [set: -s] <uid: @tag> <role>: Đặt vai trò cho người dùng'
+                                + '\n   {pn} [list: -l]: Liệt kê tất cả vai trò'
+                                + '\n   {pn} [info: -i]: Xem thông tin về hệ thống vai trò',
+                        en: '   {pn} [view: -v] <uid: @tag>: View user role'
+                                + '\n   {pn} [set: -s] <uid: @tag> <role>: Set user role'
+                                + '\n   {pn} [list: -l]: List all roles'
+                                + '\n   {pn} [info: -i]: View role system information'
                 }
         },
 
@@ -30,13 +30,13 @@ module.exports = {
                                 + "• Role 2: Admin bot (có thể set 0-2)\n"
                                 + "• Role 3: Người dùng cao cấp (tự động khi có 2000+ tiền)\n"
                                 + "• Role 4: Nhà phát triển bot (chỉ dev mới set được)\n"
-                                + "\n⚠️ Lưu ý: Role 3 tự động dựa vào số dư, không nên set thủ công",
+                                + "\n! Lưu ý: Role 3 tự động dựa vào số dư, không nên set thủ công",
                         currentRole: "👤 Vai trò hiện tại của %1: Role %2",
-                        roleSet: "✅ Đã đặt vai trò của %1 thành Role %2",
-                        invalidRole: "⚠️ Vai trò không hợp lệ. Vui lòng chọn từ 0-2 (admin chỉ có thể set 0-2)",
-                        noPermission: "⚠️ Bạn không có quyền đặt vai trò này.\nRole 3-4 chỉ developer mới set được.",
-                        missingId: "⚠️ Vui lòng nhập ID hoặc tag người dùng",
-                        roleList: "👥 Danh sách người dùng có vai trò tùy chỉnh:\n%1"
+                        roleSet: "✓ Đã đặt vai trò của %1 thành Role %2",
+                        invalidRole: "! Vai trò không hợp lệ. Vui lòng chọn từ 0-2 (admin chỉ có thể set 0-2)",
+                        noPermission: "! Bạn không có quyền đặt vai trò này.\nRole 3-4 chỉ developer mới set được.",
+                        missingId: "! Vui lòng nhập ID hoặc tag người dùng",
+                        roleList: " Danh sách người dùng có vai trò tùy chỉnh:\n%1"
                 },
                 en: {
                         roleInfo: "📋 Role System:\n"
@@ -45,13 +45,13 @@ module.exports = {
                                 + "• Role 2: Bot admins (can set 0-2)\n"
                                 + "• Role 3: Premium users (auto at 2000+ balance)\n"
                                 + "• Role 4: Bot developers (only devs can set)\n"
-                                + "\n⚠️ Note: Role 3 is auto-based on balance, don't set manually",
+                                + "\n! Note: Role 3 is auto-based on balance, don't set manually",
                         currentRole: "👤 Current role of %1: Role %2",
-                        roleSet: "✅ Set role of %1 to Role %2",
-                        invalidRole: "⚠️ Invalid role. Choose 0-2 (admins can only set 0-2)",
-                        noPermission: "⚠️ You don't have permission to set this role.\nOnly developers can set roles 3-4.",
-                        missingId: "⚠️ Please enter ID or tag user",
-                        roleList: "👥 List of users with custom roles:\n%1"
+                        roleSet: "✓ Set role of %1 to Role %2",
+                        invalidRole: "! Invalid role. Choose 0-2 (admins can only set 0-2)",
+                        noPermission: "! You don't have permission to set this role.\nOnly developers can set roles 3-4.",
+                        missingId: "! Enter ID or tag user",
+                        roleList: " List of users with custom roles:\n%1"
                 }
         },
 
@@ -130,7 +130,7 @@ module.exports = {
                                         return message.reply(getLang("roleSet", userName, newRole));
                                 } catch (err) {
                                         console.error("Error setting role:", err);
-                                        return message.reply("❌ Error setting role: " + err.message);
+                                        return message.reply("× Error setting role: " + err.message);
                                 }
                         }
                         case "list":

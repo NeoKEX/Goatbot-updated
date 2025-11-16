@@ -18,9 +18,9 @@ module.exports = {
 		category: "rank",
 		guide: {
 			vi: {
-				body: "   {pn} [maincolor | subcolor | linecolor | expbarcolor | progresscolor | alphasubcolor | textcolor | namecolor | expcolor | rankcolor | levelcolor | reset] <value>"
+				body: "   {pn} [maincolor: subcolor: linecolor: expbarcolor: progresscolor: alphasubcolor: textcolor: namecolor: expcolor: rankcolor: levelcolor: reset] <value>"
 					+ "\n   Trong đó: "
-					+ "\n  + maincolor | background <value>: background chính của thẻ rank"
+					+ "\n  + maincolor: background <value>: background chính của thẻ rank"
 					+ "\n  + subcolor <value>: background phụ"
 					+ "\n  + linecolor <value>: màu của đường kẻ giữa background chính và phụ"
 					+ "\n  + expbarcolor <value>: màu của thanh exp"
@@ -45,9 +45,9 @@ module.exports = {
 				}
 			},
 			en: {
-				body: "   {pn} [maincolor | subcolor | linecolor | progresscolor | alphasubcolor | textcolor | namecolor | expcolor | rankcolor | levelcolor | reset] <value>"
+				body: "   {pn} [maincolor: subcolor: linecolor: progresscolor: alphasubcolor: textcolor: namecolor: expcolor: rankcolor: levelcolor: reset] <value>"
 					+ "\n   In which: "
-					+ "\n  + maincolor | background <value>: main background of rank card"
+					+ "\n  + maincolor: background <value>: main background of rank card"
 					+ "\n  + subcolor <value>: sub background"
 					+ "\n  + linecolor <value>: color of line between main and sub background"
 					+ "\n  + expbarcolor <value>: color of exp bar"
@@ -88,8 +88,8 @@ module.exports = {
 			invalidAttachment: "Invalid attachment, please choose an image file",
 			invalidColor: "Invalid color code, please choose a hex color code (6 digits) or rgba color code",
 			notSupportImage: "Url image is not supported with option \"%1\"",
-			success: "Your changes have been saved, here is a preview",
-			reseted: "All settings have been reset to default",
+			success: "Your changes saved, here is a preview",
+			reseted: "All settings reset to default",
 			invalidAlpha: "Please choose a number from 0 -> 1"
 		}
 	},

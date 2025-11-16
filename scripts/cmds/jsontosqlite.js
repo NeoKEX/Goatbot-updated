@@ -14,31 +14,31 @@ module.exports = {
 		},
 		category: "owner",
 		guide: {
-			vi: "   {pn} <thread | user | dashboard | global | all>: Sẽ đồng bộ dữ liệu từ data json được lưu trong thư mục database/data sang sqlite\n\n   Lưu ý: Nếu dữ liệu đã tồn tại trong sqlite thì sẽ được cập nhật lại",
-			en: "   {pn} <thread | user | dashboard | global | all>: Will synchronize data from json data stored in the database/data folder to sqlite\n\n   Note: If the data already exists in sqlite, it will be updated"
+			vi: "   {pn} <thread: user: dashboard: global: all>: Sẽ đồng bộ dữ liệu từ data json được lưu trong thư mục database/data sang sqlite\n\n   Lưu ý: Nếu dữ liệu đã tồn tại trong sqlite thì sẽ được cập nhật lại",
+			en: "   {pn} <thread: user: dashboard: global: all>: Will synchronize data from json data stored in the database/data folder to sqlite\n\n   Note: If the data already exists in sqlite, it will be updated"
 		}
 	},
 
 	langs: {
 		vi: {
-			invalidDatabase: "❌ Vui lòng chuyển database sang sqlite trong config sau đó khởi động lại bot để sử dụng lệnh này",
-			missingFile: "❌ Bạn chưa sao chép dữ liệu file %1 vào thư mục database/data",
-			formatInvalid: "❌ Định dạng dữ liệu không hợp lệ",
-			error: "❌ Đã có lỗi xảy ra:\n%1: %2",
-			successThread: "✅ Đã đồng bộ dữ liệu nhóm từ json sang sqlite thành công!",
-			successUser: "✅ Đã đồng bộ dữ liệu người dùng từ json sang sqlite thành công!",
-			successDashboard: "✅ Đã đồng bộ dữ liệu dashboard từ json sang sqlite thành công!",
-			successGlobal: "✅ Đã đồng bộ dữ liệu global từ json sang sqlite thành công!"
+			invalidDatabase: "× Vui lòng chuyển database sang sqlite trong config sau đó khởi động lại bot để sử dụng lệnh này",
+			missingFile: "× Bạn chưa sao chép dữ liệu file %1 vào thư mục database/data",
+			formatInvalid: "× Định dạng dữ liệu không hợp lệ",
+			error: "× Đã có lỗi xảy ra:\n%1: %2",
+			successThread: "✓ Đã đồng bộ dữ liệu nhóm từ json sang sqlite thành công!",
+			successUser: "✓ Đã đồng bộ dữ liệu người dùng từ json sang sqlite thành công!",
+			successDashboard: "✓ Đã đồng bộ dữ liệu dashboard từ json sang sqlite thành công!",
+			successGlobal: "✓ Đã đồng bộ dữ liệu global từ json sang sqlite thành công!"
 		},
 		en: {
-			invalidDatabase: "❌ Please switch database to sqlite in config then restart the bot to use this command",
-			missingFile: "❌ You haven't copied the data file %1 into the database/data folder",
-			formatInvalid: "❌ Data format is invalid",
-			error: "❌ An error occurred:\n%1: %2",
-			successThread: "✅ Successfully synchronized thread data from json to sqlite!",
-			successUser: "✅ Successfully synchronized user data from json to sqlite!",
-			successDashboard: "✅ Successfully synchronized dashboard data from json to sqlite!",
-			successGlobal: "✅ Successfully synchronized global data from json to sqlite!"
+			invalidDatabase: "× Please switch database to sqlite in config then restart the bot to use this command",
+			missingFile: "× You haven't copied the data file %1 into the database/data folder",
+			formatInvalid: "× Data format is invalid",
+			error: "× An error occurred:\n%1: %2",
+			successThread: "✓ synchronized thread data from json to sqlite!",
+			successUser: "✓ synchronized user data from json to sqlite!",
+			successDashboard: "✓ synchronized dashboard data from json to sqlite!",
+			successGlobal: "✓ synchronized global data from json to sqlite!"
 		}
 	},
 

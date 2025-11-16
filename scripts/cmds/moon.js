@@ -37,7 +37,7 @@ module.exports = {
 			caption: "- Ảnh mặt trăng vào đêm %1"
 		},
 		en: {
-			invalidDateFormat: "Please enter a valid date in DD/MM/YYYY format",
+			invalidDateFormat: "Enter a valid date in DD/MM/YYYY format",
 			error: "An error occurred while getting the moon image of %1",
 			invalidDate: "%1 is not a valid date",
 			caption: "- Moon image on %1"
