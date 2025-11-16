@@ -502,7 +502,16 @@ module.exports = function (api, threadModel, userModel, globalModel, usersData, 
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onStart;
 
-                        if (needRole > role) {
+                        let hasPermission = false;
+                        if (role === 4) {
+                                hasPermission = true;
+                        } else if (role === 2 && needRole <= 3) {
+                                hasPermission = true;
+                        } else if (needRole <= role) {
+                                hasPermission = true;
+                        }
+
+                        if (!hasPermission) {
                                 if (!hideNotiMessage.needRoleToUseCmd) {
                                         if (needRole == 1)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdmin", commandName));
