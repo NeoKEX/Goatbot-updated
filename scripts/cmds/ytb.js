@@ -24,8 +24,9 @@ async function getStreamAndSize(url, path = "") {
 module.exports = {
         config: {
                 name: "ytb",
+                aliases: ["youtube"],
                 version: "1.16",
-                author: "NTKhang",
+                author: "NeoKEX",//If you change author name, ill fuck your dad's ass 😡😡
                 countDown: 5,
                 role: 0,
                 description: {
