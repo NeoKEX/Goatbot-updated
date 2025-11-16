@@ -118,55 +118,32 @@ module.exports = {
         
         const attachments = [];
         
-        const form = {
-          av: api.getCurrentUserID(),
-          fb_api_caller_class: 'RelayModern',
-          fb_api_req_friendly_name: 'MessengerThreadThemeQuery',
-          variables: JSON.stringify({
-            id: themeId
-          }),
-          server_timestamps: true,
-          doc_id: '7252964044773400'
+        const extractUrl = (obj) => {
+          if (!obj) return null;
+          if (typeof obj === 'string') return obj;
+          return obj.uri || obj.url || null;
         };
 
         try {
-          const themeResponse = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-          const themeData = typeof themeResponse === 'string' ? JSON.parse(themeResponse) : themeResponse;
+          const themeData = await api.fetchThemeData(themeId);
+          console.log("Current theme data:", JSON.stringify(themeData, null, 2));
           
-          console.log("Current theme response:", JSON.stringify(themeData, null, 2));
-          
-          if (themeData.data && themeData.data.messenger_thread_theme) {
-            const fullTheme = themeData.data.messenger_thread_theme;
-            
-            const extractUrl = (obj) => {
-              if (!obj) return null;
-              return obj.uri || obj.url || (typeof obj === 'string' ? obj : null);
-            };
+          if (themeData) {
+            if (themeData.name) colorInfo = themeData.name;
             
             let imageUrls = [];
             
-            if (fullTheme.preview_image_urls) {
-              const urls = fullTheme.preview_image_urls;
-              const lightUrl = extractUrl(urls.light_mode);
-              const darkUrl = extractUrl(urls.dark_mode);
-              if (lightUrl) imageUrls.push({ url: lightUrl, name: "theme_light.png" });
-              if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: "theme_dark.png" });
-            }
-            
-            if (imageUrls.length === 0 && fullTheme.background_asset?.image) {
-              const bgUrl = extractUrl(fullTheme.background_asset.image);
-              if (bgUrl) imageUrls.push({ url: bgUrl, name: "theme_bg.png" });
-            }
-            
-            if (imageUrls.length === 0 && fullTheme.icon_asset?.image) {
-              const iconUrl = extractUrl(fullTheme.icon_asset.image);
-              if (iconUrl) imageUrls.push({ url: iconUrl, name: "theme_icon.png" });
+            if (themeData.backgroundImage) {
+              imageUrls.push({ url: themeData.backgroundImage, name: "theme_bg.png" });
             }
             
             for (const imgData of imageUrls) {
               try {
                 const stream = await getStreamFromURL(imgData.url, imgData.name);
-                if (stream) attachments.push(stream);
+                if (stream) {
+                  console.log(`Successfully downloaded: ${imgData.name}`);
+                  attachments.push(stream);
+                }
               } catch (downloadErr) {
                 console.error(`Failed to download current theme preview: ${imgData.url}`, downloadErr.message);
               }
@@ -180,14 +157,12 @@ module.exports = {
           ? getLang("currentTheme", themeId, colorInfo) + "\n\n" + getLang("showingPreviews")
           : getLang("currentTheme", themeId, colorInfo);
         
-        // Try sending with attachments first, fallback to text-only if it fails
         try {
           return await message.reply({
             body: messageBody,
             attachment: attachments.length > 0 ? attachments : undefined
           });
         } catch (attachmentError) {
-          // If sending with attachments failed, retry without them
           return message.reply(getLang("currentTheme", themeId, colorInfo));
         }
       } catch (error) {
