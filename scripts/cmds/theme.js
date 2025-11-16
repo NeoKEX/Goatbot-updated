@@ -3,7 +3,7 @@ const { getStreamFromURL } = global.utils;
 module.exports = {
   config: {
     name: "theme",
-    aliases: ["aitheme"],
+    aliases: ["aitheme", "changetheme"],
     version: "2.0",
     author: "NeoKEX",
     countDown: 5,
@@ -51,10 +51,10 @@ module.exports = {
     },
     en: {
       missingPrompt: "⚠️ | Please enter a description for AI theme or theme ID to apply\n\nExamples:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
-      generating: "🎨 | Generating AI themes, please wait...",
+      generating: "Please wait...",
       preview: "✨ | Generated %1 AI theme(s)!\n\nDescription: %2\n\n%3\n\n💡 Reply to this message with a number (1-%1) to apply the theme",
       themeInfo: "%1. ID: %2\n   Gradient Color: %3\n   Style: AI Generated",
-      applying: "🎨 | Applying theme...",
+      applying: " | Applying theme...",
       applied: "✅ | Theme applied successfully!",
       error: "❌ | An error occurred:\n%1",
       applyError: "❌ | An error occurred while applying theme:\n%1",
@@ -62,12 +62,12 @@ module.exports = {
       invalidSelection: "⚠️ | Please enter a number from 1 to %1",
       notAuthor: "⚠️ | Only the person who requested can select the theme",
       missingThemeId: "⚠️ | Please enter theme ID\nExample: {pn} apply 739785333579430",
-      applyingById: "🎨 | Applying theme ID: %1...",
+      applyingById: " | Applying theme ID: %1...",
       appliedById: "✅ | Successfully applied theme ID: %1!",
       currentTheme: "🎨 | Current group theme:\n\n📌 Theme ID: %1\n🎨 Color: %2\n\n💡 Use {pn} apply <ID> to change theme",
       fetchingCurrent: "🔍 | Fetching current theme information...",
       noCurrentTheme: "ℹ️ | This group is using the default theme",
-      showingPreviews: "🖼️ | Showing theme previews (Light & Dark mode)...",
+      showingPreviews: "🖼️ | Showing theme previews...",
       previousTheme: "📋 | Previous theme:\n📌 Theme ID: %1\n🎨 Color: %2"
     }
   },
@@ -79,7 +79,7 @@ module.exports = {
       try {
         const threadInfo = await api.getThreadInfo(event.threadID);
         const themeId = threadInfo?.threadTheme?.id || threadInfo?.color || "Unknown";
-        return message.reply(`🎨 | Current Theme ID: ${themeId}`);
+        return message.reply(`~_~ | Current Theme ID: ${themeId}`);
       } catch (error) {
         return message.reply(getLang("error", error.message || error));
       }
