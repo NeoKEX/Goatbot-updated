@@ -194,6 +194,14 @@ module.exports = {
       let themeList = "";
       const attachments = [];
       
+      const extractUrl = (obj) => {
+        if (!obj) return null;
+        if (typeof obj === 'string') return obj;
+        if (obj.uri) return obj.uri;
+        if (obj.url) return obj.url;
+        return null;
+      };
+      
       for (let index = 0; index < themes.length; index++) {
         const theme = themes[index];
         let colorInfo = "AI Generated";
@@ -208,70 +216,26 @@ module.exports = {
         
         themeList += getLang("themeInfo", index + 1, theme.id, colorInfo) + "\n\n";
         
-        const extractPreviewUrl = (obj) => {
-          if (!obj) return null;
-          if (typeof obj === 'string') return obj;
-          if (obj.uri) return obj.uri;
-          if (obj.url) return obj.url;
-          return null;
-        };
-        
         if (theme.preview_image_urls) {
           const urls = theme.preview_image_urls;
           
-          if (urls.light_mode) {
+          const lightUrl = extractUrl(urls.light_mode);
+          const darkUrl = extractUrl(urls.dark_mode);
+          
+          if (lightUrl) {
             try {
-              const lightUrl = extractPreviewUrl(urls.light_mode);
-              if (lightUrl) {
-                const stream = await getStreamFromURL(lightUrl, `theme_${index + 1}_light.png`);
-                if (stream) attachments.push(stream);
-              }
-            } catch (imgError) {
-              // Failed to load light mode preview
+              const stream = await getStreamFromURL(lightUrl, `theme_${index + 1}_light.png`);
+              if (stream) attachments.push(stream);
+            } catch (err) {
             }
           }
           
-          if (urls.dark_mode) {
+          if (darkUrl && darkUrl !== lightUrl) {
             try {
-              const darkUrl = extractPreviewUrl(urls.dark_mode);
-              if (darkUrl) {
-                const stream = await getStreamFromURL(darkUrl, `theme_${index + 1}_dark.png`);
-                if (stream) attachments.push(stream);
-              }
-            } catch (imgError) {
-              // Failed to load dark mode preview
+              const stream = await getStreamFromURL(darkUrl, `theme_${index + 1}_dark.png`);
+              if (stream) attachments.push(stream);
+            } catch (err) {
             }
-          }
-        } else if (theme.preview_images) {
-          const imgs = theme.preview_images;
-          if (imgs.light_mode) {
-            try {
-              const lightUrl = extractPreviewUrl(imgs.light_mode);
-              if (lightUrl) {
-                const stream = await getStreamFromURL(lightUrl, `theme_${index + 1}_light.png`);
-                if (stream) attachments.push(stream);
-              }
-            } catch (e) {}
-          }
-          if (imgs.dark_mode) {
-            try {
-              const darkUrl = extractPreviewUrl(imgs.dark_mode);
-              if (darkUrl) {
-                const stream = await getStreamFromURL(darkUrl, `theme_${index + 1}_dark.png`);
-                if (stream) attachments.push(stream);
-              }
-            } catch (e) {}
-          }
-        } else if (theme.preview_urls && Array.isArray(theme.preview_urls)) {
-          for (let previewIndex = 0; previewIndex < Math.min(theme.preview_urls.length, 2); previewIndex++) {
-            try {
-              const previewUrl = extractPreviewUrl(theme.preview_urls[previewIndex]);
-              if (previewUrl) {
-                const mode = previewIndex === 0 ? "light" : "dark";
-                const stream = await getStreamFromURL(previewUrl, `theme_${index + 1}_${mode}.png`);
-                if (stream) attachments.push(stream);
-              }
-            } catch (e) {}
           }
         }
       }
