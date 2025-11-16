@@ -1,0 +1,69 @@
+# Node modules (will be installed in container)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Development files
+*.dev.json
+*.dev.txt
+*.dev.js
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+DOCS.md
+STEP_INSTALL.md
+*.md
+!package.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files (these should be volumes)
+database/*.sqlite
+database/*.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment files
+.env.local
+.env.development
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Backup files
+*.backup
+*.bak
+account.txt.backup
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Other
+.replit
+replit.nix
