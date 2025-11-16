@@ -131,7 +131,9 @@ module.exports = {
 
         try {
           const themeResponse = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-          const themeData = JSON.parse(themeResponse);
+          const themeData = typeof themeResponse === 'string' ? JSON.parse(themeResponse) : themeResponse;
+          
+          console.log("Current theme response:", JSON.stringify(themeData, null, 2));
           
           if (themeData.data && themeData.data.messenger_thread_theme) {
             const fullTheme = themeData.data.messenger_thread_theme;
