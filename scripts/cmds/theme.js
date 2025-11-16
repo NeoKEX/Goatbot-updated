@@ -127,6 +127,8 @@ module.exports = {
         try {
           const allThemes = await api.getTheme(event.threadID);
           console.log("All themes fetched:", allThemes.length);
+          console.log("Looking for theme ID:", themeId);
+          console.log("Sample theme IDs from list:", allThemes.slice(0, 5).map(t => t.id));
           
           const currentThemeData = allThemes.find(t => t.id === themeId);
           console.log("Current theme data:", JSON.stringify(currentThemeData, null, 2));
