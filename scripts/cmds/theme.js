@@ -197,6 +197,12 @@ module.exports = {
       message.reply(getLang("generating"));
 
       const themes = await api.createAITheme(prompt, 5);
+      
+      console.log("=== THEME DEBUG ===");
+      console.log("Themes returned:", themes?.length || 0);
+      if (themes && themes.length > 0) {
+        console.log("First theme structure:", JSON.stringify(themes[0], null, 2));
+      }
 
       if (!themes || themes.length === 0) {
         return message.reply(getLang("noThemes"));
@@ -231,19 +237,23 @@ module.exports = {
         
         if (theme.preview_image_urls) {
           const urls = theme.preview_image_urls;
+          console.log(`Theme ${index + 1} preview_image_urls:`, urls);
           const lightUrl = extractUrl(urls.light_mode);
           const darkUrl = extractUrl(urls.dark_mode);
+          console.log(`Theme ${index + 1} extracted URLs - light: ${lightUrl}, dark: ${darkUrl}`);
           if (lightUrl) imageUrls.push({ url: lightUrl, name: `theme_${index + 1}_light.png` });
           if (darkUrl && darkUrl !== lightUrl) imageUrls.push({ url: darkUrl, name: `theme_${index + 1}_dark.png` });
         }
         
         if (imageUrls.length === 0 && theme.background_asset?.image) {
           const bgUrl = extractUrl(theme.background_asset.image);
+          console.log(`Theme ${index + 1} background_asset URL: ${bgUrl}`);
           if (bgUrl) imageUrls.push({ url: bgUrl, name: `theme_${index + 1}_bg.png` });
         }
         
         if (imageUrls.length === 0 && theme.icon_asset?.image) {
           const iconUrl = extractUrl(theme.icon_asset.image);
+          console.log(`Theme ${index + 1} icon_asset URL: ${iconUrl}`);
           if (iconUrl) imageUrls.push({ url: iconUrl, name: `theme_${index + 1}_icon.png` });
         }
         
@@ -251,6 +261,7 @@ module.exports = {
           for (const altTheme of theme.alternative_themes) {
             if (altTheme.background_asset?.image) {
               const altUrl = extractUrl(altTheme.background_asset.image);
+              console.log(`Theme ${index + 1} alternative theme URL: ${altUrl}`);
               if (altUrl) {
                 imageUrls.push({ url: altUrl, name: `theme_${index + 1}_alt.png` });
                 break;
@@ -259,10 +270,18 @@ module.exports = {
           }
         }
         
+        console.log(`Theme ${index + 1} total image URLs to download: ${imageUrls.length}`);
+        
         for (const imgData of imageUrls) {
           try {
+            console.log(`Downloading: ${imgData.url}`);
             const stream = await getStreamFromURL(imgData.url, imgData.name);
-            if (stream) attachments.push(stream);
+            if (stream) {
+              console.log(`Successfully downloaded: ${imgData.name}`);
+              attachments.push(stream);
+            } else {
+              console.log(`Stream is null for: ${imgData.name}`);
+            }
           } catch (err) {
             console.error(`Failed to download theme preview: ${imgData.url}`, err.message);
           }
