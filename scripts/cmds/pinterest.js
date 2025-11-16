@@ -1,9 +1,12 @@
 const axios = require('axios');
 
+// ScrapeCreators API Key - 100 free calls
+const SCRAPECREATORS_API_KEY = "5ea672c2-d899-4c7a-af77-90e2ff5bcd2f";
+
 module.exports = {
         config: {
                 name: "pinterest",
-                version: "3.0",
+                version: "4.0",
                 author: "Advanced Pinterest Search",
                 countDown: 5,
                 role: 0,
@@ -82,45 +85,25 @@ module.exports = {
                 const loadingMsg = await message.reply(getLang("searching"));
 
                 try {
-                        // Use Pinterest unofficial scraping API
-                        const apiUrl = `https://www.pinterest.com/resource/BaseSearchResource/get/`;
-                        
-                        const params = {
-                                source_url: `/search/pins/?q=${encodeURIComponent(query)}`,
-                                data: JSON.stringify({
-                                        options: {
-                                                isPrefetch: false,
-                                                query: query,
-                                                scope: "pins",
-                                                no_fetch_context_on_resource: false
-                                        },
-                                        context: {}
-                                }),
-                                _: Date.now()
-                        };
+                        // Use ScrapeCreators unofficial Pinterest API
+                        const apiUrl = `https://api.scrapecreators.com/v1/pinterest/search`;
                         
                         const response = await axios.get(apiUrl, {
-                                params,
+                                params: {
+                                        query: query,
+                                        count: customCount || 50
+                                },
                                 headers: {
-                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-                                        'Accept': 'application/json, text/javascript, */*, q=0.01',
-                                        'Accept-Language': 'en-US,en;q=0.9',
-                                        'Referer': `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}`,
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'X-APP-VERSION': 'cb1b772',
-                                        'X-Pinterest-AppState': 'active',
-                                        'Sec-Fetch-Dest': 'empty',
-                                        'Sec-Fetch-Mode': 'cors',
-                                        'Sec-Fetch-Site': 'same-origin'
+                                        'x-api-key': SCRAPECREATORS_API_KEY
                                 }
                         });
 
-                        if (!response.data || !response.data.resource_response || !response.data.resource_response.data || !response.data.resource_response.data.results) {
+                        if (!response.data || !response.data.success || !response.data.data || response.data.data.length === 0) {
                                 return message.reply(getLang("noResults", query));
                         }
 
-                        const allPins = response.data.resource_response.data.results;
-                        const bookmark = response.data.resource_response.bookmark || null;
+                        const allPins = response.data.data;
+                        const bookmark = null;
 
                         if (customCount) {
                                 // Grid mode: Show specified number of images
@@ -207,7 +190,7 @@ async function sendPaginatedList(message, event, allPins, query, page, bookmark,
         let messageText = getLang("pageTitle", page, totalPages, query);
         
         pagePins.forEach((pin, index) => {
-                const title = pin.grid_title || pin.title || pin.description || "Untitled";
+                const title = pin.title || pin.description || "Untitled";
                 const truncatedTitle = title.length > 50 ? title.substring(0, 47) + "..." : title;
                 messageText += `${startIdx + index + 1}. ${truncatedTitle}\n`;
         });
@@ -281,19 +264,15 @@ async function fetchAndShowNextPage(message, event, query, currentPins, bookmark
 
 async function sendSingleImage(message, pin, number, getLang) {
         try {
-                // Pinterest internal API structure
-                const imageUrl = pin.images?.orig?.url || 
-                               pin.images?.['736x']?.url ||
-                               pin.images?.['564x']?.url ||
-                               pin.images?.['474x']?.url ||
-                               pin.image_large_url;
+                // ScrapeCreators API structure
+                const imageUrl = pin.image_url || pin.images?.orig?.url;
                 
                 if (!imageUrl) {
                         return message.reply("❌ Image URL not available");
                 }
 
-                const title = pin.grid_title || pin.title || pin.description || "Pinterest Image";
-                const pinUrl = `https://www.pinterest.com/pin/${pin.id}/`;
+                const title = pin.title || pin.description || "Pinterest Image";
+                const pinUrl = pin.url || `https://www.pinterest.com/pin/${pin.id}/`;
                 
                 const stream = await global.utils.getStreamFromURL(imageUrl);
                 
@@ -314,15 +293,11 @@ async function sendGridImages(message, pins, query, count, getLang) {
 
                 for (let i = 0; i < Math.min(pins.length, count); i++) {
                         const pin = pins[i];
-                        const title = pin.grid_title || pin.title || pin.description || "Untitled";
+                        const title = pin.title || pin.description || "Untitled";
                         const truncatedTitle = title.length > 40 ? title.substring(0, 37) + "..." : title;
                         messageText += `${i + 1}. ${truncatedTitle}\n`;
 
-                        const imageUrl = pin.images?.orig?.url || 
-                                       pin.images?.['736x']?.url ||
-                                       pin.images?.['564x']?.url ||
-                                       pin.images?.['474x']?.url ||
-                                       pin.image_large_url;
+                        const imageUrl = pin.image_url || pin.images?.orig?.url;
                         
                         if (imageUrl) {
                                 try {
