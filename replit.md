@@ -17,6 +17,14 @@ Goat Bot V2 is a Facebook Messenger chat bot built using neokex-fca (unofficial 
 - Migrated from local fb-chat-api to neokex-fca npm package
 - Removed entire dashboard system to simplify deployment
 - Cleaned up database models and global state
+- **Advanced Pinterest Search Command (November 16, 2025):**
+  - Implemented Pinterest image search using unofficial internal API (no authentication required)
+  - Pagination mode: Browse 10 images per page with numbered selection (reply 1-10 to select)
+  - Grid mode: Display custom number of images (e.g., `?pinterest cats -5` for 5 images)
+  - Interactive navigation: Reply "next"/"prev" to browse through pages
+  - Session management: Maintains search state for each user
+  - Automatic image quality selection (orig > 736x > 564x > 474x)
+  - Bilingual support (English/Vietnamese)
 - **Developer Role Enhancement (November 16, 2025):**
   - Modified `setrole` command to allow developers (role 4) to change roles for ALL commands
   - Developers can now manage permissions for high-level commands (role 2, 3, 4) that were previously restricted
