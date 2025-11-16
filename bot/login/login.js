@@ -1013,6 +1013,11 @@ async function startBot(loginWithEmail) {
                                                 storage5Message.shift();
                                 }
 
+                                // DEBUG: Log all events to see if reactions are coming through
+                                if (event.type === "message_reaction") {
+                                        console.log(colors.yellow("DEBUG REACTION EVENT:"), jsonStringifyColor(event, null, 2));
+                                }
+
                                 if (configLog.disableAll === false && configLog[event.type] !== false) {
                                         // hide participantIDs (it is array too long)
                                         const participantIDs_ = [...event.participantIDs || []];
