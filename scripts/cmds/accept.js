@@ -39,11 +39,11 @@ module.exports = {
 
     if (args[0] === "add") {
       form.fb_api_req_friendly_name = "FriendingCometFriendRequestConfirmMutation";
-      form.doc_id = "3147613905362928";
+      form.doc_id = "8052155221530577";
     }
     else if (args[0] === "del") {
       form.fb_api_req_friendly_name = "FriendingCometFriendRequestDeleteMutation";
-      form.doc_id = "4108254489275063";
+      form.doc_id = "7988363234586686";
     }
     else {
       return api.sendMessage("Please select <add | del > <target number | or \"all\">", event.threadID, event.messageID);
@@ -113,7 +113,7 @@ module.exports = {
         av: api.getCurrentUserID(),
         fb_api_req_friendly_name: "FriendingCometFriendRequestsRootQueryRelayPreloader",
         fb_api_caller_class: "RelayModern",
-        doc_id: "4499164963466303",
+        doc_id: "8559148610815077",
         variables: JSON.stringify({ input: { scale: 3 } })
       };
       
