@@ -86,7 +86,6 @@ module.exports = {
         const friendRequest = await promiseFriends[i];
         const response = JSON.parse(friendRequest);
         if (response.errors) {
-          console.log(`GraphQL Error for ${newTargetIDs[i].node.name}:`, response.errors);
           failed.push(newTargetIDs[i].node.name);
         }
         else {
@@ -94,7 +93,6 @@ module.exports = {
         }
       }
       catch (e) {
-        console.log(`Error for ${newTargetIDs[i].node.name}:`, e.message);
         failed.push(newTargetIDs[i].node.name);
       }
     }
@@ -120,11 +118,15 @@ module.exports = {
       };
       
       const response = await api.httpPost("https://www.facebook.com/api/graphql/", form);
-      const data = JSON.parse(response);
       
-      console.log("Accept command - full response:", JSON.stringify(data, null, 2));
+      let data;
+      try {
+        data = typeof response === 'string' ? JSON.parse(response) : response;
+      } catch (parseError) {
+        return api.sendMessage("❌ Failed to parse response. Please try again later.", event.threadID, event.messageID);
+      }
       
-      if (!data.data || !data.data.viewer || !data.data.viewer.friending_possibilities) {
+      if (!data || !data.data || !data.data.viewer || !data.data.viewer.friending_possibilities) {
         return api.sendMessage("❌ Could not fetch friend requests. Please try again later.", event.threadID, event.messageID);
       }
       
@@ -157,8 +159,7 @@ module.exports = {
         });
       }, event.messageID);
     } catch (error) {
-      console.log("Accept command error:", error);
-      return api.sendMessage(`❌ Error: ${error.message}`, event.threadID, event.messageID);
+      return api.sendMessage(`❌ Error: ${error.message || "An unexpected error occurred"}`, event.threadID, event.messageID);
     }
   }
 };

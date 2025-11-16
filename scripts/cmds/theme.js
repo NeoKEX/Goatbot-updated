@@ -45,7 +45,9 @@ module.exports = {
       appliedById: "✅ | Đã áp dụng chủ đề ID: %1 thành công!",
       currentTheme: "🎨 | Chủ đề hiện tại của nhóm:\n\n📌 Theme ID: %1\n🎨 Màu sắc: %2\n\n💡 Sử dụng {pn} apply <ID> để thay đổi chủ đề",
       fetchingCurrent: "🔍 | Đang lấy thông tin chủ đề hiện tại...",
-      noCurrentTheme: "ℹ️ | Nhóm này đang dùng chủ đề mặc định"
+      noCurrentTheme: "ℹ️ | Nhóm này đang dùng chủ đề mặc định",
+      showingPreviews: "🖼️ | Đang hiển thị xem trước chủ đề (Sáng & Tối)...",
+      previousTheme: "📋 | Chủ đề trước đó:\n📌 Theme ID: %1\n🎨 Màu sắc: %2"
     },
     en: {
       missingPrompt: "⚠️ | Please enter a description for AI theme or theme ID to apply\n\nExamples:\n• {pn} ocean sunset colors\n• {pn} apply 739785333579430",
@@ -64,7 +66,9 @@ module.exports = {
       appliedById: "✅ | Successfully applied theme ID: %1!",
       currentTheme: "🎨 | Current group theme:\n\n📌 Theme ID: %1\n🎨 Color: %2\n\n💡 Use {pn} apply <ID> to change theme",
       fetchingCurrent: "🔍 | Fetching current theme information...",
-      noCurrentTheme: "ℹ️ | This group is using the default theme"
+      noCurrentTheme: "ℹ️ | This group is using the default theme",
+      showingPreviews: "🖼️ | Showing theme previews (Light & Dark mode)...",
+      previousTheme: "📋 | Previous theme:\n📌 Theme ID: %1\n🎨 Color: %2"
     }
   },
 
@@ -129,8 +133,6 @@ module.exports = {
           const themeResponse = await api.httpPost("https://www.facebook.com/api/graphql/", form);
           const themeData = JSON.parse(themeResponse);
           
-          console.log("Full theme response:", JSON.stringify(themeData, null, 2));
-          
           if (themeData.data && themeData.data.messenger_thread_theme) {
             const fullTheme = themeData.data.messenger_thread_theme;
             
@@ -158,15 +160,18 @@ module.exports = {
             }
           }
         } catch (err) {
-          console.log("Could not fetch theme preview images:", err.message);
+          // Failed to fetch theme preview images
         }
         
+        const messageBody = attachments.length > 0 
+          ? getLang("currentTheme", themeId, colorInfo) + "\n\n" + getLang("showingPreviews")
+          : getLang("currentTheme", themeId, colorInfo);
+        
         return message.reply({
-          body: getLang("currentTheme", themeId, colorInfo),
+          body: messageBody,
           attachment: attachments.length > 0 ? attachments : undefined
         });
       } catch (error) {
-        console.log("Theme Error:", error);
         return message.reply(getLang("error", error.message || error));
       }
     }
@@ -216,7 +221,7 @@ module.exports = {
                 if (stream) attachments.push(stream);
               }
             } catch (imgError) {
-              console.log(`Failed to load light mode preview for theme ${index + 1}:`, imgError.message);
+              // Failed to load light mode preview
             }
           }
           
@@ -228,7 +233,7 @@ module.exports = {
                 if (stream) attachments.push(stream);
               }
             } catch (imgError) {
-              console.log(`Failed to load dark mode preview for theme ${index + 1}:`, imgError.message);
+              // Failed to load dark mode preview
             }
           }
         } else if (theme.preview_images) {
@@ -303,9 +308,18 @@ module.exports = {
     const selectedTheme = themes[selection - 1];
     
     try {
+      // Get current theme before applying new one
+      const threadInfo = await api.getThreadInfo(event.threadID);
+      const currentTheme = threadInfo.threadTheme;
+      const currentThemeId = currentTheme?.id || currentTheme?.theme_fbid || "Default";
+      const currentColor = threadInfo.color || currentTheme?.accessibility_label || "Default";
+      
       message.reply(getLang("applying"));
       await api.changeThreadColor(selectedTheme.id, event.threadID);
-      message.reply(getLang("applied"));
+      
+      // Show previous theme info with success message
+      const successMsg = getLang("applied") + "\n\n" + getLang("previousTheme", currentThemeId, currentColor);
+      message.reply(successMsg);
       
       api.unsendMessage(messageID);
     } catch (error) {
