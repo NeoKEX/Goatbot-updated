@@ -17,6 +17,15 @@ Goat Bot V2 is a Facebook Messenger chat bot built using the `neokex-fca` (unoff
 
 ## Recent Changes
 
+### Message Simplification (November 16, 2025)
+- **Simplified All Bot Responses:**
+  - Replaced all emojis with simple characters: ✓ (success), × (error), ! (warning), > (info), * (special)
+  - Shortened verbose phrases: "Successfully" → "", "has been" → "", "Please enter" → "Enter"
+  - Simplified error messages: "An error occurred" → "Error"
+  - Removed unnecessary words: "already", "currently", "in your group"
+  - Updated all language files, command files, and handler messages
+  - Messages are now more concise and easier to read
+
 ### Role Permission Updates (November 16, 2025)
 - **Enhanced Role-Based Command Access:**
   - Modified `bot/handler/handlerEvents.js` to implement new role-based permission logic
