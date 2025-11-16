@@ -7,7 +7,7 @@ module.exports = {
         config: {
                 name: "delete",
                 aliases: ["remove", "delcmd"],
-                version: "1.1", // Updated version
+                version: "1.2",
                 author: "NeoKEX",
                 countDown: 5,
                 role: 2,
@@ -32,8 +32,8 @@ module.exports = {
                         deletedError: "× Xóa lệnh \"%1\" thất bại với lỗi: %2",
                         notFound: "× Không tìm thấy tệp lệnh \"%1\"",
                         cannotDelete: "× Không thể xóa lệnh \"%1\" (lệnh hệ thống được bảo vệ)",
-                        partialSuccess: "✓ Đã xóa (%1) lệnh thành công.\n\n× Thất bại (%2) lệnh:\n%3", // Improved message
-                        notDeleted: "× Không thể xóa (%1) lệnh:\n%2"
+                        partialSuccess: "✓ Đã xóa (%1) lệnh thành công.\n\n× Thất bại (%2) lệnh:\n%3",
+                        notDeleted: "× Xóa ব্যর্থ (%1) lệnh:\n%2"
                 },
                 en: {
                         missingCommandName: "⚠️ Please enter the command name you want to delete",
@@ -44,7 +44,7 @@ module.exports = {
                         deletedError: "× Failed to delete command \"%1\" with error: %2",
                         notFound: "× Command file \"%1\" not found",
                         cannotDelete: "× Cannot delete command \"%1\" (protected system command)",
-                        partialSuccess: "✓ Successfully deleted (%1) commands.\n\n× Failed (%2) commands:\n%3", // Improved message
+                        partialSuccess: "✓ Successfully deleted (%1) commands.\n\n× Failed (%2) commands:\n%3",
                         notDeleted: "× Failed to delete (%1) commands:\n%2"
                 }
         },
@@ -53,35 +53,94 @@ module.exports = {
                 if (!args[0])
                         return message.reply(getLang("missingCommandName"));
 
-                const commandsToDelete = args.map(arg => arg.replace(/\.js$/i, '').toLowerCase());
+                const commandsToDelete = args.map(arg => arg.replace(/\.js$/i, ''));
                 const validCommands = [];
                 const notFoundCommands = [];
-                const protectedCommands = ["delete", "cmd", "help", "menu", "eval", commandName]; // Added 'menu' and 'delete' itself
+                const protectedCommands = ["delete", "remove", "delcmd", "cmd", "help", "menu", "eval", commandName];
 
-                // Check which commands exist and can be deleted
                 for (const cmdName of commandsToDelete) {
-                        const cmdPath = path.join(__dirname, `${cmdName}.js`);
-                        
-                        if (protectedCommands.includes(cmdName)) { // Corrected check
+                        const cmdNameLower = cmdName.toLowerCase();
+                        const cmdPath = path.join(__dirname, `${cmdNameLower}.js`);
+
+                        if (protectedCommands.includes(cmdNameLower)) {
                                 notFoundCommands.push({ name: cmdName, reason: getLang("cannotDelete", cmdName) });
                                 continue;
                         }
 
-                        // Check if command is loaded and file exists
-                        if (global.GoatBot.commands.has(cmdName) && fs.existsSync(cmdPath)) {
-                                validCommands.push(cmdName);
+                        if (fs.existsSync(cmdPath)) {
+                                validCommands.push(cmdNameLower);
                         } else {
                                 notFoundCommands.push({ name: cmdName, reason: getLang("notFound", cmdName) });
                         }
                 }
 
-                // If no valid commands found
                 if (validCommands.length === 0) {
                         const reasons = notFoundCommands.map(c => c.reason).join("\n");
                         return message.reply(reasons);
                 }
 
-                // Ask for confirmation
                 const confirmMsg = validCommands.length === 1
-                        ? getLang("confirmDelete", validCommands[0])
-                        : getLang("confirmDeleteMultiple", validCommands.length, validCommands.map(c => `  • ${c}`).join("\n
+                        ? getLang("confirmDelete", commandsToDelete.find(c => c.toLowerCase() === validCommands[0]))
+                        : getLang("confirmDeleteMultiple", validCommands.length, commandsToDelete.filter(c => validCommands.includes(c.toLowerCase())).map(c => `  • ${c}`).join("\n"));
+
+                return message.reply(confirmMsg, (err, info) => {
+                        global.GoatBot.onReaction.set(info.messageID, {
+                                commandName,
+                                messageID: info.messageID,
+                                type: "delete",
+                                author: event.senderID,
+                                data: {
+                                        commandsToDelete: validCommands
+                                }
+                        });
+                });
+        },
+
+        onReaction: async function ({ Reaction, message, event, getLang }) {
+                const { unloadScripts } = global.utils;
+                const { author, data: { commandsToDelete } } = Reaction;
+                
+                if (event.userID !== author)
+                        return;
+                        
+                global.GoatBot.onReaction.delete(event.messageID); 
+
+                const successfulDeletes = [];
+                const failedDeletes = [];
+
+                for (const cmdName of commandsToDelete) {
+                        const cmdPath = path.join(__dirname, `${cmdName}.js`);
+                        
+                        try {
+                                const infoUnload = unloadScripts("cmds", cmdName, configCommands, getLang);
+                                if (infoUnload.error) {
+                                    throw new Error(`Unload failed: ${infoUnload.error}`);
+                                }
+
+                                fs.unlinkSync(cmdPath);
+                                
+                                successfulDeletes.push(cmdName);
+                        } catch (error) {
+                                failedDeletes.push(`  • ${cmdName}: ${error.message}`);
+                        }
+                }
+
+                let responseMsg = "";
+
+                if (successfulDeletes.length > 0 && failedDeletes.length === 0) {
+                        if (successfulDeletes.length === 1) {
+                                responseMsg = getLang("deleted", successfulDeletes[0]);
+                        } else {
+                                responseMsg = getLang("deletedMultiple", successfulDeletes.length, successfulDeletes.map(c => `  • ${c}`).join("\n"));
+                        }
+                } else if (successfulDeletes.length > 0 && failedDeletes.length > 0) {
+                        responseMsg = getLang("partialSuccess", successfulDeletes.length, failedDeletes.length, failedDeletes.join("\n"));
+                } else if (successfulDeletes.length === 0 && failedDeletes.length > 0) {
+                         responseMsg = getLang("notDeleted", failedDeletes.length, failedDeletes.join("\n"));
+                } else {
+                    responseMsg = "Operation completed with unexpected results.";
+                }
+
+                message.reply(responseMsg);
+        }
+};

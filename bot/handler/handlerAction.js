@@ -43,6 +43,7 @@ module.exports = (api, threadModel, userModel, globalModel, usersData, threadsDa
                                 break;
                         case "message_reaction":
                                 onReaction();
+                                handlerEvent();
                                 break;
                         case "typ":
                                 typ();
