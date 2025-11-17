@@ -73,8 +73,8 @@ module.exports = {
   config: {
     name: "metagen",
     aliases: ["metaai", "mimg"],
-    version: "2.1", // Version update for simplified output
-    author: "NeoKEX", 
+    version: "2.1",
+    author: "NeoKEX",//don't change author name otherwise ill fuck your momys ass-_-
     countDown: 20, 
     role: 0,
     longDescription: "Generate 4 images using Meta AI, displays them in a grid, and allows selection.",
@@ -131,7 +131,7 @@ module.exports = {
       const gridPath = await createGrid(imageUrls, cacheDir);
 
       const replyBody = 
-          `Meta AI Grid (1-4).\n` +
+          `Meta AI (1-4).\n` +
           `Prompt: ${prompt}\n` +
           `\nReply with 1, 2, 3, or 4 to download the single image.`;
 
@@ -154,7 +154,7 @@ module.exports = {
         }
       });
       
-      message.reaction("✓", event.messageID); // Successful generation reaction
+      message.reaction("✅", event.messageID); // Successful generation reaction
 
     } catch (error) {
       message.reaction("x", event.messageID);
@@ -188,7 +188,7 @@ module.exports = {
       tempImagePath = await downloadAndSaveFile(selectedUrl, cacheDir);
       
       await message.reply({
-        body: `✓ Downloaded Image #${selection}. Prompt: ${prompt}`,
+        body: `✓ Downloaded Image #${selection}`,
         attachment: fs.createReadStream(tempImagePath)
       });
 
