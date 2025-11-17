@@ -25,7 +25,7 @@
     "100083039411474"
   ],
   "whiteListMode": {
-    "enable": false,
+    "enable": true,
     "whiteListIds": [
       "100083039411474"
     ],
