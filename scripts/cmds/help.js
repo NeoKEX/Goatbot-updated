@@ -1,6 +1,5 @@
 const fs = require("fs-extra");
 const path = require("path");
-const https = require("https");
 
 module.exports = {
 	config: {
@@ -42,26 +41,6 @@ module.exports = {
 			categories[cat].push(cmd.config.name);
 		}
 
-		const gifURLs = [
-			"https://i.imgur.com/ejqdK51.gif",
-			"https://i.imgur.com/ltIztKe.gif",
-			"https://i.imgur.com/5oqrQ0i.gif",
-			"https://i.imgur.com/qf2aZH8.gif",
-			"https://i.imgur.com/3QzYyye.gif",
-			"https://i.imgur.com/ffxzucB.gif",
-			"https://i.imgur.com/3QSsSzA.gif",
-			"https://i.imgur.com/Ih819LH.gif"
-		];
-
-		const randomGifURL = gifURLs[Math.floor(Math.random() * gifURLs.length)];
-		const gifFolder = path.join(__dirname, "cache");
-		if (!fs.existsSync(gifFolder)) fs.mkdirSync(gifFolder, { recursive: true });
-		const gifName = path.basename(randomGifURL);
-		const gifPath = path.join(gifFolder, gifName);
-
-		if (!fs.existsSync(gifPath)) {
-			await downloadGif(randomGifURL, gifPath);
-		}
 
 		if (args[0]) {
 			const query = args[0].toLowerCase();
@@ -94,19 +73,17 @@ module.exports = {
 
 						const requiredRole = cmd.config.role !== undefined ? cmd.config.role : 0; 
 
-			return message.reply({
-				body:
-					`☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
-					`➥ Name: ${name}\n` +
-					`➥ Category: ${category || "Uncategorized"}\n` +
-					`➥ Description: ${desc}\n` +
-					`➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
-					`➥ Usage: ${usage}\n` +
-					`➥ Permission: ${requiredRole}\n` + 
-					`➥ Author: ${author}\n` +
-					`➥ Version: ${version}`,
-				attachment: fs.createReadStream(gifPath)
-			});
+			return message.reply(
+				`☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
+				`➥ Name: ${name}\n` +
+				`➥ Category: ${category || "Uncategorized"}\n` +
+				`➥ Description: ${desc}\n` +
+				`➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
+				`➥ Usage: ${usage}\n` +
+				`➥ Permission: ${requiredRole}\n` + 
+				`➥ Author: ${author}\n` +
+				`➥ Version: ${version}`
+			);
 		}
 
 		const formatCommands = (cmds) =>
@@ -122,26 +99,6 @@ module.exports = {
 		}
 		msg += `\n➥ Use: ${prefix}help [command name] for details\n➥Use: ${prefix}callad to talk with bot admins '_'`;
 
-		return message.reply({
-			body: msg,
-			attachment: fs.createReadStream(gifPath)
-		});
+		return message.reply(msg);
 	}
 };
-
-function downloadGif(url, dest) {
-	return new Promise((resolve, reject) => {
-		const file = fs.createWriteStream(dest);
-		https.get(url, (res) => {
-			if (res.statusCode !== 200) {
-				fs.unlink(dest, () => {});
-				return reject(new Error(`Failed to download '${url}' (${res.statusCode})`));
-			}
-			res.pipe(file);
-			file.on("finish", () => file.close(resolve));
-		}).on("error", (err) => {
-			fs.unlink(dest, () => {});
-			reject(err);
-		});
-	});
-}

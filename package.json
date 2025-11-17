@@ -9,7 +9,7 @@
         },
         "dependencies": {
                 "@distube/ytdl-core": "^4.16.12",
-                "axios": "^1.7.9",
+                "axios": "^1.13.2",
                 "btch-downloader": "^6.0.20",
                 "canvas": "^2.11.2",
                 "cheerio": "^1.0.0",
@@ -29,7 +29,7 @@
                 "moment-timezone": "^0.5.46",
                 "mongoose": "^8.9.3",
                 "mqtt": "^5.11.2",
-                "neokex-fca": "^4.4.8",
+                "neokex-fca": "^4.5.0",
                 "node-cron": "^3.0.3",
                 "nodemailer": "^6.9.16",
                 "npmlog": "^7.0.1",
