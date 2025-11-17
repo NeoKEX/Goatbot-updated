@@ -8,6 +8,10 @@ const PORT = process.env.PORT || 5000;
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
+  const botRunning = global.botStatus?.isRunning || false;
+  const botUptime = global.botStatus?.startTime ? Math.floor((Date.now() - global.botStatus.startTime) / 1000) : 0;
+  const lastError = global.botStatus?.lastError || null;
+
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -51,14 +55,19 @@ app.get('/', (req, res) => {
           font-weight: 600;
         }
         .status {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           padding: 15px 30px;
           border-radius: 50px;
           display: inline-block;
           margin: 20px 0;
           font-weight: bold;
+        }
+        .status.running {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           animation: pulse 2s infinite;
+        }
+        .status.stopped {
+          background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
         }
         @keyframes pulse {
           0%, 100% {
@@ -78,6 +87,14 @@ app.get('/', (req, res) => {
         .info p {
           margin: 10px 0;
           line-height: 1.6;
+        }
+        .error {
+          background: #fee;
+          border: 1px solid #fcc;
+          color: #c00;
+          padding: 15px;
+          border-radius: 10px;
+          margin: 20px 0;
         }
         .credits {
           margin-top: 30px;
@@ -102,15 +119,17 @@ app.get('/', (req, res) => {
         <h1>Goat Bot V2</h1>
         <div class="version">v${require('./package.json').version}</div>
         
-        <div class="status">
-          ✓ Bot is Running
+        <div class="status ${botRunning ? 'running' : 'stopped'}">
+          ${botRunning ? '✓ Bot is Running' : '✗ Bot is Stopped'}
         </div>
+        
+        ${lastError ? `<div class="error">⚠️ Last Error: ${lastError}</div>` : ''}
         
         <div class="info">
           <p><strong>Platform:</strong> Facebook Messenger</p>
-          <p><strong>Status:</strong> Active</p>
+          <p><strong>Status:</strong> ${botRunning ? 'Active' : 'Inactive'}</p>
           <p><strong>Server:</strong> Online</p>
-          <p><strong>Uptime:</strong> ${Math.floor(process.uptime())} seconds</p>
+          <p><strong>Bot Uptime:</strong> ${botUptime} seconds</p>
         </div>
         
         <div class="credits">
@@ -133,12 +152,18 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/status', (req, res) => {
+  const botRunning = global.botStatus?.isRunning || false;
+  const botUptime = global.botStatus?.startTime ? Math.floor((Date.now() - global.botStatus.startTime) / 1000) : 0;
+  
   res.json({
     bot: 'Goat Bot V2',
     version: require('./package.json').version,
-    status: 'running',
-    uptime: Math.floor(process.uptime()),
-    platform: 'Facebook Messenger'
+    botStatus: botRunning ? 'running' : 'stopped',
+    serverStatus: 'online',
+    botUptime: botUptime,
+    serverUptime: Math.floor(process.uptime()),
+    platform: 'Facebook Messenger',
+    lastError: global.botStatus?.lastError || null
   });
 });
 

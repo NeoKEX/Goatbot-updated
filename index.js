@@ -20,9 +20,19 @@
 const { spawn } = require("child_process");
 const log = require("./logger/log.js");
 
+global.botStatus = {
+        isRunning: false,
+        startTime: null,
+        lastError: null
+};
+
 require("./server.js");
 
 function startProject() {
+        global.botStatus.isRunning = true;
+        global.botStatus.startTime = Date.now();
+        global.botStatus.lastError = null;
+
         const child = spawn("node", ["Goat.js"], {
                 cwd: __dirname,
                 stdio: "inherit",
@@ -30,10 +40,18 @@ function startProject() {
         });
 
         child.on("close", (code) => {
+                global.botStatus.isRunning = false;
                 if (code == 2) {
                         log.info("Restarting Project...");
                         startProject();
+                } else if (code !== 0) {
+                        global.botStatus.lastError = `Bot exited with code ${code}`;
                 }
+        });
+
+        child.on("error", (err) => {
+                global.botStatus.isRunning = false;
+                global.botStatus.lastError = err.message;
         });
 }
 
