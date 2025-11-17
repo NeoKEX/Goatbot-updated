@@ -17,6 +17,17 @@ Goat Bot V2 is a Facebook Messenger chat bot built using the `neokex-fca` (unoff
 
 ## Recent Changes
 
+### Anti-Detection Enhancements for neokex-fca (November 17, 2025)
+- **Enhanced Facebook Automated Behavior Detection Avoidance:**
+  - Modified `neokex-fca/src/utils/axios.js`: Added random jitter (0-200ms) to exponential backoff in requestWithRetry
+  - Enhanced `neokex-fca/src/utils/rateLimiter.js`: Added humanized delays (200-600ms) between sequential actions to simulate human behavior
+  - Improved `neokex-fca/src/utils/formatters.js`: Enhanced parseAndCheckLogin to detect auth failures (error codes 1357001, 1357004) and login blocks
+  - Updated `neokex-fca/src/apis/listenMqtt.js`: 
+    - Added random jitter to MQTT reconnection delays
+    - Ensured MQTT WebSocket headers reuse cached User-Agent, sec-ch headers, and locale for consistency
+  - Benefits: Reduces Facebook's ability to detect automated behavior by mimicking human timing patterns
+  - Based on analysis of dongdev's fca-unofficial implementation
+
 ### Web Interface for Cloud Deployment (November 17, 2025)
 - **Added Simple Web Interface:**
   - Created `server.js` with Express web server running on port 5000
