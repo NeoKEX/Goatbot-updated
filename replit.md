@@ -17,6 +17,22 @@ Goat Bot V2 is a Facebook Messenger chat bot built using the `neokex-fca` (unoff
 
 ## Recent Changes
 
+### Web Interface for Cloud Deployment (November 17, 2025)
+- **Added Simple Web Interface:**
+  - Created `server.js` with Express web server running on port 5000
+  - Web interface displays bot status, version, uptime, and platform information
+  - Real-time bot health tracking using `global.botStatus` object
+  - Shows actual bot process status (running/stopped) and uptime
+  - Displays error messages when bot crashes or exits abnormally
+  - Three endpoints available:
+    - `/` - Main status page with visual interface
+    - `/health` - Health check endpoint for monitoring services
+    - `/status` - JSON API endpoint with detailed bot status
+  - Proper credits displayed: "Created by NTKhang, Enhanced by NeoKEX"
+  - Integrated with `index.js` to run alongside the bot
+  - Enables deployment on cloud platforms like Render and Railway
+  - Workflow configured with webview output type on port 5000
+
 ### Message Simplification (November 16, 2025)
 - **Simplified All Bot Responses:**
   - Replaced all emojis with simple characters: ✓ (success), × (error), ! (warning), > (info), * (special)
