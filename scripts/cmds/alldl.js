@@ -63,7 +63,7 @@ module.exports = {
     name: "alldl",
     aliases: ["download"],
     version: "1.9", // Version update
-    author: "NeoKEX", 
+    author: "NeoKEX", //dont change author name !!
     countDown: 5,
     role: 0,
     longDescription: "Download Videos from various Sources.",
