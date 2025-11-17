@@ -1,40 +1,17 @@
-# Use Node.js 20 LTS
+# 1. Base Image: Start from an official Node.js base image.
 FROM node:20-slim
 
-# Install system dependencies required for native Node modules (canvas, sqlite3)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    librsvg2-dev \
-    && rm -rf /var/lib/apt/lists/*
+# 2. Working Directory: Set up a folder inside the container for your application.
+WORKDIR /usr/src/app
 
-# Set working directory
-WORKDIR /app
-
-# Copy package files
+# 3. Copy Dependency Files: Copy package and lock files first.
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev
+# 4. Install Dependencies: Install your project's dependencies.
+RUN npm install --omit=dev
 
-# Copy application source code
+# 5. Copy Application Code: Copy the rest of your application files.
 COPY . .
 
-# Make start script executable
-RUN chmod +x start.sh
-
-# Create database directory
-RUN mkdir -p database
-
-# Set environment to production
-ENV NODE_ENV=production
-
-# Expose port (if your bot has a web interface/health check endpoint)
-EXPOSE 3000
-
-# Use the startup script
-CMD ["./start.sh"]
+# 6. Start Command: This runs your bot indefinitely.
+CMD [ "node", "index.js" ]
