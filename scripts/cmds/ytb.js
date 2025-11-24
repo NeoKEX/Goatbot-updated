@@ -169,17 +169,17 @@ async function handle({ type, infoVideo, message, getLang }) {
         if (type == "video") {
                 const MAX_SIZE = 83 * 1024 * 1024;
                 const msgSend = message.reply(getLang("downloading", getLang("video"), title));
-                
+
                 try {
                         const ytData = await youtube(video_url);
-                        
+
                         const downloadUrl = ytData.mp4;
-                        
+
                         if (!downloadUrl)
                                 return message.reply(getLang("noVideo"));
-                        
+
                         const getStream = await getStreamAndSize(downloadUrl, `${videoId}.mp4`);
-                        
+
                         const contentLength = parseInt(getStream.size);
 
                         if (isNaN(contentLength) || contentLength <= 0) {
@@ -226,17 +226,17 @@ async function handle({ type, infoVideo, message, getLang }) {
         else if (type == "audio") {
                 const MAX_SIZE = 27262976;
                 const msgSend = message.reply(getLang("downloading", getLang("audio"), title));
-                
+
                 try {
                         const ytData = await youtube(video_url);
-                        
+
                         const audioUrl = ytData.mp3;
-                        
+
                         if (!audioUrl)
                                 return message.reply(getLang("noAudio"));
-                        
+
                         const getStream = await getStreamAndSize(audioUrl, `${videoId}.mp3`);
-                        
+
                         const contentLength = parseInt(getStream.size);
 
                         if (isNaN(contentLength) || contentLength <= 0) {
@@ -289,7 +289,7 @@ async function handle({ type, infoVideo, message, getLang }) {
                 const seconds = Math.floor(lengthSeconds % 3600 % 60);
                 const time = `${hours ? hours + ":" : ""}${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
                 let msg = getLang("info", title, channel.name, formatNumber(channel.subscriberCount || 0), time, formatNumber(viewCount), formatNumber(likes), uploadDate, videoId, `https://youtu.be/${videoId}`);
-                
+
                 // if (chapters.length > 0) {
                 //      msg += getLang("listChapter")
                 //              + chapters.reduce((acc, cur) => {

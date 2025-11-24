@@ -51,7 +51,7 @@ module.exports = {
                         }
 
                         const content = fs.readFileSync(filePath, "utf-8");
-                        return message.reply(`\`\`\`javascript\n${content}\n\`\`\``);
+                        return message.reply(`${content}`);
 
                 } catch (err) {
                         return message.reply(`❌ Error: ${err.message}`);

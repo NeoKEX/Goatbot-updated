@@ -29,7 +29,7 @@ module.exports = {
 
         onStart: async function ({ message, usersData, event, getLang }) {
                 const userData = await usersData.get(event.senderID);
-                const userMoney = userData.data.money || 0;
+                const userMoney = userData.money || 0;
                 
                 return message.reply(getLang("vipInfo", userMoney));
         }
