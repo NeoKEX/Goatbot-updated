@@ -20,22 +20,7 @@ module.exports = {
                 }
         },
 
-        langs: {
-                vi: {
-                        notFound: "❌ Lệnh '%1' không được tìm thấy.",
-                        cantRead: "❌ Không thể đọc file: %1",
-                        toolong: "⚠️ File quá dài. Chỉ hiển thị %1 dòng đầu tiên:",
-                        error: "❌ Lỗi: %1"
-                },
-                en: {
-                        notFound: "❌ Command '%1' not found.",
-                        cantRead: "❌ Cannot read file: %1",
-                        toolong: "⚠️ File is too long. Showing first %1 lines:",
-                        error: "❌ Error: %1"
-                }
-        },
-
-        onStart: async function ({ args, message, event, getLang }) {
+        onStart: async function ({ args, message }) {
                 if (!args.length) {
                         return message.SyntaxError();
                 }
@@ -53,7 +38,7 @@ module.exports = {
                 }
 
                 if (!command) {
-                        return message.reply(getLang("notFound", commandName));
+                        return message.reply("❌ Command not found");
                 }
 
                 // Get the actual command file name
@@ -61,38 +46,15 @@ module.exports = {
                 const filePath = path.join(__dirname, `${actualCommandName}.js`);
 
                 try {
-                        // Check if file exists
                         if (!fs.existsSync(filePath)) {
-                                return message.reply(getLang("cantRead", filePath));
+                                return message.reply("❌ File not found");
                         }
 
-                        // Read file
-                        let content = fs.readFileSync(filePath, "utf-8");
-                        const totalLines = content.split("\n").length;
-
-                        // Limit to first 100 lines if too long
-                        const maxLines = 100;
-                        let displayContent = content;
-                        let isTruncated = false;
-
-                        if (totalLines > maxLines) {
-                                displayContent = content.split("\n").slice(0, maxLines).join("\n");
-                                isTruncated = true;
-                        }
-
-                        // Create code block with markdown formatting
-                        let response = `📄 **${actualCommandName}.js** (${totalLines} lines)\n`;
-                        response += `\`\`\`javascript\n${displayContent}\n\`\`\``;
-
-                        if (isTruncated) {
-                                response = getLang("toolong", maxLines) + "\n\n" + response;
-                        }
-
-                        // Send the file content
-                        return message.reply(response);
+                        const content = fs.readFileSync(filePath, "utf-8");
+                        return message.reply(`\`\`\`javascript\n${content}\n\`\`\``);
 
                 } catch (err) {
-                        return message.reply(getLang("error", err.message));
+                        return message.reply(`❌ Error: ${err.message}`);
                 }
         }
 };
