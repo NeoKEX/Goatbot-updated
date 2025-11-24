@@ -41,7 +41,7 @@ function getRole(threadData, senderID) {
 async function checkMoneyRequirement(userData, requiredMoney) {
         if (!requiredMoney || requiredMoney <= 0)
                 return true;
-        const userMoney = userData.data.money || 0;
+        const userMoney = userData.money || 0;
         return userMoney >= requiredMoney;
 }
 
@@ -343,7 +343,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         if (requiredMoney && requiredMoney > 0) {
                                 const hasEnoughMoney = await checkMoneyRequirement(userData, requiredMoney);
                                 if (!hasEnoughMoney) {
-                                        const userMoney = userData.data.money || 0;
+                                        const userMoney = userData.money || 0;
                                         return await message.reply(
                                                 `⚠ | You need at least $${requiredMoney} to use this command.\n` +
                                                 `Your balance: $${userMoney}\n` +
