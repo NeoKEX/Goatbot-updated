@@ -25,8 +25,8 @@ async function getStreamAndSize(url, filePath = "") {
 module.exports = {
         config: {
                 name: "sing",
-                version: "1.1",
-                author: "NeoKEX",//Don't change the author Name 😡
+                version: "1.2", // Updated version
+                author: "NeoKEX",
                 countDown: 5,
                 role: 0,
                 description: {
@@ -46,7 +46,7 @@ module.exports = {
 
         langs: {
                 vi: {
-                        error: "✗ Đã xảy ra lỗi: %1",
+                        error: "✗ Đã xảy xảy ra lỗi: %1",
                         noResult: "⭕ Không có kết quả tìm kiếm nào phù hợp với từ khóa %1",
                         noAudio: "⭕ Rất tiếc, không tìm thấy audio nào có dung lượng nhỏ hơn 26MB"
                 },
@@ -69,10 +69,13 @@ module.exports = {
                 const urlYtb = checkurl.test(query);
 
                 let videoInfo;
+                let isSearch = false;
+                let videoResult; // To hold the search result object if applicable
 
                 if (urlYtb) {
                         videoInfo = await getVideoInfo(query);
                 } else {
+                        isSearch = true;
                         let result;
                         try {
                                 result = await search(query);
@@ -84,9 +87,10 @@ module.exports = {
                         if (result.length < 2)
                                 return message.reply(getLang("noResult", query));
                         
-                        // FIX: Use the 2nd result (index 1)
-                        videoInfo = await getVideoInfo(result[1].id);
-                        videoInfo.title = result[1].title;
+                        // Use the 2nd result (index 1) for search query based execution
+                        videoResult = result[1];
+                        videoInfo = await getVideoInfo(videoResult.id);
+                        videoInfo.title = videoResult.title;
                 }
 
                 try {
@@ -97,19 +101,16 @@ module.exports = {
 
                         const ytData = await youtube(video_url);
                         
-                        // Check if download was successful and has mp3 link
-                        if (!ytData || !ytData.status) {
-                                api.setMessageReaction("❌", event.messageID, () => {}, true);
-                                return message.reply(getLang("error", "Failed to process YouTube video"));
-                        }
-
-                        const audioUrl = ytData.mp3;
-                        const songTitle = ytData.title || title || "Unknown Song";
-
-                        if (!audioUrl) {
+                        // Check for download failure (common issue with btch-downloader)
+                        if (!ytData || !ytData.mp3) {
                                 api.setMessageReaction("❌", event.messageID, () => {}, true);
                                 return message.reply(getLang("noAudio"));
                         }
+
+                        const audioUrl = ytData.mp3;
+                        
+                        // Use the title obtained from search or default if not found
+                        const songTitle = isSearch ? videoResult.title : title; 
 
                         const getStream = await getStreamAndSize(audioUrl, `${videoId}.mp3`);
                         
@@ -165,30 +166,35 @@ async function search(keyWord) {
                         }
                 });
                 
+                // FIXED PARSING LOGIC: YouTube often wraps data in a script tag. 
                 const dataMatch = res.data.match(/var ytInitialData = ({.*?});/);
                 if (!dataMatch) {
-                        const error = new Error("Failed to extract search data from YouTube");
+                        const error = new Error("Failed to extract search data from YouTube (Parse Error 1)");
                         error.code = "SEARCH_DATA_ERROR";
                         throw error;
                 }
                 
                 const getJson = JSON.parse(dataMatch[1]);
-                const videos = getJson?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
+                
+                // Using optional chaining to navigate the complex JSON structure safely
+                const primaryContents = getJson?.contents?.twoColumnSearchResultsRenderer?.primaryContents;
+                const videos = primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents || [];
                 
                 const results = [];
                 for (const video of videos) {
-                        if (video.videoRenderer?.lengthText?.simpleText && video.videoRenderer?.videoId) {
-                                try {
-                                        results.push({
-                                                id: video.videoRenderer.videoId,
-                                                title: video.videoRenderer.title?.runs?.[0]?.text || "Unknown",
-                                                thumbnail: video.videoRenderer.thumbnail?.thumbnails?.pop()?.url,
-                                                time: video.videoRenderer.lengthText.simpleText
-                                        });
-                                } catch (e) {
-                                        continue;
-                                }
+                    const videoRenderer = video.videoRenderer;
+                    if (videoRenderer && videoRenderer.lengthText?.simpleText && videoRenderer.videoId) {
+                        try {
+                            results.push({
+                                id: videoRenderer.videoId,
+                                title: videoRenderer.title?.runs?.[0]?.text || "Unknown",
+                                thumbnail: videoRenderer.thumbnail?.thumbnails?.pop()?.url,
+                                time: videoRenderer.lengthText.simpleText
+                            });
+                        } catch (e) {
+                            continue;
                         }
+                    }
                 }
                 
                 if (results.length === 0) {
@@ -242,4 +248,4 @@ function parseAbbreviatedNumber(string) {
                         multi === 'K' ? num * 1000 : num);
         }
         return null;
-};
+}
