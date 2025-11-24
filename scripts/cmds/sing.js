@@ -96,7 +96,15 @@ module.exports = {
                         const MAX_SIZE = 27262976;
 
                         const ytData = await youtube(video_url);
+                        
+                        // Check if download was successful and has mp3 link
+                        if (!ytData || !ytData.status) {
+                                api.setMessageReaction("❌", event.messageID, () => {}, true);
+                                return message.reply(getLang("error", "Failed to process YouTube video"));
+                        }
+
                         const audioUrl = ytData.mp3;
+                        const songTitle = ytData.title || title || "Unknown Song";
 
                         if (!audioUrl) {
                                 api.setMessageReaction("❌", event.messageID, () => {}, true);
@@ -125,7 +133,7 @@ module.exports = {
 
                         writeStream.on("finish", () => {
                                 message.reply({
-                                        body: title,
+                                        body: songTitle,
                                         attachment: fs.createReadStream(savePath)
                                 }, async (err) => {
                                         if (err) {
