@@ -403,7 +403,7 @@ async function generateCpanelCard(botName = "GOAT BOT") {
     ctx.fillText('⚡', centerX, centerY - 45);
     
     ctx.font = 'bold 32px BeVietnamPro';
-    ctx.fillText(botName, centerX, centerY);
+    ctx.fillText('NeoKEX AI', centerX, centerY);
     
     ctx.font = '600 16px BeVietnamPro';
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
