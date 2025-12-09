@@ -1,5 +1,6 @@
 const axios = require("axios");
-const nix = "http://65.109.80.126:20409/aryan/promptv2";
+
+const configUrl = "https://raw.githubusercontent.com/aryannix/stuffs/master/raw/apis.json";
 
 module.exports = {
   config: {
@@ -16,6 +17,15 @@ module.exports = {
   onStart: async ({ api, event }) => {
     const { threadID, messageID, messageReply } = event;
 
+    let baseApi;
+    try {
+      const configRes = await axios.get(configUrl);
+      baseApi = configRes.data && configRes.data.api;
+      if (!baseApi) throw new Error("Configuration Error: Missing API in GitHub JSON.");
+    } catch (error) {
+      return api.sendMessage("❌ Failed to fetch API configuration from GitHub.", threadID, messageID);
+    }
+
     if (
       !messageReply ||
       !messageReply.attachments ||
@@ -29,8 +39,9 @@ module.exports = {
       api.setMessageReaction("⏰", messageID, () => {}, true);
 
       const imageUrl = messageReply.attachments[0].url;
+      const apiUrl = `${baseApi}/promptv2`;
 
-      const apiResponse = await axios.get(nix, {
+      const apiResponse = await axios.get(apiUrl, {
         params: { imageUrl }
       });
 
