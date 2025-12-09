@@ -1,0 +1,14 @@
+services:
+  - type: background
+    name: goat-bot-v2
+    env: docker
+    plan: free
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+    numInstances: 1
+    autoDeploy: true

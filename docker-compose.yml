@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  goat-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./config.json:/app/config.json
+      - ./account.txt:/app/account.txt:ro
+      - ./appstate.json:/app/appstate.json:ro
+      - goat-db:/app/Fca_Database
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - goat-network
+
+volumes:
+  goat-db:
+
+networks:
+  goat-network:
+    driver: bridge
