@@ -3,16 +3,16 @@ const axios = require("axios");
 module.exports = {
   config: {
     name: "seedreamv4",
-    aliases: ["seedream", "sdv4"],
+    aliases: ["seedream", "sdv4", "sdv4edit"],
     version: "1.0",
-    author: "NeoKEX",
+    author: "Neoaz ゐ", //API by RIFAT
     countDown: 10,
     role: 0,
-    shortDescription: { en: "Generate AI image with Seedream V4" },
-    longDescription: { en: "Generate images using Seedream V4 AI model" },
+    shortDescription: { en: "Generate or edit image with Seedream V4" },
+    longDescription: { en: "Generate or edit images using Seedream V4 AI model" },
     category: "image",
     guide: {
-      en: "{pn} <prompt>\nOr reply to an image with: {pn} <prompt>"
+      en: "{pn} <prompt> - Generate image\nReply to an image with: {pn} <prompt> - Edit image"
     }
   },
 
@@ -21,11 +21,12 @@ module.exports = {
     const hasPhotoReply = event.type === "message_reply" && event.messageReply?.attachments?.[0]?.type === "photo";
 
     if (!hasPrompt && !hasPhotoReply) {
-      return message.reply("❌ Please provide a prompt or reply to an image.");
+      return message.reply("Please provide a prompt or reply to an image.");
     }
 
     const prompt = args.join(" ").trim();
-    const model = "seedream v4";
+    const isEdit = hasPhotoReply;
+    const model = isEdit ? "seedream v4 edit" : "seedream v4";
 
     try {
       api.setMessageReaction("⏳", event.messageID, () => {}, true);
@@ -46,20 +47,20 @@ module.exports = {
 
       if (!resultUrl) {
         api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return message.reply("❌ Failed to generate image.");
+        return message.reply("Failed to process image.");
       }
 
       api.setMessageReaction("✅", event.messageID, () => {}, true);
 
       await message.reply({
-        body: `🎨 ${model}`,
+        body: isEdit ? "Image edited 🐦" : "Image generated 🐦",
         attachment: await global.utils.getStreamFromURL(resultUrl)
       });
 
     } catch (err) {
       console.error(err);
       api.setMessageReaction("❌", event.messageID, () => {}, true);
-      return message.reply("❌ Error while generating image.");
+      return message.reply("Error while processing image.");
     }
   }
 };
