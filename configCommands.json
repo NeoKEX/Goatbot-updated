@@ -31,5 +31,8 @@
     "logsbot": {
       "allow": true
     }
-  }
+  },
+  "commandUnload": [
+    "alldl.js"
+  ]
 }
