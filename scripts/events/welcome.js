@@ -317,7 +317,7 @@ module.exports = {
     config: {
         name: "welcome",
         version: "1.3",
-        author: "Neoaz ゐ",
+        author: "Neoaz ゐ",//Adapted from @procoder Allou Mohammed
         category: "events"
     },
 
