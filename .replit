@@ -1,5 +1,6 @@
 run = "cowsay Configure me!"
 entrypoint = "README.md"
+modules = ["nodejs-20"]
 
 [nix]
 channel = "stable-24_11"
@@ -7,3 +8,26 @@ packages = ["cowsay"]
 
 [agent]
 expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Goat Bot"
+
+[[workflows.workflow]]
+name = "Goat Bot"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"
+
+[workflows.workflow.metadata]
+outputType = "console"

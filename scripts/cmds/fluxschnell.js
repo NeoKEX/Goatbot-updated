@@ -12,16 +12,15 @@ module.exports = {
     longDescription: { en: "Generate images using Flux 1 Schnell AI model" },
     category: "image",
     guide: {
-      en: "{pn} <prompt>\nOr reply to an image with: {pn} <prompt>"
+      en: "{pn} <prompt>"
     }
   },
 
   onStart: async function ({ message, event, api, args }) {
     const hasPrompt = args.length > 0;
-    const hasPhotoReply = event.type === "message_reply" && event.messageReply?.attachments?.[0]?.type === "photo";
 
-    if (!hasPrompt && !hasPhotoReply) {
-      return message.reply("Please provide a prompt or reply to an image.");
+    if (!hasPrompt) {
+      return message.reply("Please provide a prompt.");
     }
 
     const prompt = args.join(" ").trim();
@@ -30,14 +29,8 @@ module.exports = {
     try {
       api.setMessageReaction("⏳", event.messageID, () => {}, true);
 
-      const imageUrl = hasPhotoReply ? event.messageReply.attachments[0].url : undefined;
-
       const res = await axios.get("https://fluxcdibai-1.onrender.com/generate", {
-        params: {
-          prompt,
-          model,
-          ...(imageUrl ? { imageUrl } : {})
-        },
+        params: { prompt, model },
         timeout: 120000
       });
 
