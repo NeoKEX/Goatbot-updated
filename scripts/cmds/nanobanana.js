@@ -3,7 +3,7 @@ const axios = require("axios");
 module.exports = {
   config: {
     name: "nanobanana",
-    aliases: ["nanob", "nbe"],
+    aliases: ["nanob", "nbedit", "edit"],
     version: "1.0",
     author: "Neoaz ゐ", //API by RIFAT
     countDown: 10,

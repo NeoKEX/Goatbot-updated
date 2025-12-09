@@ -1,0 +1,42 @@
+[
+  {
+    "key": "datr",
+    "value": "aqIqaRaqh4YxXfsyCGzxFyhx",
+    "expires": "2026-12-09T05:12:37.000Z",
+    "domain": "facebook.com",
+    "path": "/",
+    "hostOnly": false,
+    "creation": "2025-12-09T05:12:37.596Z",
+    "lastAccessed": "2025-12-09T05:12:42.884Z"
+  },
+  {
+    "key": "sb",
+    "value": "aqIqaWgevWg2Epb20Ss43P7G",
+    "expires": "2026-12-09T05:12:37.000Z",
+    "domain": "facebook.com",
+    "path": "/",
+    "hostOnly": false,
+    "creation": "2025-12-09T05:12:37.598Z",
+    "lastAccessed": "2025-12-09T05:12:42.884Z"
+  },
+  {
+    "key": "c_user",
+    "value": "61584688437528",
+    "expires": "2026-12-09T05:12:37.000Z",
+    "domain": "facebook.com",
+    "path": "/",
+    "hostOnly": false,
+    "creation": "2025-12-09T05:12:37.598Z",
+    "lastAccessed": "2025-12-09T05:12:42.884Z"
+  },
+  {
+    "key": "xs",
+    "value": "11%3AKkGVLzL_TEiOTQ%3A2%3A1764836023%3A-1%3A-1",
+    "expires": "2026-12-09T05:12:37.000Z",
+    "domain": "facebook.com",
+    "path": "/",
+    "hostOnly": false,
+    "creation": "2025-12-09T05:12:37.599Z",
+    "lastAccessed": "2025-12-09T05:12:42.884Z"
+  }
+]

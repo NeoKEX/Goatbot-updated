@@ -28,7 +28,7 @@ module.exports = {
       return message.reply("Please provide a prompt.");
     }
 
-    const model = "flux kontext pro edit";
+    const model = "seedream v4 edit";
     const imageUrl = event.messageReply.attachments[0].url;
 
     try {
