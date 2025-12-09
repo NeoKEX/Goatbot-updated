@@ -350,7 +350,7 @@ function createBankAccount(userData) {
         cards: [],
         dailyWithdraw: { date: null, amount: 0 },
         dailyTransfer: { date: null, amount: 0 },
-        createdAt: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+        createdAt: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
         lastInterest: null,
         totalDeposited: 0,
         totalWithdrawn: 0,
@@ -467,7 +467,7 @@ Welcome to ${BANK_NAME}!`,
                     type: "account_opened",
                     amount: 0,
                     newBalance: 0,
-                    timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                    timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                     description: "Account opened"
                 };
                 userData.data.bank.transactions.push(transaction);
@@ -514,7 +514,7 @@ Welcome to ${BANK_NAME}!`,
                     amount: amount,
                     fromAccount: "Wallet",
                     newBalance: userData.data.bank.balance + amount,
-                    timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                    timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                     description: "Wallet to Bank deposit"
                 };
 
@@ -558,7 +558,7 @@ Welcome to ${BANK_NAME}!`,
                     return message.reply(getLang("insufficientBalance"));
                 }
 
-                const today = moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY");
+                const today = moment().tz("Asia/Dhaka").format("DD/MM/YYYY");
                 if (userData.data.bank.dailyWithdraw.date === today) {
                     if (userData.data.bank.dailyWithdraw.amount + amount > DAILY_WITHDRAW_LIMIT) {
                         return message.reply(`${getLang("dailyLimitReached")}\nRemaining: ${CURRENCY_SYMBOL}${formatMoney(DAILY_WITHDRAW_LIMIT - userData.data.bank.dailyWithdraw.amount)}`);
@@ -574,7 +574,7 @@ Welcome to ${BANK_NAME}!`,
                     amount: amount,
                     fromAccount: userData.data.bank.accountNumber,
                     newBalance: userData.data.bank.balance - amount,
-                    timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                    timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                     description: "Bank to Wallet withdrawal"
                 };
 
@@ -633,7 +633,7 @@ Welcome to ${BANK_NAME}!`,
                     return message.reply("❌ You cannot transfer to yourself!");
                 }
 
-                const today = moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY");
+                const today = moment().tz("Asia/Dhaka").format("DD/MM/YYYY");
                 if (userData.data.bank.dailyTransfer.date === today) {
                     if (userData.data.bank.dailyTransfer.amount + amount > DAILY_TRANSFER_LIMIT) {
                         return message.reply(`${getLang("dailyLimitReached")}\nRemaining: ${CURRENCY_SYMBOL}${formatMoney(DAILY_TRANSFER_LIMIT - userData.data.bank.dailyTransfer.amount)}`);
@@ -656,7 +656,7 @@ Welcome to ${BANK_NAME}!`,
                     fromAccount: userData.data.bank.accountNumber,
                     toAccount: targetData.data.bank.accountNumber,
                     newBalance: userData.data.bank.balance - amount,
-                    timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                    timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                     description: `Transfer to ${targetData.name}`
                 };
 
@@ -779,7 +779,7 @@ Welcome to ${BANK_NAME}!`,
                             expiryDate: getExpiryDate(),
                             cardType: cardType,
                             isActive: true,
-                            issuedAt: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                            issuedAt: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                             accountNumber: userData.data.bank.accountNumber
                         };
 
@@ -879,14 +879,14 @@ Commands:
 
                         userData.data.bank.balance -= amount;
                         userData.data.bank.savings = (userData.data.bank.savings || 0) + amount;
-                        userData.data.bank.lastInterest = moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY");
+                        userData.data.bank.lastInterest = moment().tz("Asia/Dhaka").format("DD/MM/YYYY");
 
                         const transaction = {
                             transactionId: generateTransactionId(),
                             type: "savings_deposit",
                             amount: amount,
                             newBalance: userData.data.bank.balance,
-                            timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                            timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                             description: "Transfer to Savings"
                         };
                         userData.data.bank.transactions.unshift(transaction);
@@ -921,7 +921,7 @@ Commands:
                             type: "savings_withdraw",
                             amount: total,
                             newBalance: userData.data.bank.balance,
-                            timestamp: moment().tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY HH:mm:ss"),
+                            timestamp: moment().tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss"),
                             description: `Savings withdrawal + ${CURRENCY_SYMBOL}${formatMoney(interest)} interest`
                         };
                         userData.data.bank.transactions.unshift(transaction);
