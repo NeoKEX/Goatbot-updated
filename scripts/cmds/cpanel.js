@@ -400,7 +400,7 @@ async function generateCpanelCard(botName = "GOAT BOT") {
     ctx.font = 'bold 36px BeVietnamPro';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⚡', centerX, centerY - 45);
+    ctx.fillText('∆', centerX, centerY - 45);
     
     ctx.font = 'bold 32px BeVietnamPro';
     ctx.fillText('NeoKEX AI', centerX, centerY);
