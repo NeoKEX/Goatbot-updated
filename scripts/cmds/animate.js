@@ -13,7 +13,7 @@ module.exports = {
     name: "animate",
     aliases: ["anim", "video", "genvid"],
     version: "1.0",
-    author: "NeoKEX",
+    author: "Neoaz ゐ",
     countDown: 30,
     role: 0,
     longDescription: "Generate animated videos from text prompts using AI.",
@@ -21,23 +21,22 @@ module.exports = {
     guide: {
       en: 
         "{pn} <prompt>\n\n" +
-        "• Example: {pn} a cat is swimming\n" +
-        "• Example: {pn} a dog running in the park"
+        "Example: {pn} a cat is swimming"
     }
   },
 
-  onStart: async function ({ args, message, event }) {
+  onStart: async function ({ args, message, event, api }) {
     const prompt = args.join(" ").trim();
 
     if (!prompt) {
-      return message.reply("❌ Please provide a prompt to generate a video.\n\nExample: animate a cat is swimming");
+      return message.reply("Please provide a prompt to generate a video.");
     }
 
     if (!fs.existsSync(CACHE_DIR)) {
       fs.mkdirSync(CACHE_DIR, { recursive: true });
     }
 
-    message.reaction("⏳", event.messageID);
+    api.setMessageReaction("⏳", event.messageID, () => {}, true);
     let tempFilePath;
 
     try {
@@ -62,33 +61,17 @@ module.exports = {
       
       await pipeline(videoDownloadResponse.data, fs.createWriteStream(tempFilePath));
 
-      message.reaction("✅", event.messageID);
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
       
       await message.reply({
-        body: `🎬 Video Generated!\n\n📝 Prompt: ${prompt}\n\n${data.credits || ""}`,
+        body: "Video generated 🐦",
         attachment: fs.createReadStream(tempFilePath)
       });
 
     } catch (error) {
-      message.reaction("❌", event.messageID);
-      
-      let errorMessage = "❌ Failed to generate video. An error occurred.";
-      if (error.response) {
-        if (error.response.status === 400) {
-          errorMessage = `❌ Error 400: Invalid request or prompt.`;
-        } else if (error.response.status === 429) {
-          errorMessage = `❌ Rate limited. Please try again later.`;
-        } else {
-          errorMessage = `❌ HTTP Error ${error.response.status}. The API may be unavailable.`;
-        }
-      } else if (error.message.includes('timeout')) {
-        errorMessage = `❌ Request timed out. Video generation may take too long.`;
-      } else if (error.message) {
-        errorMessage = `❌ ${error.message}`;
-      }
-
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
       console.error("Animate Command Error:", error);
-      message.reply(errorMessage);
+      message.reply("Failed to generate video.");
 
     } finally {
       if (tempFilePath && fs.existsSync(tempFilePath)) {

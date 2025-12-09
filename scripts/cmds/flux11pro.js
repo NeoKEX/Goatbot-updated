@@ -5,7 +5,7 @@ module.exports = {
     name: "flux11pro",
     aliases: ["f11pro", "flux11"],
     version: "1.0",
-    author: "NeoKEX",
+    author: "Neoaz ゐ", //API by RIFAT
     countDown: 10,
     role: 0,
     shortDescription: { en: "Generate AI image with Flux 1.1 Pro" },
@@ -21,7 +21,7 @@ module.exports = {
     const hasPhotoReply = event.type === "message_reply" && event.messageReply?.attachments?.[0]?.type === "photo";
 
     if (!hasPrompt && !hasPhotoReply) {
-      return message.reply("❌ Please provide a prompt or reply to an image.");
+      return message.reply("Please provide a prompt or reply to an image.");
     }
 
     const prompt = args.join(" ").trim();
@@ -46,20 +46,20 @@ module.exports = {
 
       if (!resultUrl) {
         api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return message.reply("❌ Failed to generate image.");
+        return message.reply("Failed to generate image.");
       }
 
       api.setMessageReaction("✅", event.messageID, () => {}, true);
 
       await message.reply({
-        body: `🎨 ${model}`,
+        body: "Image generated 🐦",
         attachment: await global.utils.getStreamFromURL(resultUrl)
       });
 
     } catch (err) {
       console.error(err);
       api.setMessageReaction("❌", event.messageID, () => {}, true);
-      return message.reply("❌ Error while generating image.");
+      return message.reply("Error while generating image.");
     }
   }
 };
