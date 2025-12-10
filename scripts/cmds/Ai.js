@@ -4,11 +4,11 @@ const API_ENDPOINT = 'https://metakexbyneokex.fly.dev/chat';
 module.exports = {
   config: {
     name: "ai",
-    version: "1",
-    hasPermission: 0,
+    version: "1.0.0",
+    role: 0,
     credits: "Neoaz 🐦",
     description: "Chat with Meta Ai",
-    commandCategory: "AI",
+    category: "AI",
     usages: "[message] or reply to the bot's message.",
     cooldowns: 5
   },
