@@ -6,10 +6,3 @@ modules = ["nodejs-20"]
 [nix]
 channel = "stable-24_11"
 packages = ["libuuid"]
-
-[[ports]]
-localPort = 3001
-externalPort = 80
-
-[agent]
-expertMode = true
