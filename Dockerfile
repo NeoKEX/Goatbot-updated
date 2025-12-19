@@ -1,16 +1,13 @@
-
 FROM node:20-slim
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 COPY . .
+
+ENV PORT=10000
+EXPOSE 10000
 
 CMD ["node", "index.js"]
