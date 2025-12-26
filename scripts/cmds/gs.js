@@ -38,7 +38,7 @@ module.exports = {
           `╭─❯ ${event.body} status\n├ 📊 View statistics\n╰ Marketplace insights\n\n` +
           `╭─❯ ${event.body} like <ID>\n├ 💝 Like a command\n╰ Example: like 1\n\n` +
           `╭─❯ ${event.body} upload <name>\n├ ⬆️ Upload command\n╰ Example: upload goatStor\n\n` +
-          "💫 𝗧𝗶𝗽: Use `Help GoatStor` For Details"
+          "💫 𝗧𝗶𝗽: Use `Help GoatStore` For Details"
         );
       }
 
