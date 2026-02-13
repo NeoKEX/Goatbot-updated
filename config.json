@@ -12,20 +12,20 @@
   "antiInbox": false,
   "language": "en",
   "notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-  "nickNameBot": "গেসুকে 😈",
-  "prefix": "^",
+  "nickNameBot": "𝑹𝒂𝒊𝒔𝒂🕊️",
+  "prefix": "√×",
   "adminOnly": {
     "enable": false,
     "ignoreCommand": []
   },
   "adminBot": [
-    "100083039411474"
+    "100090889518828"
   ],
   "premiumUsers": [
-    "100083039411474"
+    "100090889518828"
   ],
   "devUsers": [
-    "100083039411474"
+    "100090889518828"
   ],
   "notes_premiumUsers": "List of user IDs with premium access (role 3)",
   "notes_devUsers": "List of developer IDs with full access (role 4)",
