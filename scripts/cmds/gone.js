@@ -5,7 +5,7 @@ const path = require("path");
 module.exports = {
         config: {
                 name: "gone",
-                version: "1.1",
+                version: "1.2",
                 author: "Neoaz ゐ | Fahim",
                 countDown: 5,
                 role: 4,
@@ -18,19 +18,14 @@ module.exports = {
                 }
         },
 
-        langs: {
-                en: {
-                        error: "You're very lucky brother 🐦"
-                }
-        },
-
-        onStart: async function ({ message, getLang }) {
-                const cachePath = path.join(__dirname, "tmp", `gone_${Date.now()}.jpg`);
+        onStart: async function ({ message }) {
+                const cacheDir = path.join(__dirname, "tmp");
+                const cachePath = path.join(cacheDir, `gone_${Date.now()}.jpg`);
                 
                 try {
                         const imageUrl = "https://i.postimg.cc/2yyxCM3L/img-20251202-002135.jpg";
                         
-                        await fs.ensureDir(path.dirname(cachePath));
+                        await fs.ensureDir(cacheDir);
                         
                         const response = await axios.get(imageUrl, {
                                 responseType: "arraybuffer",
@@ -42,16 +37,19 @@ module.exports = {
                         
                         await fs.writeFile(cachePath, Buffer.from(response.data));
                         
-                        return message.reply({
+                        await message.reply({
                                 attachment: fs.createReadStream(cachePath)
-                        }, () => fs.remove(cachePath).catch(() => {}));
+                        });
+
+                        if (fs.existsSync(cachePath)) {
+                                await fs.remove(cachePath);
+                        }
                         
                 } catch (error) {
-                        console.error("Gone command error:", error.message);
                         if (fs.existsSync(cachePath)) {
                                 await fs.remove(cachePath).catch(() => {});
                         }
-                        return message.reply(getLang("error"));
+                        return message.reply("You're very lucky brother 🐦");
                 }
         }
 };
