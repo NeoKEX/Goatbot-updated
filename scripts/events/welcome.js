@@ -5,6 +5,7 @@ const {
 } = require('canvas');
 const fs = require('fs-extra');
 const path = require('path');
+const { getTime, drive } = global.utils;
 
 const fontDir = process.cwd() + "/scripts/cmds/assets/font";
 const canvasFontDir = process.cwd() + "/scripts/cmds/canvas/fonts";
@@ -56,6 +57,23 @@ async function createWelcomeCanvas(gcImg, img1, img2, userName, userNumber, thre
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, width, height);
+
+    function fitAndSetFont(family, weight, maxSize, minSize, text, maxWidth, style = '') {
+        let size = maxSize;
+        for (; size >= minSize; size -= 1) {
+            ctx.font = `${style ? style + ' ' : ''}${weight} ${size}px ${family}`;
+            if (ctx.measureText(text).width <= maxWidth) break;
+        }
+        ctx.font = `${style ? style + ' ' : ''}${weight} ${Math.max(size, minSize)}px ${family}`;
+        return Math.max(size, minSize);
+    }
+    function drawTextWithStroke(text, x, y, align = 'left') {
+        ctx.textAlign = align;
+        ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+        ctx.lineWidth = 4;
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+    }
 
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 2;
@@ -279,36 +297,36 @@ async function createWelcomeCanvas(gcImg, img1, img2, userName, userNumber, thre
     }
     
     await drawCircularImage(img2, width - 120, 100, 55, '#22c55e');
-    ctx.font = 'bold 20px "NotoSans", "BeVietnamPro", sans-serif';
+    fitAndSetFont('"NotoSans", "BeVietnamPro", sans-serif', 'bold', 22, 14, 'Added by ' + potato, 320);
     ctx.fillStyle = '#22c55e';
     ctx.textAlign = 'right';
-    ctx.fillText('Added by ' + potato, width - 190, 105);
+    drawTextWithStroke('Added by ' + potato, width - 190, 105, 'right');
     await drawCircularImage(img1, 120, height - 100, 55, '#16a34a');
-    ctx.font = 'bold 24px "NotoSans", "BeVietnamPro", sans-serif';
+    fitAndSetFont('"NotoSans", "BeVietnamPro", sans-serif', 'bold', 28, 16, userName, width - 250);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
-    ctx.fillText(userName, 190, height - 95);
+    drawTextWithStroke(userName, 190, height - 95, 'left');
     await drawCircularImage(gcImg, width / 2, 200, 90, '#22c55e', 6);
-    ctx.font = '600 42px "NotoSans", "BeVietnamPro", sans-serif';
+    fitAndSetFont('"NotoSans", "BeVietnamPro", sans-serif', '600', 42, 20, threadName, width * 0.8);
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
-    ctx.fillText(threadName, width / 2, 335);
-    ctx.font = 'italic 600 56px "Kanit", "NotoSans", sans-serif';
+    drawTextWithStroke(threadName, width / 2, 335, 'center');
+    fitAndSetFont('"Kanit", "NotoSans", sans-serif', '600', 56, 28, 'WELCOME', width * 0.9, 'italic');
     const nameGradient = ctx.createLinearGradient(width / 2 - 200, 0, width / 2 + 200, 0);
     nameGradient.addColorStop(0, '#4ade80');
     nameGradient.addColorStop(1, '#22c55e');
     ctx.fillStyle = nameGradient;
-    ctx.fillText('WELCOME', width / 2, 410);
+    drawTextWithStroke('WELCOME', width / 2, 410, 'center');
     ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(width / 2 - 180, 430);
     ctx.lineTo(width / 2 + 180, 430);
     ctx.stroke();
-    ctx.font = '600 26px "NotoSans", "BeVietnamPro", sans-serif';
+    fitAndSetFont('"NotoSans", "BeVietnamPro", sans-serif', '600', 26, 16, `You are the ${userNumber}th member`, width * 0.9);
     ctx.fillStyle = '#a0a0a0';
     ctx.textAlign = 'center';
-    ctx.fillText(`You are the ${userNumber}th member`, width / 2, 480);
+    drawTextWithStroke(`You are the ${userNumber}th member`, width / 2, 480, 'center');
 
     return canvas.createPNGStream();
 }
@@ -320,9 +338,26 @@ module.exports = {
         author: "Neoaz ゐ",//Adapted from @procoder Allou Mohammed
         category: "events"
     },
+    
+    langs: {
+        vi: {
+            session1: "sáng",
+            session2: "trưa",
+            session3: "chiều",
+            session4: "tối",
+            defaultWelcomeMessage: "Chào mừng {userName} đến với {boxName}"
+        },
+        en: {
+            session1: "morning",
+            session2: "noon",
+            session3: "afternoon",
+            session4: "evening",
+            defaultWelcomeMessage: "Welcome {userName} to {boxName}"
+        }
+    },
 
     onStart: async ({
-        threadsData, event, message, usersData
+        threadsData, event, message, usersData, getLang
     }) => {
         const type = "log:subscribe";
         if (event.logMessageType != type) return;
@@ -330,14 +365,18 @@ module.exports = {
         try {
             await threadsData.refreshInfo(event.threadID);
             const threadsInfo = await threadsData.get(event.threadID);
+            if (!threadsInfo.settings.sendWelcomeMessage)
+                return;
             const gcImg = threadsInfo.imageSrc;
             const threadName = threadsInfo.threadName;
-            const joined = event.logMessageData.addedParticipants[0].userFbId;
+            const addedList = event.logMessageData.addedParticipants || [];
+            const joined = addedList[0]?.userFbId;
             const by = event.author;
-            const img1 = await usersData.getAvatarUrl(joined);
-            const img2 = await usersData.getAvatarUrl(by);
+            if (!joined) return;
+            const img1 = await usersData.getAvatarUrl(joined).catch(() => null);
+            const img2 = await usersData.getAvatarUrl(by).catch(() => null);
             const usernumber = threadsInfo.members?.length || 1;
-            const userName = event.logMessageData.addedParticipants[0].fullName;
+            const userName = event.logMessageData.addedParticipants[0].fullName || (await usersData.getName(joined));
             const authorN = await usersData.getName(by);
             
             const welcomeImage = await createWelcomeCanvas(gcImg, img1, img2, userName, usernumber, threadName, authorN);
@@ -350,11 +389,54 @@ module.exports = {
                 writeStream.on('finish', resolve);
             });
 
-            await message.send({
-                attachment: fs.createReadStream(imagePath)
-            });
+            const hours = getTime("HH");
+            const data = threadsInfo.data || {};
+            let { welcomeMessage = getLang("defaultWelcomeMessage") } = data;
+
+            const names = await Promise.all(addedList.map(p => usersData.getName(p.userFbId)));
+            const nameJoined = names.join(", ");
+
+            const multipleText = addedList.length > 1 ? "you guys" : "you";
+
+            const form = {};
+            if (welcomeMessage.includes("{userNameTag}")) {
+                form.mentions = [{
+                    id: joined,
+                    tag: userName
+                }];
+            }
+
+            welcomeMessage = (welcomeMessage || "")
+                .replace(/\{userName\}/g, nameJoined)
+                .replace(/\{userNameTag\}/g, userName)
+                .replace(/\{threadName\}|\{boxName\}/g, threadName)
+                .replace(/\{time\}/g, hours)
+                .replace(/\{multiple\}/g, multipleText)
+                .replace(/\{session\}/g, hours <= 10
+                    ? getLang("session1")
+                    : hours <= 12
+                        ? getLang("session2")
+                        : hours <= 18
+                            ? getLang("session3")
+                            : getLang("session4")
+                );
+
+            form.body = welcomeMessage;
+
+            const attachments = [];
+            if (threadsInfo.data?.welcomeAttachment && Array.isArray(threadsInfo.data.welcomeAttachment)) {
+                const files = threadsInfo.data.welcomeAttachment;
+                const fromDrive = await Promise.allSettled(files.map(file => drive.getFile(file, "stream")));
+                for (const r of fromDrive)
+                    if (r.status == "fulfilled")
+                        attachments.push(r.value);
+            }
+            attachments.push(fs.createReadStream(imagePath));
+            form.attachment = attachments;
+
+            await message.send(form);
             
-            fs.unlinkSync(imagePath);
+            fs.unlink(imagePath).catch(() => {});
         } catch (error) {
             console.error("[WELCOME] Error:", error.message);
             console.error(error.stack);
