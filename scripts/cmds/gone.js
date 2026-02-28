@@ -23,7 +23,7 @@ module.exports = {
                 const cachePath = path.join(cacheDir, `gone_${Date.now()}.jpg`);
                 
                 try {
-                        const imageUrl = "https://i.postimg.cc/2yyxCM3L/img-20251202-002135.jpg";
+                        const imageUrl = "https://i.ibb.co.com/r2mqdc3F/IMG-20251202-002135.jpg";
                         
                         await fs.ensureDir(cacheDir);
                         
