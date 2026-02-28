@@ -1,6 +1,15 @@
-run = "cowsay Configure me!"
-entrypoint = "README.md"
+language = "nodejs"
+run = "npm start"
+entrypoint = "index.js"
+modules = ["nodejs-20"]
 
 [nix]
-channel = "stable-24_05"
-packages = ["cowsay"]
+channel = "stable-24_11"
+packages = ["libuuid"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[agent]
+expertMode = true
