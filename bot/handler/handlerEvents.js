@@ -446,7 +446,11 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onStart;
 
-                        if (needRole > role) {
+                        if (role === 3) {
+                                if (needRole !== 3 && needRole !== 0) {
+                                        return await message.reply(`Premium users (role 3) can only use premium (role 3) and normal user (role 0) commands.`);
+                                }
+                        } else if (needRole > role) {
                                 if (!hideNotiMessage.needRoleToUseCmd) {
                                         if (needRole == 1)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdmin", commandName));
