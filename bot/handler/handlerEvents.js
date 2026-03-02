@@ -448,7 +448,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 
                         if (role === 3) {
                                 if (needRole !== 3 && needRole !== 0) {
-                                        return await message.reply(`Premium users (role 3) can only use premium (role 3) and normal user (role 0) commands.`);
+                                        return await message.reply(`Premium users can only use premium and normal commands.`);
                                 }
                         } else if (needRole > role) {
                                 if (!hideNotiMessage.needRoleToUseCmd) {
