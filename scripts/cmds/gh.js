@@ -31,7 +31,7 @@ function formatItems(items) {
 function ensureWebSocketConnection() {
 	if (sharedWebSocket && sharedWebSocket.readyState === WebSocket.OPEN) return;
 
-	sharedWebSocket = new WebSocket("wss://garden-horizons-notifier.onrender.com/");
+	sharedWebSocket = new WebSocket("wss://gagstock.gleeze.com/ghz");
 
 	sharedWebSocket.on("open", () => {
 		keepAliveInterval = setInterval(() => {
