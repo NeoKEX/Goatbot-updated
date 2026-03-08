@@ -53,4 +53,3 @@ module.exports = {
     });
   }
 };
-simsimi.ooguy.com
