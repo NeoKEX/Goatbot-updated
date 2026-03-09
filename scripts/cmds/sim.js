@@ -22,28 +22,28 @@ module.exports = {
 
 	onStart: async function ({ api, event, args, message, prefix }) {
 		const action = args[0]?.toLowerCase();
-		const globalData = global.GoatBot.globalData || {};
 
-		// Initialize sim data if not exists
-		if (!globalData.sim) {
-			globalData.sim = { enable: true };
+		// Initialize sim data if not exists in global
+		if (!global.GoatBot.globalData) {
+			global.GoatBot.globalData = {};
+		}
+		if (!global.GoatBot.globalData.sim) {
+			global.GoatBot.globalData.sim = { enable: true };
 		}
 
 		// Toggle on/off
 		if (action === "on") {
-			globalData.sim.enable = true;
-			global.GoatBot.globalData = globalData;
+			global.GoatBot.globalData.sim.enable = true;
 			return message.reply("✅ SimSimi chatbot has been enabled!");
 		}
 
 		if (action === "off") {
-			globalData.sim.enable = false;
-			global.GoatBot.globalData = globalData;
+			global.GoatBot.globalData.sim.enable = false;
 			return message.reply("❌ SimSimi chatbot has been disabled!");
 		}
 
 		// Check if sim is enabled
-		if (!globalData.sim.enable) {
+		if (!global.GoatBot.globalData.sim.enable) {
 			return message.reply("❌ SimSimi chatbot is currently disabled.\n💡 Use: " + prefix + "sim on to enable it.");
 		}
 
@@ -72,14 +72,17 @@ module.exports = {
 	},
 
 	// Handle auto responses when enabled
-	onChat: async function ({ api, event, message, globalData }) {
-		// Initialize sim data if not exists
-		if (!globalData.sim) {
-			globalData.sim = { enable: true };
+	onChat: async function ({ api, event, message }) {
+		// Initialize sim data if not exists in global
+		if (!global.GoatBot.globalData) {
+			global.GoatBot.globalData = {};
+		}
+		if (!global.GoatBot.globalData.sim) {
+			global.GoatBot.globalData.sim = { enable: true };
 		}
 
 		// Check if sim is enabled
-		if (!globalData.sim.enable) return;
+		if (!global.GoatBot.globalData.sim.enable) return;
 
 		// Skip if message is from the bot itself (prevent infinite loop)
 		if (event.senderID === global.botID) return;
