@@ -8,9 +8,9 @@ let sharedWebSocket = null;
 let keepAliveInterval = null;
 
 function formatValue(val) {
-	if (val >= 1_000_000) return `x${(val / 1_000_000).toFixed(1)}M`;
-	if (val >= 1_000) return `x${(val / 1_000).toFixed(1)}K`;
-	return `x${val}`;
+	if (val >= 1_000_000) return `×${(val / 1_000_000).toFixed(1)}M`;
+	if (val >= 1_000) return `×${(val / 1_000).toFixed(1)}K`;
+	return `×${val}`;
 }
 
 function getPHTime() {
@@ -25,7 +25,7 @@ function formatItems(items) {
 	if (!Array.isArray(items)) return "";
 	return items
 		.filter(i => i && i.quantity > 0)
-		.map(i => `- ${i.emoji ? i.emoji + " " : ""}${i.name || "Unknown"}: ${formatValue(i.quantity)}`)
+		.map(i => `│  ${i.emoji ? i.emoji + " " : ""}${i.name || "Unknown"}: ${formatValue(i.quantity)}`)
 		.join("\n");
 }
 
@@ -70,33 +70,35 @@ function ensureWebSocketConnection() {
 					if (favList.length > 0 && matched.length === 0) return false;
 
 					matchCount += matched.length;
-					sections.push(`${label}:\n${formatItems(matched)}`);
+					sections.push(`${label}\n${formatItems(matched)}`);
 					return true;
 				}
 
-				checkItems("🌱 𝐒𝐞𝐞𝐝𝐬 🧱", seeds);
-				checkItems("🛠️ 𝐆𝐞𝐚𝐫 ⚙️", gear);
+				checkItems("🌱  𝐒𝐄𝐄𝐃𝐒  🧱", seeds);
+				checkItems("⚙️  𝐆𝐄𝐀𝐑  🛠️", gear);
 
 				if (favList.length > 0 && matchCount === 0) continue;
 				if (sections.length === 0) continue;
 
 				const weatherInfo = weather
-					? `🌤️ ════ 𝗪𝗘𝗔𝗧𝗛𝗘𝗥 ════\n   📊 ${weather.status || "❓ Unknown"}\n   📝 ${weather.description || "📭 No description"}\n   ⏰ 🅂︎🅃︎🄰︎🅁︎🅃: ${weather.startTime || "❓"}\n   ⏰ 🄴︎🄽︎🄳: ${weather.endTime || "❓"}`
+					? `🌤️  ═══════  𝐖𝐄𝐀𝐓𝐇𝐄𝐑  ═══════\n│  📊 ${weather.status || "❓ Unknown"}\n│  📝 ${weather.description || "📭 No description"}\n│  ⏰  𝐒𝐓𝐀𝐑𝐓: ${weather.startTime || "❓"}\n│  ⏰  𝐄𝐍𝐃: ${weather.endTime || "❓"}`
 					: "";
 
 				const updatedAt = payload.lastUpdated || getPHTime().toLocaleString("en-PH");
 
 				const title = favList.length > 0
-					? `❤️ ━━━━ ${matchCount} 𝐅𝐚𝐯𝐨𝐫𝐢𝐭𝐞 ${matchCount > 1 ? "Items" : "Item"} Found! ━━━━`
-					: "🌾 ════ 𝗚𝗔𝗥𝗗𝗘𝗡 𝗛𝗢𝗥𝗜𝗭𝗢𝗡 ════ 🏪";
+					? `❤️  ${matchCount} 𝐅𝐚𝐯𝐨𝐫𝐢𝐭𝐞 ${matchCount > 1 ? "Items" : "Item"} Found!  ❤️`
+					: "🌾  ══════  𝐆𝐀𝐑𝐃𝐄𝐍 𝐇𝐎𝐑𝐈𝐙𝐎𝐍  ══════  🏪";
 
 				const messageContent = `${title}
 
-${sections.join("\n\n")}
+╭─── 𝐒𝐓𝐎𝐂𝐊𝐒 ───╮
+${sections.join("\n")}
+╰───────────────╯
 
 ${weatherInfo}
 
-📅 🅄︎🄿︎🅳︎🄰︎🅃︎🄴︎🄳: ${updatedAt}`.trim();
+📅  𝐔𝐏𝐃𝐀𝐓𝐄𝐃: ${updatedAt}`.trim();
 				if (!messageContent || messageContent.length === 0) continue;
 
 				const messageKey = JSON.stringify({ title, sections, weatherInfo, updatedAt });
@@ -140,29 +142,110 @@ module.exports = {
 
 	langs: {
 		en: {
-			alreadyTracking: "📡  You're already tracking Garden Horizon!\n\n💡 Use: {pn}ghz off - to stop tracking",
-			trackingStarted: "✅━━━━━━━━━━━━━━━━━━━━━\n   🌾 Garden Horizon Tracking Started!\n   📡 Now receiving live stock updates\n━━━━━━━━━━━━━━━━━━━━━",
-			trackingStopped: "🛑━━━━━━━━━━━━━━━━━━━━━\n   🌾 Garden Horizon Tracking Stopped\n   👋 Bye bye, happy gardening!\n━━━━━━━━━━━━━━━━━━━━━",
-			notTracking: "⚠️━━━━━━━━━━━━━━━━━━━━━\n   Oops! You're not tracking yet\n\n💡 Use: {pn}ghz on - to start\n━━━━━━━━━━━━━━━━━━━━━",
-			favAdded: "✅━━━━━━━━━━━━━━━━━━━━━\n   ❤️ Favorite Items Added!\n\n%1\n━━━━━━━━━━━━━━━━━━━━━",
-			favRemoved: "✅━━━━━━━━━━━━━━━━━━━━━\n   🗑️ Favorite Items Removed!\n\n%1\n━━━━━━━━━━━━━━━━━━━━━",
-			favList: "📝━━━━━━━━━━━━━━━━━━━━━\n   ❤️ Your Favorite Items:\n\n%1\n━━━━━━━━━━━━━━━━━━━━━",
-			emptyFav: "   (No favorites yet)",
-			invalidFav: "📌━━━━━━━━━━━━━━━━━━━━━\n   Invalid Command Format!\n\n💡 Usage:\n   {pn}ghz fav add Item1 | Item2\n   {pn}ghz fav remove Item1\n━━━━━━━━━━━━━━━━━━━━━",
-			help: `🌾╔══════════════════════════════╗
-   ║  🌱 Garden Horizon Commands  ║
-   ╚══════════════════════════════╝
-
-📖 Commands:
-┌─────────────────────────────┐
-│ {pn}ghz on                  │ ➤ Start tracking stocks
-│ {pn}ghz off                 │ ➤ Stop tracking stocks
-│ {pn}ghz fav add Item1 | ..  │ ➤ Add favorite items
-│ {pn}ghz fav remove Item1    │ ➤ Remove favorite items
-└─────────────────────────────┘
-
-💡 Example:
-   {pn}ghz fav add Carrot | Watering Can`
+			alreadyTracking: `╔══════════════════════════════════╗
+║     📡  ALREADY TRACKING  📡     ║
+╠══════════════════════════════════╣
+║  You're already receiving live   ║
+║  stock updates from Garden       ║
+║  Horizon!                        ║
+║                                  ║
+║  💡 Use: {pn}ghz off             ║
+║     to stop tracking             ║
+╚══════════════════════════════════╝`,
+			trackingStarted: `╔══════════════════════════════════╗
+║   🌾  GARDEN HORIZON  🌾         ║
+║        📡 LIVE TRACKING         ║
+╠══════════════════════════════════╣
+║  ✅ Successfully connected!     ║
+║                                  ║
+║  📊 Now receiving live           ║
+║     stock market updates         ║
+║                                  ║
+║  🌱 Seeds  🧱  ⚙️ Gear  🛠️       ║
+║     Updates in real-time         ║
+╚══════════════════════════════════╝`,
+			trackingStopped: `╔══════════════════════════════════╗
+║   🌾  GARDEN HORIZON  🌾         ║
+║       🛑 TRACKING STOPPED       ║
+╠══════════════════════════════════╣
+║  🛑 Tracking has been stopped    ║
+║                                  ║
+║  👋 Thank you for using          ║
+║     Garden Horizon Tracker!     ║
+║                                  ║
+║  💡 Use: {pn}ghz on             ║
+║     to start again               ║
+╚══════════════════════════════════╝`,
+			notTracking: `╔══════════════════════════════════╗
+║     ⚠️  NOT TRACKING  ⚠️         ║
+╠══════════════════════════════════╣
+║  You're not currently tracking   ║
+║  Garden Horizon stock market    ║
+║                                  ║
+║  💡 Use: {pn}ghz on             ║
+║     to start tracking            ║
+╚══════════════════════════════════╝`,
+			favAdded: `╔══════════════════════════════════╗
+║   ❤️  FAVORITES ADDED  ❤️       ║
+╠══════════════════════════════════╣
+║  Successfully added to your      ║
+║  favorites list:                 ║
+║                                  ║
+${"%1"}
+╚══════════════════════════════════╝`,
+			favRemoved: `╔══════════════════════════════════╗
+║   🗑️  FAVORITES REMOVED  🗑️     ║
+╠══════════════════════════════════╣
+║  Successfully removed from      ║
+║  your favorites list:             ║
+║                                  ║
+${"%1"}
+╚══════════════════════════════════╝`,
+			favList: `╔══════════════════════════════════╗
+║   📝  YOUR FAVORITES  📝        ║
+╠══════════════════════════════════╣
+║  Current favorite items:         ║
+║                                  ║
+${"%1"}
+╚══════════════════════════════════╝`,
+			emptyFav: "│  (No favorites yet)",
+			invalidFav: `╔══════════════════════════════════╗
+║    ⚠️  INVALID COMMAND  ⚠️       ║
+╠══════════════════════════════════╣
+║  Please use the correct format:  ║
+║                                  ║
+║  {pn}ghz fav add Item1 | Item2   ║
+║  {pn}ghz fav remove Item1       ║
+║                                  ║
+║  Use "|" to separate multiple    ║
+║  items when adding               ║
+╚══════════════════════════════════╝`,
+			help: `╔══════════════════════════════════╗
+║  🌱  GARDEN HORIZON COMMANDS  🌱 ║
+╠══════════════════════════════════╣
+║                                  ║
+║  📖  COMMANDS:                   ║
+║  ─────────────────────           ║
+║  {pn}ghz on                      ║
+║     ➤ Start live tracking       ║
+║                                  ║
+║  {pn}ghz off                     ║
+║     ➤ Stop tracking             ║
+║                                  ║
+║  {pn}ghz fav add Item            ║
+║     ➤ Add favorite item(s)      ║
+║     (use | for multiple)         ║
+║                                  ║
+║  {pn}ghz fav remove Item         ║
+║     ➤ Remove favorite item      ║
+║                                  ║
+║  {pn}ghz fav list                ║
+║     ➤ View favorites            ║
+║                                  ║
+╠══════════════════════════════════╣
+║  💡  EXAMPLE:                    ║
+║  {pn}ghz fav add Carrot | Water  ║
+╚══════════════════════════════════╝`
 		}
 	},
 
@@ -178,11 +261,19 @@ module.exports = {
 				.map(i => cleanText(i))
 				.filter(Boolean);
 
-			if (!action || !["add", "remove"].includes(action) || input.length === 0) {
+			if (!action || !["add", "remove", "list"].includes(action) || (input.length === 0 && action !== "list")) {
 				return api.sendMessage(getLang("invalidFav"), threadId);
 			}
 
 			const currentFav = favoriteMap.get(threadId) || [];
+
+			if (action === "list") {
+				const favDisplay = currentFav.length > 0 
+					? currentFav.map(item => `│  ❤️ ${item}`).join("\n")
+					: getLang("emptyFav");
+				return api.sendMessage(getLang("favList", favDisplay), threadId);
+			}
+
 			const updated = new Set(currentFav);
 
 			for (const name of input) {
@@ -191,12 +282,14 @@ module.exports = {
 			}
 
 			favoriteMap.set(threadId, Array.from(updated));
-			const favList = Array.from(updated).join(", ") || getLang("emptyFav");
+			const favDisplay = Array.from(updated)
+				.map(item => `│  ❤️ ${item}`)
+				.join("\n") || getLang("emptyFav");
 
 			if (action === "add") {
-				return api.sendMessage(getLang("favAdded", favList), threadId);
+				return api.sendMessage(getLang("favAdded", favDisplay), threadId);
 			} else {
-				return api.sendMessage(getLang("favRemoved", favList), threadId);
+				return api.sendMessage(getLang("favRemoved", favDisplay), threadId);
 			}
 		}
 
@@ -215,11 +308,13 @@ module.exports = {
 		}
 
 		if (activeSessions.has(threadId)) {
-			return api.sendMessage(getLang("alreadyTracking"), threadId);
+			const prefix = global.GoatBot.config.prefix;
+			return api.sendMessage(getLang("alreadyTracking").replace(/{pn}/g, prefix), threadId);
 		}
 
 		activeSessions.set(threadId, { api, threadID: threadId });
-		await api.sendMessage(getLang("trackingStarted"), threadId);
+		const prefix = global.GoatBot.config.prefix;
+		await api.sendMessage(getLang("trackingStarted").replace(/{pn}/g, prefix), threadId);
 		ensureWebSocketConnection();
 	}
 };
