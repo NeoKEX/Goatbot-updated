@@ -7,8 +7,8 @@ const imgurClientId = "fc9369e9aea767c";
 module.exports = {
   config: {
     name: "rankup",
-    version: "1.0.2",
-    author: "VincentSensei",
+    version: "1.0.4",
+    author: "Mirai Team + Modified",
     description: {
       vi: "Thông báo rankup cho từng nhóm",
       en: "Rankup notification for each group"
@@ -62,10 +62,11 @@ module.exports = {
     }
 
     // Get current exp and calculate level
-    const exp = (await usersData.get(senderID)).exp || 0;
+    const userData = await usersData.get(senderID);
+    const exp = userData?.exp || 0;
     const newExp = exp + 1;
     
-    // Calculate level (same formula as original)
+    // Calculate level (same formula as original template)
     const curLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
     const newLevel = Math.floor((Math.sqrt(1 + (4 * newExp / 3) + 1) / 2));
 
@@ -87,13 +88,43 @@ module.exports = {
         .replace(/{level}/g, newLevel)
         .replace(/{userName}/g, name);
 
-      // Path to rankup GIF folder
+      // Path to rankup GIF folder - ensure it exists
       const rankupGifPath = path.join(__dirname, "cache", "rankup");
       
-      // Check for local GIF file (thread-specific)
-      const localGifPath = path.join(rankupGifPath, `${threadID}.gif`);
-      const localGifPathJpg = path.join(rankupGifPath, `${threadID}.jpg`);
-      const localGifPathPng = path.join(rankupGifPath, `${threadID}.png`);
+      // Ensure the directory exists
+      if (!fs.existsSync(rankupGifPath)) {
+        fs.mkdirSync(rankupGifPath, { recursive: true });
+      }
+      
+      // Convert threadID to string for filename
+      const threadIdStr = String(threadID);
+      
+      // Check for local GIF file - priority: thread-specific > global "rankup.gif"
+      let localFilePath = null;
+      let fileExt = null;
+      
+      // First check for thread-specific file (e.g., "123456789.gif")
+      const extensions = ['.gif', '.jpg', '.jpeg', '.png'];
+      for (const ext of extensions) {
+        const testPath = path.join(rankupGifPath, `${threadIdStr}${ext}`);
+        if (fs.existsSync(testPath)) {
+          localFilePath = testPath;
+          fileExt = ext;
+          break;
+        }
+      }
+      
+      // If no thread-specific file, check for global "rankup.gif" (or rankup.jpg/png)
+      if (!localFilePath) {
+        for (const ext of extensions) {
+          const testPath = path.join(rankupGifPath, `rankup${ext}`);
+          if (fs.existsSync(testPath)) {
+            localFilePath = testPath;
+            fileExt = ext;
+            break;
+          }
+        }
+      }
       
       // Check for imgur link as fallback
       const imgurLink = await threadsData.get(threadID, "data.rankup.imgurLink");
@@ -104,49 +135,21 @@ module.exports = {
         mentions: [{ tag: name, id: senderID }]
       };
 
-      // Try to add attachment from local GIF file
-      let hasAttachment = false;
-      
-      // Check for GIF first, then jpg, then png
-      if (fs.existsSync(localGifPath)) {
-        try {
-          const { getStreamFromURL } = global.utils;
-          // Read local file and create stream
-          const fileStream = fs.createReadStream(localGifPath);
-          fileStream.path = `rankup_${threadID}.gif`;
-          messageBody.attachment = fileStream;
-          hasAttachment = true;
-        } catch (e) {
-          console.error("Error loading local GIF:", e);
-        }
-      } else if (fs.existsSync(localGifPathJpg)) {
-        try {
-          const fileStream = fs.createReadStream(localGifPathJpg);
-          fileStream.path = `rankup_${threadID}.jpg`;
-          messageBody.attachment = fileStream;
-          hasAttachment = true;
-        } catch (e) {
-          console.error("Error loading local JPG:", e);
-        }
-      } else if (fs.existsSync(localGifPathPng)) {
-        try {
-          const fileStream = fs.createReadStream(localGifPathPng);
-          fileStream.path = `rankup_${threadID}.png`;
-          messageBody.attachment = fileStream;
-          hasAttachment = true;
-        } catch (e) {
-          console.error("Error loading local PNG:", e);
-        }
-      }
-      // Fallback to imgur link if no local file found
+      // Try to add attachment from local GIF file or imgur
+      if (localFilePath) {
+        // Use createReadStream for local files
+        const fileStream = fs.createReadStream(localFilePath);
+        const fileName = localFilePath.split(path.sep).pop();
+        fileStream.path = fileName;
+        messageBody.attachment = fileStream;
+      } 
       else if (imgurLink) {
         try {
           const { getStreamFromURL } = global.utils;
           const stream = await getStreamFromURL(imgurLink);
           const ext = imgurLink.split('.').pop().split('?')[0];
-          stream.path = `rankup_${threadID}.${ext}`;
+          stream.path = `rankup_${threadIdStr}.${ext}`;
           messageBody.attachment = stream;
-          hasAttachment = true;
         } catch (e) {
           console.error("Error loading imgur image:", e);
         }
