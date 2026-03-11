@@ -7,7 +7,7 @@ const imgurClientId = "fc9369e9aea767c";
 module.exports = {
   config: {
     name: "rankup",
-    version: "1.0.4",
+    version: "1.1.1",
     author: "Mirai Team + Modified",
     description: {
       vi: "Thông báo rankup cho từng nhóm",
@@ -38,6 +38,13 @@ module.exports = {
   onStart: async function({ api, event, threadsData, args, getLang }) {
     const { threadID, messageID } = event;
     
+    // Show current status if no args
+    if (!args[0]) {
+      const rankupEnabled = await threadsData.get(threadID, "settings.rankupEnabled");
+      const status = rankupEnabled ? "ON" : "OFF";
+      return api.sendMessage(`📊 Rankup Status: ${status}\nUse: rankup [on/off]`, threadID, messageID);
+    }
+    
     if (args[0] === "on" || args[0] === "off") {
       const isOn = args[0] === "on";
       await threadsData.set(threadID, isOn, "settings.rankupEnabled");
@@ -52,7 +59,7 @@ module.exports = {
     return api.sendMessage(`Usage: rankup [on/off]`, threadID, messageID);
   },
 
-  onChat: async function({ api, event, usersData, threadsData, message, getLang, globalData }) {
+  onChat: async function({ api, event, usersData, threadsData, message, getLang }) {
     const { threadID, senderID } = event;
     
     // Check if rankup is enabled for this thread
@@ -61,20 +68,20 @@ module.exports = {
       return;
     }
 
-    // Get current exp and calculate level
+    // Get current exp and increment it
     const userData = await usersData.get(senderID);
-    const exp = userData?.exp || 0;
-    const newExp = exp + 1;
+    const exp = (userData?.exp || 0) + 1;
     
-    // Calculate level (same formula as original template)
-    const curLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
-    const newLevel = Math.floor((Math.sqrt(1 + (4 * newExp / 3) + 1) / 2));
-
     // Update exp
-    await usersData.set(senderID, { exp: newExp });
+    await usersData.set(senderID, { exp });
+    
+    // Calculate level before and after
+    const prevExp = Math.max(0, exp - 1);
+    const prevLevel = Math.floor((Math.sqrt(1 + (4 * prevExp / 3) + 1) / 2));
+    const currentLevel = Math.floor((Math.sqrt(1 + (4 * exp / 3) + 1) / 2));
 
-    // Check if leveled up
-    if (newLevel > curLevel && newLevel !== 1) {
+    // Check if leveled up (current level > previous level, and not level 1)
+    if (currentLevel > prevLevel && currentLevel !== 1) {
       const name = await usersData.getName(senderID) || "User";
       
       // Get custom message or default
@@ -85,10 +92,10 @@ module.exports = {
       
       rankupMessage = rankupMessage
         .replace(/{name}/g, name)
-        .replace(/{level}/g, newLevel)
+        .replace(/{level}/g, currentLevel)
         .replace(/{userName}/g, name);
 
-      // Path to rankup GIF folder - ensure it exists
+      // Path to rankup GIF folder
       const rankupGifPath = path.join(__dirname, "cache", "rankup");
       
       // Ensure the directory exists
@@ -96,31 +103,28 @@ module.exports = {
         fs.mkdirSync(rankupGifPath, { recursive: true });
       }
       
-      // Convert threadID to string for filename
       const threadIdStr = String(threadID);
       
-      // Check for local GIF file - priority: thread-specific > global "rankup.gif"
+      // Check for local GIF file
       let localFilePath = null;
-      let fileExt = null;
       
-      // First check for thread-specific file (e.g., "123456789.gif")
       const extensions = ['.gif', '.jpg', '.jpeg', '.png'];
+      
+      // First check for thread-specific file
       for (const ext of extensions) {
         const testPath = path.join(rankupGifPath, `${threadIdStr}${ext}`);
         if (fs.existsSync(testPath)) {
           localFilePath = testPath;
-          fileExt = ext;
           break;
         }
       }
       
-      // If no thread-specific file, check for global "rankup.gif" (or rankup.jpg/png)
+      // Then check for global "rankup" file
       if (!localFilePath) {
         for (const ext of extensions) {
           const testPath = path.join(rankupGifPath, `rankup${ext}`);
           if (fs.existsSync(testPath)) {
             localFilePath = testPath;
-            fileExt = ext;
             break;
           }
         }
@@ -129,19 +133,25 @@ module.exports = {
       // Check for imgur link as fallback
       const imgurLink = await threadsData.get(threadID, "data.rankup.imgurLink");
       
-      // Prepare message
-      let messageBody = {
+      // Use message.reply like other commands do
+      let replyBody = {
         body: rankupMessage,
         mentions: [{ tag: name, id: senderID }]
       };
 
-      // Try to add attachment from local GIF file or imgur
+      // Add attachment if found
       if (localFilePath) {
-        // Use createReadStream for local files
-        const fileStream = fs.createReadStream(localFilePath);
+        // Read file into buffer and create stream
+        const fileBuffer = fs.readFileSync(localFilePath);
         const fileName = localFilePath.split(path.sep).pop();
-        fileStream.path = fileName;
-        messageBody.attachment = fileStream;
+        
+        // Create a stream from buffer
+        const stream = require("stream");
+        const bufferStream = new stream.PassThrough();
+        bufferStream.end(fileBuffer);
+        bufferStream.path = fileName;
+        
+        replyBody.attachment = bufferStream;
       } 
       else if (imgurLink) {
         try {
@@ -149,13 +159,13 @@ module.exports = {
           const stream = await getStreamFromURL(imgurLink);
           const ext = imgurLink.split('.').pop().split('?')[0];
           stream.path = `rankup_${threadIdStr}.${ext}`;
-          messageBody.attachment = stream;
+          replyBody.attachment = stream;
         } catch (e) {
           console.error("Error loading imgur image:", e);
         }
       }
 
-      api.sendMessage(messageBody, threadID);
+      message.reply(replyBody);
     }
   }
 };
