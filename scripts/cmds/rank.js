@@ -22,7 +22,7 @@ module.exports = {
 	config: {
 		name: "rank",
 		version: "1.7",
-		author: "NTKhang",
+		author: "VincentSensei",
 		countDown: 5,
 		role: 0,
 		description: {
@@ -49,28 +49,39 @@ module.exports = {
 		else
 			targetUsers = arrayMentions;
 
-		const rankCards = await Promise.all(targetUsers.map(async userID => {
-			const rankCard = await makeRankCard(userID, usersData, threadsData, event.threadID, deltaNext, api);
-			rankCard.path = `${randomString(10)}.png`;
-			return rankCard;
-		}));
+		const rankCards = [];
+		for (const userID of targetUsers) {
+			try {
+				const { getStreamFromURL } = global.utils;
+				const stream = await getStreamFromURL(`https://rankup-api-b1rv.vercel.app/api/rankup?uid=${userID}`);
+				stream.path = `rank_${userID}.gif`;
+				rankCards.push(stream);
+			} catch (e) {
+				console.error(`Error loading API image for user ${userID}:`, e);
+			}
+		}
+
+		if (rankCards.length === 0) {
+			return message.reply("Failed to load rank image(s) from the API.");
+		}
 
 		return message.reply({
 			attachment: rankCards
 		});
 	},
 
-	onChat: async function ({ usersData, event }) {
-		let { exp } = await usersData.get(event.senderID);
-		if (isNaN(exp) || typeof exp != "number")
-			exp = 0;
-		try {
-			await usersData.set(event.senderID, {
-				exp: exp + 1
-			});
-		}
-		catch (e) { }
-	}
+	// onChat disabled - handled by rankup.js
+	// onChat: async function ({ usersData, event }) {
+	// 	let { exp } = await usersData.get(event.senderID);
+	// 	if (isNaN(exp) || typeof exp != "number")
+	// 		exp = 0;
+	// 	try {
+	// 		await usersData.set(event.senderID, {
+	// 			exp: exp + 1
+	// 		});
+	// 	}
+	// 	catch (e) { }
+	// }
 };
 
 const defaultDesignCard = {
