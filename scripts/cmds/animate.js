@@ -1,79 +1,67 @@
-const axios = require('axios');
-const fs = require('fs-extra');
-const path = require('path');
-const stream = require('stream');
-const { promisify } = require('util');
+const axios = require("axios");
+const fs = require("fs-extra");
+const os = require("os");
+const path = require("path");
+const { pipeline } = require("stream/promises");
 
-const pipeline = promisify(stream.pipeline);
-const API_ENDPOINT = "https://metabyneokex.vercel.app/videos/generate";
-const CACHE_DIR = path.join(__dirname, 'cache');
+const API_ENDPOINT = "https://metakexbyneokex.fly.dev/animate";
 
 module.exports = {
   config: {
     name: "animate",
-    aliases: ["anim", "video", "genvid"],
-    version: "1.2",
-    author: "Neoaz ゐ",
+    aliases: ["anim", "genvid"],
+    version: "1.0",
+    author: "VincentSensei",
     countDown: 30,
     role: 0,
-    longDescription: "Generate animated videos from text prompts.",
+    shortDescription: { en: "Generate AI animated video from prompt" },
+    longDescription: { en: "Generate animated videos from text prompts using AI." },
     category: "ai",
     guide: {
-      en: "{pn} <prompt>\n\nExample: {pn} a beautiful sunset"
+      en: "{pn} <prompt>\n\nExample: {pn} a cat is swimming"
     }
   },
 
-  onStart: async function ({ args, message, event, api }) {
+  onStart: async function ({ args, message, event }) {
     const prompt = args.join(" ").trim();
+    if (!prompt) return message.reply("❌ Please provide a prompt to generate a video.\n\nExample: animate a cat is swimming");
 
-    if (!prompt) {
-      return message.reply("Please provide a prompt.");
-    }
+    message.reaction("⏳", event.messageID);
 
-    if (!fs.existsSync(CACHE_DIR)) {
-      fs.mkdirSync(CACHE_DIR, { recursive: true });
-    }
-
-    api.setMessageReaction("⏳", event.messageID, () => {}, true);
-    let tempFilePath;
+    const tmpFile = path.join(os.tmpdir(), `animate_${Date.now()}.mp4`);
 
     try {
-      const fullApiUrl = `${API_ENDPOINT}?prompt=${encodeURIComponent(prompt)}&orientation=VERTICAL`;
-      
-      const apiResponse = await axios.get(fullApiUrl, { timeout: 150000 });
+      const apiResponse = await axios.get(`${API_ENDPOINT}?prompt=${encodeURIComponent(prompt)}`, {
+        timeout: 120000
+      });
       const data = apiResponse.data;
 
-      const urls = data.image_urls || data.video_urls;
-
-      if (!data.success || !urls || urls.length === 0) {
-        throw new Error("Failed");
+      if (!data.success || !data.video_urls || data.video_urls.length === 0) {
+        throw new Error(data.message || "API returned no video.");
       }
 
-      const videoUrl = urls[0];
-      const fileHash = Date.now() + Math.random().toString(36).substring(2, 8);
-      tempFilePath = path.join(CACHE_DIR, `animate_${fileHash}.mp4`);
-      
-      const downloadResponse = await axios.get(videoUrl, {
-        responseType: 'stream',
-        timeout: 120000,
-      });
-      
-      await pipeline(downloadResponse.data, fs.createWriteStream(tempFilePath));
+      const videoUrl = data.video_urls[0];
 
-      api.setMessageReaction("✅", event.messageID, () => {}, true);
-      
+      const videoRes = await axios.get(videoUrl, {
+        responseType: "stream",
+        timeout: 120000
+      });
+
+      await pipeline(videoRes.data, fs.createWriteStream(tmpFile));
+
+      message.reaction("✅", event.messageID);
+
       await message.reply({
-        body: "Video generated 🎬",
-        attachment: fs.createReadStream(tempFilePath)
+        body: `🎬 Video generated!\n📝 Prompt: ${prompt}`,
+        attachment: fs.createReadStream(tmpFile)
       });
 
     } catch (error) {
-      api.setMessageReaction("❌", event.messageID, () => {}, true);
-      message.reply("Failed to generate video.");
+      console.error("[Animate] Error:", error.message);
+      message.reaction("❌", event.messageID);
+      message.reply(`❌ Failed to generate video: ${error.message}`);
     } finally {
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        try { fs.unlinkSync(tempFilePath); } catch (err) {}
-      }
+      fs.unlink(tmpFile).catch(() => {});
     }
   }
 };

@@ -35,7 +35,7 @@ module.exports = {
   config: {
     name: "wanted",
     version: "1.1",
-    author: "MOHAMMAD AKASH | Converted",
+    author: "VincentSensei",
     countDown: 5,
     role: 0,
     shortDescription: { en: "Wanted poster" },
@@ -123,7 +123,7 @@ module.exports = {
 
       ctx.font = "italic 24px Arial";
       ctx.fillStyle = "#7f8c8d";
-      ctx.fillText("Author: MOHAMMAD AKASH", 350, 890);
+      ctx.fillText("Author: VincentSensei", 350, 890);
 
       await fs.writeFile(outputPath, canvas.toBuffer("image/jpeg"));
 
@@ -135,8 +135,8 @@ module.exports = {
       });
 
       // Cleanup temp files
-      fs.unlink(avatarPath).catch(() => {});
-      fs.unlink(outputPath).catch(() => {});
+      fs.unlink(avatarPath).catch(() => { });
+      fs.unlink(outputPath).catch(() => { });
 
     } catch (err) {
       console.error("[Wanted] Full error:", err.message, err.stack);
