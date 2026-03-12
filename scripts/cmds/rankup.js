@@ -62,9 +62,9 @@ module.exports = {
   onChat: async function({ api, event, usersData, threadsData, message, getLang }) {
     const { threadID, senderID } = event;
     
-    // Check if rankup is enabled for this thread
+    // Check if rankup is enabled for this thread (enabled by default)
     const rankupEnabled = await threadsData.get(threadID, "settings.rankupEnabled");
-    if (rankupEnabled === false || rankupEnabled === undefined) {
+    if (rankupEnabled === false) {
       return;
     }
 
@@ -95,74 +95,19 @@ module.exports = {
         .replace(/{level}/g, currentLevel)
         .replace(/{userName}/g, name);
 
-      // Path to rankup GIF folder
-      const rankupGifPath = path.join(__dirname, "cache", "rankup");
-      
-      // Ensure the directory exists
-      if (!fs.existsSync(rankupGifPath)) {
-        fs.mkdirSync(rankupGifPath, { recursive: true });
-      }
-      
-      const threadIdStr = String(threadID);
-      
-      // Check for local GIF file
-      let localFilePath = null;
-      
-      const extensions = ['.gif', '.jpg', '.jpeg', '.png'];
-      
-      // First check for thread-specific file
-      for (const ext of extensions) {
-        const testPath = path.join(rankupGifPath, `${threadIdStr}${ext}`);
-        if (fs.existsSync(testPath)) {
-          localFilePath = testPath;
-          break;
-        }
-      }
-      
-      // Then check for global "rankup" file
-      if (!localFilePath) {
-        for (const ext of extensions) {
-          const testPath = path.join(rankupGifPath, `rankup${ext}`);
-          if (fs.existsSync(testPath)) {
-            localFilePath = testPath;
-            break;
-          }
-        }
-      }
-      
-      // Check for imgur link as fallback
-      const imgurLink = await threadsData.get(threadID, "data.rankup.imgurLink");
-      
       // Use message.reply like other commands do
       let replyBody = {
         body: rankupMessage,
         mentions: [{ tag: name, id: senderID }]
       };
 
-      // Add attachment if found
-      if (localFilePath) {
-        // Read file into buffer and create stream
-        const fileBuffer = fs.readFileSync(localFilePath);
-        const fileName = localFilePath.split(path.sep).pop();
-        
-        // Create a stream from buffer
-        const stream = require("stream");
-        const bufferStream = new stream.PassThrough();
-        bufferStream.end(fileBuffer);
-        bufferStream.path = fileName;
-        
-        replyBody.attachment = bufferStream;
-      } 
-      else if (imgurLink) {
-        try {
-          const { getStreamFromURL } = global.utils;
-          const stream = await getStreamFromURL(imgurLink);
-          const ext = imgurLink.split('.').pop().split('?')[0];
-          stream.path = `rankup_${threadIdStr}.${ext}`;
-          replyBody.attachment = stream;
-        } catch (e) {
-          console.error("Error loading imgur image:", e);
-        }
+      try {
+        const { getStreamFromURL } = global.utils;
+        const stream = await getStreamFromURL(`https://rankup-api-b1rv.vercel.app/api/rankup?uid=${senderID}`);
+        stream.path = 'rankup.gif';
+        replyBody.attachment = stream;
+      } catch (e) {
+        console.error("Error loading rankup image from API:", e);
       }
 
       message.reply(replyBody);
