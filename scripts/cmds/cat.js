@@ -1,0 +1,41 @@
+module.exports = {
+  config: {
+    name: "cat",
+    version: "1.0.0",
+    author: "lianecagara | VincentSensei",
+    countDown: 5,
+    role: 0,
+    description: {
+      vi: "Cat as a Service. Random cats, MEOW.",
+      en: "Cat as a Service. Random cats, MEOW."
+    },
+    category: "media",
+    guide: {
+      vi: "   {pn}",
+      en: "   {pn}"
+    }
+  },
+
+  onStart: async function ({ message, event }) {
+    try {
+      const { getStreamFromURL } = global.utils;
+
+      message.reaction("⏳", event.messageID);
+
+      const stream = await getStreamFromURL("https://cataas.com/cat");
+      stream.path = "cat.jpg";
+
+      await message.reply({
+        body: "🐈🎲 Random Cat\n\nMEOW!",
+        attachment: stream
+      });
+
+      message.reaction("🙀", event.messageID);
+
+    } catch (e) {
+      console.error("Error fetching cat:", e);
+      message.reaction("❌", event.messageID);
+      return message.reply("Failed to get cat image. Please try again later.");
+    }
+  }
+};
