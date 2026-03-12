@@ -1,41 +1,56 @@
-module.exports = {
-  config: {
-    name: "cat",
-    version: "1.0.0",
-    author: "lianecagara | VincentSensei",
-    countDown: 5,
-    role: 0,
-    description: {
-      vi: "Cat as a Service. Random cats, MEOW.",
-      en: "Cat as a Service. Random cats, MEOW."
+[
+    {
+        "key": "sb",
+        "value": "KXisaRiKjLFd8pSd9RpCcGPZ",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.631Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
     },
-    category: "media",
-    guide: {
-      vi: "   {pn}",
-      en: "   {pn}"
+    {
+        "key": "datr",
+        "value": "aEKyaW88Qw6NjVtLmy4z3pGO",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.632Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
+    },
+    {
+        "key": "wd",
+        "value": "1680x923",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.632Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
+    },
+    {
+        "key": "c_user",
+        "value": "61579412516213",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.632Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
+    },
+    {
+        "key": "fr",
+        "value": "19Jj2J4ek5g3AuVya.AWd4464XzmdxJ5dV4ycpUdaG49TkA0sPQJOdV71I94qKyxhpKqE.BpskSm..AAA.0.0.BpskSm.AWflbUB2lefZnwQ1RRiCe9B7UpA",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.632Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
+    },
+    {
+        "key": "xs",
+        "value": "21%3AT5q1oArlRn_JJw%3A2%3A1773290657%3A-1%3A-1%3A%3AAcxvY7qVfWUeaHzrq9_njxHKNGAqLdz5Kqbb6K8hPg",
+        "domain": "facebook.com",
+        "path": "/",
+        "hostOnly": false,
+        "creation": "2026-03-12T04:44:24.632Z",
+        "lastAccessed": "2026-03-12T04:44:24.632Z"
     }
-  },
-
-  onStart: async function ({ message, event }) {
-    try {
-      const { getStreamFromURL } = global.utils;
-
-      message.reaction("⏳", event.messageID);
-
-      const stream = await getStreamFromURL("https://cataas.com/cat");
-      stream.path = "cat.jpg";
-
-      await message.reply({
-        body: "🐈🎲 Random Cat\n\nMEOW!",
-        attachment: stream
-      });
-
-      message.reaction("🙀", event.messageID);
-
-    } catch (e) {
-      console.error("Error fetching cat:", e);
-      message.reaction("❌", event.messageID);
-      return message.reply("Failed to get cat image. Please try again later.");
-    }
-  }
-};
+]
