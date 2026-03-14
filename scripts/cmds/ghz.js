@@ -3,6 +3,18 @@ const WebSocket = require("ws");
 const activeSessions = new Map();
 const lastSentCache = new Map();
 const favoriteMap = new Map();
+const previousStockCache = new Map(); // Track previous stock to detect new items
+
+// Special items that will trigger @everyone notification
+const specialNotifyItems = [
+	"cherry",
+	"bamboo",
+	"mango",
+	"wheat",
+	"cabbage",
+	"super sprinkler",
+	"turbo sprinkler"
+];
 
 let sharedWebSocket = null;
 let keepAliveInterval = null;
@@ -27,6 +39,69 @@ function formatItems(items) {
 		.filter(i => i && i.quantity > 0)
 		.map(i => `│  ${i.emoji ? i.emoji + " " : ""}${i.name || "Unknown"}: ${formatValue(i.quantity)}`)
 		.join("\n");
+}
+
+// Helper function to get current stock state as a string key for comparison
+function getStockKey(seeds, gear) {
+	const allItems = [...seeds, ...gear].filter(i => i && i.quantity > 0);
+	return JSON.stringify(allItems.map(i => ({ name: cleanText(i.name), quantity: i.quantity })).sort((a, b) => a.name.localeCompare(b.name)));
+}
+
+// Find new items that appeared since last update
+function findNewItems(currentSeeds, currentGear, previousSeeds, previousGear) {
+	const previousItems = new Map();
+
+	// Build previous items map
+	if (Array.isArray(previousSeeds)) {
+		for (const item of previousSeeds) {
+			if (item && item.name) {
+				previousItems.set(cleanText(item.name), item);
+			}
+		}
+	}
+	if (Array.isArray(previousGear)) {
+		for (const item of previousGear) {
+			if (item && item.name) {
+				previousItems.set(cleanText(item.name), item);
+			}
+		}
+	}
+
+	const newItems = [];
+	const allCurrent = [...(currentSeeds || []), ...(currentGear || [])];
+
+	for (const item of allCurrent) {
+		if (item && item.quantity > 0 && item.name) {
+			const itemName = cleanText(item.name);
+			const prevItem = previousItems.get(itemName);
+
+			// Item is new if it wasn't in previous stock OR quantity increased
+			if (!prevItem || prevItem.quantity < item.quantity) {
+				newItems.push(item);
+			}
+		}
+	}
+
+	return newItems;
+}
+
+// Send message with @everyone mention
+async function sendMentionMessage(api, threadId, content, participantIDs) {
+	if (!content || participantIDs.length === 0) return;
+
+	let mentionText = "@everyone";
+	let body = `@everyone\n\n${content}`;
+
+	let mentions = [];
+	for (let i = 0; i < participantIDs.length; i++) {
+		mentions.push({
+			tag: mentionText,
+			id: participantIDs[i],
+			fromIndex: 0
+		});
+	}
+
+	await api.sendMessage({ body, mentions }, threadId);
 }
 
 function ensureWebSocketConnection() {
@@ -106,11 +181,58 @@ ${weatherInfo}
 				if (lastSent === messageKey) continue;
 				lastSentCache.set(threadId, messageKey);
 
-				await session.api.sendMessage({ body: messageContent }, session.threadID);
+				const threadInfo = await session.api.getThreadInfo(session.threadID);
+				const participantIDs = threadInfo.participantIDs || [];
+
+				// Get previous stock for this thread
+				const previousStock = previousStockCache.get(threadId) || { seeds: [], gear: [] };
+
+				// Find new items that appeared
+				const newItems = findNewItems(seeds, gear, previousStock.seeds, previousStock.gear);
+
+				// Update previous stock cache
+				previousStockCache.set(threadId, { seeds: [...seeds], gear: [...gear] });
+
+				// === STEP 1: Send full stock update WITHOUT @everyone ===
+				let body = messageContent;
+				let mentions = [];
+
+				// Create mentions without @everyone for the first message
+				for (let i = 0; i < Math.min(participantIDs.length, 1); i++) {
+					mentions.push({
+						tag: "Garden Horizon",
+						id: participantIDs[i],
+						fromIndex: 0
+					});
+				}
+
+				await session.api.sendMessage({ body, mentions }, session.threadID);
+
+				// === STEP 2: Send @everyone notification for NEW special items only ===
+				if (newItems.length > 0) {
+					// Check if any new items are special items
+					const specialNewItems = newItems.filter(item => {
+						const itemName = cleanText(item.name);
+						return specialNotifyItems.includes(itemName);
+					});
+
+					// Only send notification for special items
+					if (specialNewItems.length > 0) {
+						// Create notification for special items
+						const specialItemText = specialNewItems
+							.map(item => `${item.emoji ? item.emoji + " " : ""}${item.name}: ${formatValue(item.quantity)}`)
+							.join("\n│  ");
+
+						const notifyContent = `🔥 BEST ${specialNewItems.length > 1 ? "ITEMS" : "ITEM"} APPEARED! HERE:\n\n│  ${specialItemText}`;
+
+						await sendMentionMessage(session.api, session.threadID, notifyContent, participantIDs);
+					}
+				}
 
 			}
 
-		} catch (err) {
+		}
+		catch (err) {
 			console.error("[GHZ] Error processing message:", err.message);
 		}
 
@@ -136,8 +258,8 @@ module.exports = {
 		description: "🌱 Track Garden Horizon live stock market in real-time via WebSocket",
 		usage: "{pn}ghz on | {pn}ghz off | {pn}ghz fav add 🔴 Carrot | 💧 Water | {pn}ghz fav remove Carrot",
 		category: "Tools 🛠️",
-		permission: 0,
-		credits: "Prince"
+		permission: 4,
+		credits: "VincentSensei"
 	},
 
 	langs: {
@@ -268,7 +390,7 @@ ${"%1"}
 			const currentFav = favoriteMap.get(threadId) || [];
 
 			if (action === "list") {
-				const favDisplay = currentFav.length > 0 
+				const favDisplay = currentFav.length > 0
 					? currentFav.map(item => `│  ❤️ ${item}`).join("\n")
 					: getLang("emptyFav");
 				return api.sendMessage(getLang("favList", favDisplay), threadId);
@@ -288,7 +410,8 @@ ${"%1"}
 
 			if (action === "add") {
 				return api.sendMessage(getLang("favAdded", favDisplay), threadId);
-			} else {
+			}
+			else {
 				return api.sendMessage(getLang("favRemoved", favDisplay), threadId);
 			}
 		}
@@ -300,6 +423,7 @@ ${"%1"}
 
 			activeSessions.delete(threadId);
 			lastSentCache.delete(threadId);
+			previousStockCache.delete(threadId); // Clear stock cache when stopping
 			return api.sendMessage(getLang("trackingStopped"), threadId);
 		}
 		if (subcmd !== "on") {
