@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { createCanvas, loadImage } = require('canvas');
 
-const API_ENDPOINT = "https://metabyneokex.vercel.app/photos/generate";
+const BASE_API = "https://metabyneokex.vercel.app/photos";
 
 async function downloadImage(url, tempDir, filename) {
     const tempFilePath = path.join(tempDir, filename);
@@ -67,20 +67,55 @@ async function createGridImage(imagePaths, outputPath) {
 module.exports = {
     config: {
         name: "meta",
-        aliases: ["metaai", "metagen"],
-        version: "2.5",
+        aliases: ["metaai", "metagen", "metaedit"],
+        version: "3.0",
         author: "Neoaz ゐ",
         countDown: 20,
         role: 0,
-        longDescription: "Generate 4 images using Meta AI with persistence on selection.",
+        longDescription: "Generate or edit images using Meta AI with grid preview and selection.",
         category: "ai-image",
         guide: {
-            en: "{pn} <prompt> --ar <ratio>\nExample: {pn} a cybernetic forest --ar 16:9"
+            en: "To generate: {pn} <prompt> [--ar 16:9 | 9:16]\nTo edit: Reply to an image with {pn} <edit instructions>"
         }
     },
 
-    onStart: async function({ message, args, event, commandName }) {
+    onStart: async function({ message, args, event, api, commandName }) {
         let fullPrompt = args.join(" ");
+        const cacheDir = path.join(__dirname, 'cache');
+        if (!fs.existsSync(cacheDir)) await fs.mkdirp(cacheDir);
+
+        const isEdit = event.type === "message_reply" && event.messageReply.attachments && event.messageReply.attachments[0].type === "photo";
+
+        if (isEdit) {
+            if (!fullPrompt) return message.reply("Please provide instructions on how to edit the image.");
+            const imgUrl = event.messageReply.attachments[0].url;
+            message.reaction("⏳", event.messageID);
+
+            try {
+                const response = await axios.get(`${BASE_API}/edit`, {
+                    params: { img_url: imgUrl, prompt: fullPrompt },
+                    timeout: 180000
+                });
+
+                const data = response.data;
+                if (!data.success || !data.image_urls) throw new Error("Edit failed.");
+
+                const editedImgPath = await downloadImage(data.image_urls[0], cacheDir, `meta_edit_${Date.now()}.png`);
+
+                await message.reply({
+                    body: `✅ Image edited`,
+                    attachment: fs.createReadStream(editedImgPath)
+                });
+                
+                message.reaction("✅", event.messageID);
+                setTimeout(() => fs.unlinkSync(editedImgPath), 10000);
+            } catch (error) {
+                message.reaction("❌", event.messageID);
+                message.reply("Error: " + error.message);
+            }
+            return;
+        }
+
         if (!fullPrompt) return message.reply("Please provide a prompt.");
 
         let orientation = "SQUARE";
@@ -93,14 +128,11 @@ module.exports = {
         }
 
         const prompt = fullPrompt.trim();
-        const cacheDir = path.join(__dirname, 'cache');
-        if (!fs.existsSync(cacheDir)) await fs.mkdirp(cacheDir);
-
         message.reaction("⏳", event.messageID);
 
         try {
-            const response = await axios.get(API_ENDPOINT, {
-                params: { prompt, orientation },
+            const response = await axios.get(`${BASE_API}/generate`, {
+                params: { prompt, orientation, num_images: 4 },
                 timeout: 180000
             });
 
@@ -119,7 +151,7 @@ module.exports = {
             await createGridImage(tempPaths, gridPath);
 
             message.reply({
-                body: `✨ Prompt: ${prompt}\n📐 Ratio: ${orientation}\n\n📷 Reply with 1-4 to select, or "all" to get all.`,
+                body: `📐 Ratio: ${orientation}\n\n📷 Reply with 1-4 to select, or "all" to get all.`,
                 attachment: fs.createReadStream(gridPath)
             }, (err, info) => {
                 if (!err) {
