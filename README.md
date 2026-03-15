@@ -62,7 +62,7 @@
 ## 📝 **Important Notes**
 
 > ⚠️ **Account Safety First**
-> - This bot uses [neokex-fca](https://github.com/NeoKEX/dhoner-fca) (Facebook Chat API)
+> - This bot uses [dhoner-fca](https://github.com/NeoKEX/dhoner-fca) (Facebook Chat API)
 > - **No Google API credentials needed** - Simple setup with just your Facebook account
 > - Using unofficial APIs may risk account restrictions
 > - **Recommended:** Use a secondary/clone Facebook account
