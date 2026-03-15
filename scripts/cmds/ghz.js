@@ -13,7 +13,7 @@ const specialNotifyItems = [
 	"wheat",
 	"cabbage",
 	"super sprinkler",
-	"turbo sprinkler"
+	"turbo sprinkler",
 	"reverter",
 	"watermelon",
 	"pineapple"
