@@ -14,7 +14,6 @@ const specialNotifyItems = [
 	"cabbage",
 	"super sprinkler",
 	"turbo sprinkler",
-	"reverter",
 	"watermelon",
 	"pineapple"
 ];
