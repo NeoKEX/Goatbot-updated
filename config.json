@@ -15,7 +15,7 @@
   "nickNameBot": "VincentSensei [Bot]",
   "prefix": "^",
   "adminOnly": {
-    "enable": false,
+    "enable": true,
     "ignoreCommand": []
   },
   "adminBot": [
