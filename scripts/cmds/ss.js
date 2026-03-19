@@ -15,7 +15,7 @@ module.exports = {
     version: "1.0",
     author: "NeoKEX",
     countDown: 10,
-    role: 0,
+    role: 2,
     longDescription: "Captures a full-page screenshot of a given website URL.",
     category: "tools",
     guide: {
