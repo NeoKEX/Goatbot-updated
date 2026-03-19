@@ -13,7 +13,7 @@ module.exports = {
 
   onStart: async function({ message }) {
     const text = "✓ | Here is the updated fork:\n\nhttps://github.com/NeoKEX/Goatbot-updated.git\n\n" +
-                 "Changes:\n1. No Google Credentials needed\n2. Enhanced overall performance\n3. Now using dhoner-fca(v1.1.0)\n4. Working on all groups\n5. Id Ban Issue solved 90% and running for a long time\n\nNB: If you want to use dhoner-fca please install by typing: npm i dhoner-fca@latest\n\n" +
+                 "Changes:\n1. No Google Credentials needed\n2. Enhanced overall performance\n3. Now using nkx-fca(v1.0.0)\n4. Working on all groups\n5. Id Ban Issue solved 90% and running for a long time\n\nNB: If you want to use nkx-fca please install by typing: npm i nkx-fca@latest\n\n" +
                  "Keep supporting^_^";
     
     message.reply(text);
