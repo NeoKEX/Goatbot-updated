@@ -132,15 +132,24 @@
     "presence": false
   },
   "optionsFca": {
-    "forceLogin": true,
-    "listenEvents": true,
-    "updatePresence": true,
-    "listenTyping": true,
-    "logLevel": "error",
+    "online": true,
     "selfListen": true,
     "selfListenEvent": true,
+    "listenEvents": true,
+    "listenTyping": true,
+    "updatePresence": false,
     "autoMarkDelivery": false,
-    "autoReconnect": false,
-    "notes": "Document here: https://github.com/NeoKEX/fca-neokex/README.md"
+    "autoMarkRead": true,
+    "autoReconnect": true,
+    "forceLogin": true,
+    "simulateTyping": true,
+    "randomUserAgent": false,
+    "persona": "desktop",
+    "stealthMode": true,
+    "maxConcurrentRequests": 5,
+    "maxRequestsPerMinute": 50,
+    "requestCooldownMs": 60000,
+    "errorCacheTtlMs": 300000,
+    "notes": "nkx-fca options — see node_modules/nkx-fca/README.md for full documentation"
   }
 }

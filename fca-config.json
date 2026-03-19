@@ -5,6 +5,16 @@
     "reconnectInterval": 3600
   },
   "autoLogin": true,
+  "antiSuspension": {
+    "enabled": true,
+    "warmupOnStart": true,
+    "circuitBreakerThreshold": 2,
+    "circuitBreakerCooldownMs": 2700000
+  },
+  "healthMonitor": {
+    "enabled": true,
+    "logIntervalMs": 3600000
+  },
   "credentials": {
     "email": "",
     "password": "",

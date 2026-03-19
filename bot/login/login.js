@@ -15,7 +15,7 @@ const path = defaultRequire("path");
 const readline = defaultRequire("readline");
 const fs = defaultRequire("fs-extra");
 const toptp = defaultRequire("totp-generator");
-const { login } = defaultRequire("dhoner-fca");
+const { login } = defaultRequire("nkx-fca");
 const qr = new (defaultRequire("qrcode-reader"));
 const Canvas = defaultRequire("canvas");
 const https = defaultRequire("https");
@@ -727,6 +727,36 @@ async function startBot(loginWithEmail) {
                         log.info("PREFIX", global.GoatBot.config.prefix);
                         log.info("LANGUAGE", global.GoatBot.config.language);
                         log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "GOAT BOT");
+
+                        // ———————————————— NKX-FCA: ANTI-SUSPENSION & HEALTH ———————————————— //
+                        try {
+                                const fcaConfig = require(`${process.cwd()}/fca-config.json`);
+                                const { globalAntiSuspension } = require("nkx-fca/src/utils/antiSuspension");
+
+                                if (fcaConfig.antiSuspension?.enabled !== false && fcaConfig.antiSuspension?.warmupOnStart !== false) {
+                                        globalAntiSuspension.enableWarmup();
+                                        log.info("NKX-FCA", "Anti-suspension warmup mode enabled (limits rate for 20 min on fresh start)");
+                                }
+
+                                if (typeof api.getHealthStatus === "function") {
+                                        const health = api.getHealthStatus();
+                                        log.info("NKX-FCA", `Health status — MQTT: ${health.mqtt?.connected ? "connected" : "disconnected"}, Circuit breaker: ${health.antiSuspension?.circuitBreakerOpen ? "OPEN" : "closed"}`);
+
+                                        if (fcaConfig.healthMonitor?.enabled !== false) {
+                                                const healthInterval = fcaConfig.healthMonitor?.logIntervalMs || 3600000;
+                                                const healthTimer = setInterval(() => {
+                                                        try {
+                                                                const h = api.getHealthStatus();
+                                                                log.info("NKX-FCA HEALTH", JSON.stringify(h, null, 2));
+                                                        } catch (e) {
+                                                                clearInterval(healthTimer);
+                                                        }
+                                                }, healthInterval);
+                                        }
+                                }
+                        } catch (e) {
+                                log.warn("NKX-FCA", `Anti-suspension/health init skipped: ${e.message}`);
+                        }
                         // ———————————————————— GBAN ————————————————————— //
                         let dataGban;
 
