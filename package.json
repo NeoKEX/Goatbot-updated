@@ -35,7 +35,7 @@
                 "moment-timezone": "^0.5.34",
                 "mongoose": "^9.0.0",
                 "mqtt": "^4.3.7",
-                "nkx-fca": "^1.0.1",
+                "dhoner-fca": "^1.1.0",
                 "node-cron": "^3.0.2",
                 "npmlog": "^7.0.1",
                 "ora": "^5.4.1",
