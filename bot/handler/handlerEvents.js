@@ -76,27 +76,42 @@ function getRole(threadData, senderID) {
         if (!senderID)
                 return 0;
         const adminBox = threadData ? threadData.adminIDs || [] : [];
-        
-        if (devUsers.includes(senderID))
+
+        // Priority: Developer (4) > Bot Admin (2) > Premium (3) > Group Admin (1) > Normal (0)
+        // Admin and Dev always get their role regardless of premium membership
+        if (devUsers.includes(senderID.toString()))
                 return 4;
-        if (premiumUsers.includes(senderID)) {
+        if (adminBot.includes(senderID.toString()))
+                return 2;
+        if (premiumUsers.includes(senderID.toString())) {
                 const userData = global.db.allUserData.find(u => u.userID == senderID);
                 if (userData && userData.data && userData.data.premiumExpireTime) {
                         if (userData.data.premiumExpireTime < Date.now()) {
                                 global.temp.expiredPremiumUsers = global.temp.expiredPremiumUsers || [];
-                                if (!global.temp.expiredPremiumUsers.includes(senderID)) {
+                                if (!global.temp.expiredPremiumUsers.includes(senderID))
                                         global.temp.expiredPremiumUsers.push(senderID);
-                                }
-                                return adminBot.includes(senderID) ? 2 : (adminBox.includes(senderID) ? 1 : 0);
+                                return adminBox.map(String).includes(senderID.toString()) ? 1 : 0;
                         }
                 }
                 return 3;
         }
-        if (adminBot.includes(senderID))
-                return 2;
-        if (adminBox.includes(senderID))
+        if (adminBox.map(String).includes(senderID.toString()))
                 return 1;
         return 0;
+}
+
+// Role permission matrix:
+//   Role 0 - Normal user     : can use commands with needRole === 0
+//   Role 1 - Group Admin     : can use commands with needRole <= 1
+//   Role 2 - Bot Admin       : can use ALL commands (highest rank)
+//   Role 3 - Premium         : can use commands with needRole === 0 OR needRole === 3 ONLY
+//   Role 4 - Bot Developer   : can use ALL commands (highest rank)
+function canUseCommand(userRole, needRole) {
+        if (userRole === 4 || userRole === 2)
+                return true;
+        if (userRole === 3)
+                return needRole === 0 || needRole === 3;
+        return needRole <= userRole;
 }
 
 async function checkMoneyRequirement(userData, requiredMoney) {
@@ -304,7 +319,15 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 let isUserCallCommand = false;
                 async function onStart() {
                         // —————————————— CHECK USE BOT —————————————— //
-                        if (!body || !body.startsWith(prefix))
+                        if (!body)
+                                return;
+
+                        const noPrefixEnabled = config.noPrefix === true;
+                        const userCanSkipPrefix = role === 2 || role === 4;
+                        const hasPrefix = body.startsWith(prefix);
+                        const hasNoPrefix = noPrefixEnabled && userCanSkipPrefix && !hasPrefix;
+
+                        if (!hasPrefix && !hasNoPrefix)
                                 return;
 
                         // —————————— CHECK SPAM BANNED THREAD —————————— //
@@ -317,7 +340,9 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                 }
                         }
                         const dateNow = Date.now();
-                        const args = body.slice(prefix.length).trim().split(/ +/);
+                        const args = hasPrefix
+                                ? body.slice(prefix.length).trim().split(/ +/)
+                                : body.trim().split(/ +/);
                         // ————————————  CHECK HAS COMMAND ——————————— //
                         let commandName = args.shift().toLowerCase();
                         let command = GoatBot.commands.get(commandName) || GoatBot.commands.get(GoatBot.aliases.get(commandName));
@@ -446,11 +471,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onStart;
 
-                        if (role === 3) {
-                                if (needRole !== 3 && needRole !== 0) {
-                                        return await message.reply(`Premium users can only use premium and normal commands.`);
-                                }
-                        } else if (needRole > role) {
+                        if (!canUseCommand(role, needRole)) {
                                 if (!hideNotiMessage.needRoleToUseCmd) {
                                         if (needRole == 1)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdmin", commandName));
@@ -460,6 +481,8 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                                 return await message.reply("This command requires premium access.");
                                         else if (needRole == 4)
                                                 return await message.reply("Developers only.");
+                                        else
+                                                return await message.reply("You don't have permission to use this command.");
                                 }
                                 else {
                                         return true;
@@ -537,7 +560,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                 // —————————————— CHECK PERMISSION —————————————— //
                                 const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                                 const needRole = roleConfig.onChat;
-                                if (needRole > role)
+                                if (!canUseCommand(role, needRole))
                                         continue;
 
                                 const getText2 = createGetText2(langCode, `${process.cwd()}/languages/cmds/${langCode}.js`, prefix, command);
@@ -718,12 +741,16 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         // —————————————— CHECK PERMISSION —————————————— //
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onReply;
-                        if (needRole > role) {
+                        if (!canUseCommand(role, needRole)) {
                                 if (!hideNotiMessage.needRoleToUseCmdOnReply) {
                                         if (needRole == 1)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminToUseOnReply", commandName));
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2ToUseOnReply", commandName));
+                                        else if (needRole == 3)
+                                                return await message.reply("This command requires premium access.");
+                                        else if (needRole == 4)
+                                                return await message.reply("Developers only.");
                                 }
                                 else {
                                         return true;
@@ -795,12 +822,16 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         // —————————————— CHECK PERMISSION —————————————— //
                         const roleConfig = getRoleConfig(utils, command, isGroup, threadData, commandName);
                         const needRole = roleConfig.onReaction;
-                        if (needRole > role) {
+                        if (!canUseCommand(role, needRole)) {
                                 if (!hideNotiMessage.needRoleToUseCmdOnReaction) {
                                         if (needRole == 1)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminToUseOnReaction", commandName));
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2ToUseOnReaction", commandName));
+                                        else if (needRole == 3)
+                                                return await message.reply("This command requires premium access.");
+                                        else if (needRole == 4)
+                                                return await message.reply("Developers only.");
                                 }
                                 else {
                                         return true;
