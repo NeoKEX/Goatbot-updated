@@ -1,8 +1,8 @@
-const mbet = 1_000_000;
+const mbet = 1000000;
 const dln = 20;
 const dlp = 30;
 
-/* ===== MONEY FORMAT ===== */
+/* ===== FORMAT MONEY ===== */
 const fm = (n = 0) => {
   if (n >= 1e15) return (n / 1e15).toFixed(2) + "QT";
   if (n >= 1e12) return (n / 1e12).toFixed(2) + "Q";
@@ -16,26 +16,30 @@ const fm = (n = 0) => {
 const parseBet = (input) => {
   if (!input) return NaN;
   const s = input.toLowerCase();
+
   if (s.endsWith("qt")) return Number(s.slice(0, -2)) * 1e15;
   if (s.endsWith("q")) return Number(s.slice(0, -1)) * 1e12;
   if (s.endsWith("b")) return Number(s.slice(0, -1)) * 1e9;
   if (s.endsWith("m")) return Number(s.slice(0, -1)) * 1e6;
   if (s.endsWith("k")) return Number(s.slice(0, -1)) * 1e3;
+
   return Number(s);
 };
 
-const bdDate = () =>
-  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Dhaka" });
+/* ===== DATE RESET (PH TIME) ===== */
+const getDate = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
 
 module.exports = {
   config: {
     name: "colorpick",
     aliases: ["cp"],
-    version: "2.6.0",
-    author: "NC-Toshiro | xnil6x",
+    version: "3.0.0",
+    author: "Revised by ChatGPT",
     role: 0,
     category: "game",
-    description: "🎨 Stylish Colorpick",
+    shortDescription: "🎨 Pick a color & win money",
+    longDescription: "Choose 1 of 3 colors. Guess correctly to win your bet.",
     guide: {
       en:
         "{pn} <bet>\n" +
@@ -45,12 +49,14 @@ module.exports = {
     }
   },
 
-  ncStart: async function ({ api, event, usersData, args }) {
+  onStart: async function ({ api, event, usersData, args }) {
     const { senderID, threadID } = event;
     const sub = (args[0] || "").toLowerCase();
-    const today = bdDate();
+    const today = getDate();
 
-    const user = await usersData.get(senderID) || {};
+    let user = await usersData.get(senderID) || {};
+    let money = user.money || 0;
+
     const isPremium = user.data?.premium?.status === true;
     const dailyLimit = isPremium ? dlp : dln;
 
@@ -68,19 +74,16 @@ module.exports = {
         : "0.0";
 
       return api.sendMessage(
-`━━━━━━━━━━━━━━
-🎨 COLORPICK INFO
-━━━━━━━━━━━━━━
-• User   : ${user.name || "Unknown"}
-• Premium: ${isPremium ? "YES" : "NO"}
-• Limit  : ${todayStats.play}/${dailyLimit}
+`🎨 COLORPICK INFO
 
-━━━━━━━━━━━━━━
-• Played : ${todayStats.play}
-• Win    : ${todayStats.win}
-• Lose   : ${todayStats.lose}
-• Rate   : ${rate}%
-━━━━━━━━━━━━━━`,
+👤 User     : ${user.name || "Unknown"}
+💎 Premium  : ${isPremium ? "YES" : "NO"}
+🎮 Limit    : ${todayStats.play}/${dailyLimit}
+
+📊 Played   : ${todayStats.play}
+🏆 Wins     : ${todayStats.win}
+💀 Loss     : ${todayStats.lose}
+📈 Rate     : ${rate}%`,
         threadID
       );
     }
@@ -88,6 +91,7 @@ module.exports = {
     /* ===== TOP ===== */
     if (sub === "top") {
       const all = await usersData.getAll();
+
       const top = Object.values(all)
         .map(u => ({
           name: u.name || "Unknown",
@@ -97,41 +101,35 @@ module.exports = {
         .slice(0, 10);
 
       return api.sendMessage(
-`━━━━━━━━━━━━━━
-🏆 COLORPICK TOP 10
-━━━━━━━━━━━━━━
+`🏆 TOP COLORPLAYERS
+
 ${top.map((u, i) =>
-`• #${i + 1} ${u.name}
-  Wins : ${u.win}`
-).join("\n\n")}
-━━━━━━━━━━━━━━`,
+`#${i + 1} ${u.name} — ${u.win} wins`
+).join("\n")}`,
         threadID
       );
     }
 
-    /* ===== BET ===== */
+    /* ===== BET VALIDATION ===== */
     const bet = parseBet(args[0]);
+
     if (!bet || isNaN(bet) || bet <= 0)
-      return api.sendMessage("❌ Invalid bet amount.", threadID);
+      return api.sendMessage("❌ Invalid bet.", threadID);
 
     if (bet > mbet)
       return api.sendMessage(`🚫 Max bet: ${fm(mbet)}`, threadID);
 
     if (todayStats.play >= dailyLimit)
-      return api.sendMessage(
-        `⛔ Daily limit reached (${dailyLimit})`,
-        threadID
-      );
+      return api.sendMessage(`⛔ Daily limit reached (${dailyLimit})`, threadID);
 
-    if (!user.money || user.money < bet)
+    if (money < bet)
       return api.sendMessage("💸 Not enough balance.", threadID);
 
     /* ===== GAME ===== */
     const colors = [
-      "🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘",
       "🔥","💧","🌿","⚡","💠","🌸","🌙",
       "🖤","🤍","💛","💙","💚","💜","🧡","❤️",
-      "🩶","💫","✨","🌱","🏵️","🪷","🌺","☘️"
+      "✨","🌱","🌺","☘️"
     ];
 
     const options = [];
@@ -144,27 +142,28 @@ ${top.map((u, i) =>
     todayStats.play++;
 
     await usersData.set(senderID, {
-      "data.colorToday": todayStats,
-      "data.colorAll": allStats
+      data: {
+        ...user.data,
+        colorToday: todayStats,
+        colorAll: allStats
+      }
     });
 
-    api.sendMessage(
-`━━━━━━━━━━━━━━
-🎨 COLOR PICK
-━━━━━━━━━━━━━━
+    return api.sendMessage(
+`🎨 COLOR PICK
+
 1️⃣ ${options[0]}
 2️⃣ ${options[1]}
 3️⃣ ${options[2]}
 
-━━━━━━━━━━━━━━
-• Bet   : ${fm(bet)}
-• Limit : ${todayStats.play}/${dailyLimit}
-• Reply 1 / 2 / 3
-━━━━━━━━━━━━━━`,
+💰 Bet   : ${fm(bet)}
+🎮 Limit : ${todayStats.play}/${dailyLimit}
+
+👉 Reply: 1 / 2 / 3`,
       threadID,
       (err, info) => {
-        global.noobCore.ncReply.set(info.messageID, {
-          commandName: this.config.name,
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName: "colorpick",
           author: senderID,
           bet,
           options,
@@ -174,7 +173,7 @@ ${top.map((u, i) =>
     );
   },
 
-  ncReply: async function ({ Reply, api, event, usersData }) {
+  onReply: async function ({ event, api, usersData, Reply }) {
     if (event.senderID !== Reply.author) return;
 
     const pick =
@@ -184,57 +183,41 @@ ${top.map((u, i) =>
 
     if (!pick) return;
 
-    const bet = Reply.bet;
     const user = await usersData.get(event.senderID);
+    let money = user.money || 0;
 
     const todayStats = user.data.colorToday;
     const allStats = user.data.colorAll;
 
-    const isPremium = user.data?.premium?.status === true;
-    const dailyLimit = isPremium ? dlp : dln;
-
     if (pick === Reply.correct) {
-      await usersData.addMoney(event.senderID, bet);
+      await usersData.addMoney(event.senderID, Reply.bet);
       todayStats.win++;
       allStats.win++;
 
-      api.sendMessage(
-`━━━━━━━━━━━━━━
-🎉 YOU WIN
-━━━━━━━━━━━━━━
-• Pick    : ${pick}
-• Correct : ${Reply.correct}
+      return api.sendMessage(
+`🎉 YOU WIN
 
-━━━━━━━━━━━━━━
-• Won     : ${fm(bet)}
-• Balance : ${fm(user.money + bet)}
-• Limit   : ${todayStats.play}/${dailyLimit}
-━━━━━━━━━━━━━━`,
+✔ Pick    : ${pick}
+🎯 Correct : ${Reply.correct}
+
+💰 Won     : ${fm(Reply.bet)}
+💳 Balance : ${fm(money + Reply.bet)}`,
         event.threadID
       );
     } else {
-      await usersData.addMoney(event.senderID, -bet);
+      await usersData.addMoney(event.senderID, -Reply.bet);
       todayStats.lose++;
 
-      api.sendMessage(
-`━━━━━━━━━━━━━━
-💀 YOU LOSE
-━━━━━━━━━━━━━━
-• Pick    : ${pick}
-• Correct : ${Reply.correct}
+      return api.sendMessage(
+`💀 YOU LOSE
 
-━━━━━━━━━━━━━━
-• Lost    : ${fm(bet)}
-• Balance : ${fm(user.money - bet)}
-• Limit   : ${todayStats.play}/${dailyLimit}
-━━━━━━━━━━━━━━`,
+❌ Pick    : ${pick}
+🎯 Correct : ${Reply.correct}
+
+💸 Lost    : ${fm(Reply.bet)}
+💳 Balance : ${fm(money - Reply.bet)}`,
         event.threadID
       );
     }
-
-    await usersData.set(event.senderID, {
-      "data.colorToday": todayStats,
-      "data.colorAll": allStats
-    });
   }
 };
