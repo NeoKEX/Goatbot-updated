@@ -22,7 +22,7 @@ module.exports = {
     name: "wheel",
     aliases: ["spin"],
     version: "1.0",
-    author: "Converted by ChatGPT",
+    author: "zævii魅",
     role: 0,
     countDown: 5,
     shortDescription: "Spin the wheel",
