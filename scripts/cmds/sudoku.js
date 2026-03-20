@@ -1,141 +1,95 @@
-const { createCanvas } = require("canvas");
-const fs = require("fs");
-const path = require("path");
-
-// File to store user balances
-const BALANCE_FILE = path.join(__dirname, "sudoku_balances.json");
-
-// Load balances or initialize
-let balances = {};
-if (fs.existsSync(BALANCE_FILE)) {
-  balances = JSON.parse(fs.readFileSync(BALANCE_FILE, "utf8"));
-}
-
-function saveBalances() {
-  fs.writeFileSync(BALANCE_FILE, JSON.stringify(balances, null, 2));
-}
-
-// Sudoku generation functions
-function generateSudokuBoard() {
-  const board = Array.from({ length: 9 }, () => Array(9).fill(0));
-
-  const fillBoard = (b) => {
-    const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
-
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        if (b[i][j] === 0) {
-          const options = shuffle(nums).filter(
-            (n) =>
-              !b[i].includes(n) &&
-              !b.map((r) => r[j]).includes(n) &&
-              !b
-                .slice(Math.floor(i / 3) * 3, Math.floor(i / 3) * 3 + 3)
-                .flat()
-                .slice(Math.floor(j / 3) * 3, Math.floor(j / 3) * 3 + 3)
-                .includes(n)
-          );
-          if (options.length === 0) return false;
-          b[i][j] = options[0];
-          if (!fillBoard(b)) {
-            b[i][j] = 0;
-          }
-        }
-      }
-    }
-    return true;
-  };
-
-  fillBoard(board);
-
-  // Remove some numbers for puzzle
-  const removeCount = 40;
-  for (let k = 0; k < removeCount; k++) {
-    const i = Math.floor(Math.random() * 9);
-    const j = Math.floor(Math.random() * 9);
-    board[i][j] = 0;
-  }
-
-  return board;
-}
-
-function renderBoardImage(board) {
-  const canvasSize = 450;
-  const canvas = createCanvas(canvasSize, canvasSize);
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvasSize, canvasSize);
-
-  ctx.strokeStyle = "#000000";
-  for (let i = 0; i <= 9; i++) {
-    ctx.lineWidth = i % 3 === 0 ? 3 : 1;
-    ctx.beginPath();
-    ctx.moveTo(0, (i * canvasSize) / 9);
-    ctx.lineTo(canvasSize, (i * canvasSize) / 9);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo((i * canvasSize) / 9, 0);
-    ctx.lineTo((i * canvasSize) / 9, canvasSize);
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = "#000000";
-  ctx.font = "24px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      if (board[i][j] !== 0) {
-        ctx.fillText(board[i][j], (j + 0.5) * (canvasSize / 9), (i + 0.5) * (canvasSize / 9));
-      }
-    }
-  }
-
-  return canvas.toBuffer();
-}
+const axios = require("axios");
 
 module.exports = {
   config: {
     name: "sudoku",
-    version: "1.1",
-    author: "NC-YOURNAME",
-    description: "🎮 Generate a Sudoku puzzle and earn fake money 💰",
-    category: "fun",
-    guide: "{pn} — Generate a Sudoku game and get rewards"
+    aliases: ["sd"],
+    version: "1.0",
+    author: "Zaevii",
+    countDown: 5,
+    role: 0,
+    guide: { en: "{pn} — Start a Sudoku game and solve the puzzle!" }
   },
 
-  ncStart: async ({ api, event }) => {
+  ncStart: async function ({ api, event, usersData }) {
     try {
-      const board = generateSudokuBoard();
-      const imgBuffer = renderBoardImage(board);
+      // Fetch a Sudoku puzzle
+      const { data } = await axios.get("https://sugoku.herokuapp.com/board?difficulty=easy");
+      const puzzle = data.board;
 
-      const tmpDir = path.join(__dirname, "tmp");
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      // Format puzzle for display
+      let display = "╭──❖  SUDOKU  ❖──╮\n";
+      puzzle.forEach((row, i) => {
+        display += row.map(n => (n === 0 ? "⬜" : n)).join(" ") + "\n";
+      });
+      display += "╰────────────────╯\nReply with your answer as row,col,value (e.g., 1,3,5)";
 
-      const filePath = path.join(tmpDir, `sudoku_${Date.now()}.png`);
-      fs.writeFileSync(filePath, imgBuffer);
+      // Save game state in global cache
+      global.noobCore.ncReply.set(event.messageID, {
+        commandName: this.config.name,
+        type: "sudoku",
+        puzzle,
+        author: event.senderID,
+        attempts: 0,
+        maxAttempts: 3
+      });
 
-      // Give a random reward
-      const reward = Math.floor(Math.random() * 101) + 50; // 50 to 150
-      if (!balances[event.senderID]) balances[event.senderID] = 0;
-      balances[event.senderID] += reward;
-      saveBalances();
-
-      await api.sendMessage(
-        {
-          body: `🧩 Here’s your Sudoku puzzle!\n💰 You earned: ${reward} coins\n💵 Total: ${balances[event.senderID]} coins`,
-          attachment: fs.createReadStream(filePath)
-        },
-        event.threadID,
-        () => fs.unlinkSync(filePath),
-        event.messageID
-      );
+      return api.sendMessage(display, event.threadID, event.messageID);
     } catch (err) {
       console.error(err);
-      api.sendMessage("❌ Failed to generate Sudoku.", event.threadID, event.messageID);
+      return api.sendMessage("❌ Failed to load Sudoku puzzle!", event.threadID, event.messageID);
+    }
+  },
+
+  ncReply: async function ({ api, event, Reply, usersData }) {
+    const game = Reply;
+    if (event.senderID !== game.author)
+      return api.sendMessage("⚠️ This Sudoku game is not yours!", event.threadID, event.messageID);
+
+    const answer = event.body?.trim().split(",").map(x => parseInt(x));
+    if (!answer || answer.length !== 3 || answer.some(isNaN))
+      return api.sendMessage("❌ Invalid format! Use row,col,value (e.g., 1,3,5)", event.threadID, event.messageID);
+
+    const [row, col, value] = answer.map(n => n - 1); // 0-indexed
+    if (game.puzzle[row][col] !== 0)
+      return api.sendMessage("❌ That cell is already filled!", event.threadID, event.messageID);
+
+    // Simple check using solved API
+    game.puzzle[row][col] = value + 1; // set temporarily
+    try {
+      const { data } = await axios.post("https://sugoku.herokuapp.com/validate", `board=${encodeURIComponent(JSON.stringify(game.puzzle))}`, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      });
+
+      game.attempts += 1;
+
+      if (data.status === "solved") {
+        // Give reward
+        const rewardCoin = 200;
+        const rewardExp = 50;
+        const userData = await usersData.get(event.senderID);
+        userData.money += rewardCoin;
+        userData.exp += rewardExp;
+        await usersData.set(event.senderID, userData);
+
+        global.noobCore.ncReply.delete(event.messageID);
+        return api.sendMessage(
+          `✅ Congratulations! Sudoku solved!\n💰 +${rewardCoin} Coin\n✨ +${rewardExp} EXP`,
+          event.threadID,
+          event.messageID
+        );
+      } else {
+        if (game.attempts >= game.maxAttempts) {
+          global.noobCore.ncReply.delete(event.messageID);
+          return api.sendMessage("😢 Max attempts reached! Game over.", event.threadID, event.messageID);
+        } else {
+          global.noobCore.ncReply.set(event.messageID, game);
+          return api.sendMessage(`❌ Wrong move! Attempts left: ${game.maxAttempts - game.attempts}`, event.threadID, event.messageID);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      return api.sendMessage("❌ Error checking Sudoku move!", event.threadID, event.messageID);
     }
   }
 };
