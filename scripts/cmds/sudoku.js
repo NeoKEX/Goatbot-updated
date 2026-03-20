@@ -1,153 +1,141 @@
+const { createCanvas } = require("canvas");
 const fs = require("fs");
-const { shuffle } = require("lodash"); // optional, can implement shuffle manually
+const path = require("path");
+
+// File to store user balances
+const BALANCE_FILE = path.join(__dirname, "sudoku_balances.json");
+
+// Load balances or initialize
+let balances = {};
+if (fs.existsSync(BALANCE_FILE)) {
+  balances = JSON.parse(fs.readFileSync(BALANCE_FILE, "utf8"));
+}
+
+function saveBalances() {
+  fs.writeFileSync(BALANCE_FILE, JSON.stringify(balances, null, 2));
+}
+
+// Sudoku generation functions
+function generateSudokuBoard() {
+  const board = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+  const fillBoard = (b) => {
+    const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (b[i][j] === 0) {
+          const options = shuffle(nums).filter(
+            (n) =>
+              !b[i].includes(n) &&
+              !b.map((r) => r[j]).includes(n) &&
+              !b
+                .slice(Math.floor(i / 3) * 3, Math.floor(i / 3) * 3 + 3)
+                .flat()
+                .slice(Math.floor(j / 3) * 3, Math.floor(j / 3) * 3 + 3)
+                .includes(n)
+          );
+          if (options.length === 0) return false;
+          b[i][j] = options[0];
+          if (!fillBoard(b)) {
+            b[i][j] = 0;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
+  fillBoard(board);
+
+  // Remove some numbers for puzzle
+  const removeCount = 40;
+  for (let k = 0; k < removeCount; k++) {
+    const i = Math.floor(Math.random() * 9);
+    const j = Math.floor(Math.random() * 9);
+    board[i][j] = 0;
+  }
+
+  return board;
+}
+
+function renderBoardImage(board) {
+  const canvasSize = 450;
+  const canvas = createCanvas(canvasSize, canvasSize);
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+  ctx.strokeStyle = "#000000";
+  for (let i = 0; i <= 9; i++) {
+    ctx.lineWidth = i % 3 === 0 ? 3 : 1;
+    ctx.beginPath();
+    ctx.moveTo(0, (i * canvasSize) / 9);
+    ctx.lineTo(canvasSize, (i * canvasSize) / 9);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo((i * canvasSize) / 9, 0);
+    ctx.lineTo((i * canvasSize) / 9, canvasSize);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#000000";
+  ctx.font = "24px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      if (board[i][j] !== 0) {
+        ctx.fillText(board[i][j], (j + 0.5) * (canvasSize / 9), (i + 0.5) * (canvasSize / 9));
+      }
+    }
+  }
+
+  return canvas.toBuffer();
+}
 
 module.exports = {
   config: {
     name: "sudoku",
-    aliases: ["sudoko", "sd"],
-    version: "1.0",
-    author: "ChatGPT",
-    role: 0,
-    shortDescription: "🧩 Play Sudoku",
-    longDescription: "Generate and play a Sudoku puzzle directly in chat",
-    category: "game",
-    guide: "{pn} sudoku — start a new game\n{pn} sudoku <row><col> <number> — fill a cell"
+    version: "1.1",
+    author: "NC-YOURNAME",
+    description: "🎮 Generate a Sudoku puzzle and earn fake money 💰",
+    category: "fun",
+    guide: "{pn} — Generate a Sudoku game and get rewards"
   },
 
-  onStart: async ({ event, message, usersData }) => {
-    const userID = event.senderID;
-    const args = event.body?.split(/\s+/).slice(1);
+  ncStart: async ({ api, event }) => {
+    try {
+      const board = generateSudokuBoard();
+      const imgBuffer = renderBoardImage(board);
 
-    // Load or initialize user's game
-    const tmpFile = `./sudoku_${userID}.json`;
-    let game = fs.existsSync(tmpFile) ? JSON.parse(fs.readFileSync(tmpFile)) : null;
+      const tmpDir = path.join(__dirname, "tmp");
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
-    if (!args.length) {
-      // Start a new game
-      game = generateSudoku(30); // 30 numbers prefilled
-      fs.writeFileSync(tmpFile, JSON.stringify(game));
-      return message.reply("🧩 New Sudoku game started!\n" + displaySudoku(game.board, game.prefilled));
+      const filePath = path.join(tmpDir, `sudoku_${Date.now()}.png`);
+      fs.writeFileSync(filePath, imgBuffer);
+
+      // Give a random reward
+      const reward = Math.floor(Math.random() * 101) + 50; // 50 to 150
+      if (!balances[event.senderID]) balances[event.senderID] = 0;
+      balances[event.senderID] += reward;
+      saveBalances();
+
+      await api.sendMessage(
+        {
+          body: `🧩 Here’s your Sudoku puzzle!\n💰 You earned: ${reward} coins\n💵 Total: ${balances[event.senderID]} coins`,
+          attachment: fs.createReadStream(filePath)
+        },
+        event.threadID,
+        () => fs.unlinkSync(filePath),
+        event.messageID
+      );
+    } catch (err) {
+      console.error(err);
+      api.sendMessage("❌ Failed to generate Sudoku.", event.threadID, event.messageID);
     }
-
-    // Play: fill a cell
-    if (!game) return message.reply("❌ No active game. Start a new one with {pn} sudoku".replace("{pn}", event.prefix));
-
-    const [cell, value] = args;
-    if (!/^[1-9][1-9]$/.test(cell) || !/^[1-9]$/.test(value)) {
-      return message.reply("❌ Invalid input. Use format: rowcol number (e.g., 12 5)");
-    }
-
-    const row = Number(cell[0]) - 1;
-    const col = Number(cell[1]) - 1;
-    const num = Number(value);
-
-    if (game.prefilled[row][col]) {
-      return message.reply("❌ This cell is prefilled and cannot be changed.");
-    }
-
-    // Fill the cell
-    game.board[row][col] = num;
-    fs.writeFileSync(tmpFile, JSON.stringify(game));
-
-    // Check if puzzle solved
-    if (checkSolved(game.board)) {
-      fs.unlinkSync(tmpFile);
-      return message.reply("🎉 Congratulations! You solved the Sudoku!");
-    }
-
-    return message.reply("🧩 Sudoku updated:\n" + displaySudoku(game.board, game.prefilled));
   }
 };
-
-/* ===== Helper functions ===== */
-
-// Generate a Sudoku puzzle
-function generateSudoku(prefill = 30) {
-  const board = Array.from({ length: 9 }, () => Array(9).fill(0));
-  const prefilled = Array.from({ length: 9 }, () => Array(9).fill(false));
-
-  fillSudoku(board);
-
-  // Remove numbers to create puzzle
-  let removed = 81 - prefill;
-  while (removed > 0) {
-    const r = Math.floor(Math.random() * 9);
-    const c = Math.floor(Math.random() * 9);
-    if (board[r][c] !== 0) {
-      board[r][c] = 0;
-      removed--;
-    }
-  }
-
-  // Track prefilled cells
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 9; j++) {
-      prefilled[i][j] = board[i][j] !== 0;
-    }
-  }
-
-  return { board, prefilled };
-}
-
-// Simple backtracking solver
-function fillSudoku(board) {
-  const empty = findEmpty(board);
-  if (!empty) return true;
-
-  const [row, col] = empty;
-  const nums = shuffle([1,2,3,4,5,6,7,8,9]);
-  for (const n of nums) {
-    if (valid(board, row, col, n)) {
-      board[row][col] = n;
-      if (fillSudoku(board)) return true;
-      board[row][col] = 0;
-    }
-  }
-  return false;
-}
-
-function findEmpty(board) {
-  for (let i = 0; i < 9; i++)
-    for (let j = 0; j < 9; j++)
-      if (board[i][j] === 0) return [i, j];
-  return null;
-}
-
-function valid(board, row, col, num) {
-  // Row/column
-  for (let i = 0; i < 9; i++) {
-    if (board[row][i] === num) return false;
-    if (board[i][col] === num) return false;
-  }
-  // Box
-  const startRow = Math.floor(row/3)*3;
-  const startCol = Math.floor(col/3)*3;
-  for (let i = 0; i < 3; i++)
-    for (let j = 0; j < 3; j++)
-      if (board[startRow+i][startCol+j] === num) return false;
-  return true;
-}
-
-// Display Sudoku nicely
-function displaySudoku(board, prefilled) {
-  return board.map((row, i) =>
-    row.map((cell, j) => cell || "⬜").join(" ")
-  ).join("\n");
-}
-
-// Check if solved
-function checkSolved(board) {
-  for (let r = 0; r < 9; r++)
-    for (let c = 0; c < 9; c++)
-      if (board[r][c] === 0 || !valid(board, r, c, board[r][c])) return false;
-  return true;
-}
-
-// Optional lodash shuffle if not installed
-function shuffle(arr) {
-  for (let i = arr.length-1; i>0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
