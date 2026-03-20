@@ -1,69 +1,78 @@
+const fs = require("fs");
+const path = require("path");
+
+const balancesFile = path.join(__dirname, "balances.json");
+
+// Load balances or initialize empty
+let balances = {};
+if (fs.existsSync(balancesFile)) {
+  try {
+    balances = JSON.parse(fs.readFileSync(balancesFile, "utf8"));
+  } catch (e) {
+    console.error("Error reading balances.json:", e);
+    balances = {};
+  }
+}
+
+// Utility functions
+function saveBalances() {
+  fs.writeFileSync(balancesFile, JSON.stringify(balances, null, 2));
+}
+
+function getMoney(userID) {
+  return balances[userID] || 0;
+}
+
+function addMoney(userID, amount) {
+  balances[userID] = getMoney(userID) + amount;
+  saveBalances();
+}
+
+function subtractMoney(userID, amount) {
+  balances[userID] = getMoney(userID) - amount;
+  saveBalances();
+}
+
+function parseAmount(input) {
+  const text = String(input).toLowerCase().trim();
+  const match = text.match(/^(\d+(?:\.\d+)?)(k|m|b|t|qt)?$/);
+  if (!match) return NaN;
+  const num = Number(match[1]);
+  const map = { k: 1e3, m: 1e6, b: 1e9, t: 1e12, qt: 1e15 };
+  return Math.floor(num * (map[match[2]] || 1));
+}
+
+function formatMoney(n) {
+  if (n >= 1e15) return Math.floor(n / 1e15) + "qt";
+  if (n >= 1e12) return Math.floor(n / 1e12) + "t";
+  if (n >= 1e9) return Math.floor(n / 1e9) + "b";
+  if (n >= 1e6) return Math.floor(n / 1e6) + "m";
+  if (n >= 1e3) return Math.floor(n / 1e3) + "k";
+  return String(n);
+}
+
+// Dice game command
 module.exports = {
   config: {
     name: "dice",
     aliases: ["dicegame", "rolldice", "dg", "dicebet"],
-    version: "2.3",
-    author: "NC-XNIL (rev by ChatGPT)",
-    countDown: 5,
+    version: "2.2.5",
+    author: "NC-XNIL",
     role: 0,
+    usePrefix: true,
     category: "economy",
-    shortDescription: "🎲 Dice betting game",
-    longDescription: "Bet money on dice outcomes",
-    guide: "{pn} <bet> <amount> | {pn} <bet1> <bet2> <amount>"
-  },
-
-  langs: {
-    en: {
-      invalid: "❌ Invalid bet. Use high, low, even, odd, 7 or double.",
-      min: "❌ Minimum bet is 10.",
-      max: "❌ Max bet is %1.",
-      noMoney: "❌ Not enough balance. You have %1.",
-      usage:
-        "🎲 Dice Game\n\n" +
-        "Use:\n{pn} dice <bet> <amount>\n{pn} dice <bet1> <bet2> <amount>\n\n" +
-        "Example: {pn} dice low odd 300k"
+    description: "🎲 Dice betting game",
+    guide: {
+      en: "Usage:\n{pn} <bet> <amount>\n{pn} <bet1> <bet2> <amount>\nAmount suffixes: k,m,b,t,qt\nExample: {pn} low odd 300k"
     }
   },
 
-  onStart: async function ({ args, usersData, event, message, getLang, prefix }) {
+  ncStart: async function ({ args, message, event }) {
     const userID = event.senderID;
     const MAX_BET = 1_000_000;
 
-    /* ===== UTIL ===== */
-
-    const parseAmount = (input) => {
-      const text = String(input).toLowerCase().trim();
-      const match = text.match(/^(\d+(?:\.\d+)?)(k|m|b|t|qt)?$/);
-      if (!match) return NaN;
-
-      const num = Number(match[1]);
-      const unit = match[2];
-
-      const map = {
-        k: 1e3,
-        m: 1e6,
-        b: 1e9,
-        t: 1e12,
-        qt: 1e15
-      };
-
-      return Math.floor(num * (map[unit] || 1));
-    };
-
-    const formatMoney = (n) => {
-      if (n >= 1e15) return Math.floor(n / 1e15) + "qt";
-      if (n >= 1e12) return Math.floor(n / 1e12) + "t";
-      if (n >= 1e9) return Math.floor(n / 1e9) + "b";
-      if (n >= 1e6) return Math.floor(n / 1e6) + "m";
-      if (n >= 1e3) return Math.floor(n / 1e3) + "k";
-      return String(n);
-    };
-
-    /* ===== INPUT CHECK ===== */
     if (args.length < 2) {
-      return message.reply(
-        getLang("usage").replace(/{pn}/g, prefix)
-      );
+      return message.reply(`🎲 Dice Game\nUsage:\n${this.config.guide.en}`);
     }
 
     let bet1, bet2, rawAmount;
@@ -81,30 +90,26 @@ module.exports = {
     const valid = ["high", "low", "even", "odd", "7", "double"];
 
     if (!valid.includes(bet1) || (bet2 && !valid.includes(bet2))) {
-      return message.reply(getLang("invalid"));
+      return message.reply("Invalid bet. Use high, low, even, odd, 7 or double.");
     }
 
     if (!Number.isFinite(amount) || amount < 10) {
-      return message.reply(getLang("min"));
+      return message.reply("Minimum bet is 10.");
     }
 
     if (amount > MAX_BET) {
-      return message.reply(
-        getLang("max").replace("%1", formatMoney(MAX_BET))
-      );
+      return message.reply(`Max bet is ${formatMoney(MAX_BET)}.`);
     }
 
-    const balance = await usersData.getMoney(userID);
+    const balance = getMoney(userID);
     if (balance < amount) {
-      return message.reply(
-        getLang("noMoney").replace("%1", formatMoney(balance))
-      );
+      return message.reply(`Not enough balance. You have ${formatMoney(balance)}.`);
     }
 
-    /* ===== PLACE BET ===== */
-    await usersData.subtractMoney(userID, amount);
+    // Deduct bet
+    subtractMoney(userID, amount);
 
-    /* ===== ROLL ===== */
+    // Roll dice
     const dice1 = Math.floor(Math.random() * 6) + 1;
     const dice2 = Math.floor(Math.random() * 6) + 1;
     const total = dice1 + dice2;
@@ -121,39 +126,30 @@ module.exports = {
 
     const win = check(bet1) && (bet2 ? check(bet2) : true);
 
-    /* ===== MULTIPLIER ===== */
     let multiplier = 0;
-    let title;
+    let title = "❌ Better luck next time";
 
     if (win && bet2) {
       multiplier = 5;
-      title = "🎉 Big win!";
+      title = "🎉 Big win";
     } else if (win) {
       if (bet1 === "double") multiplier = 4;
       else if (bet1 === "7") multiplier = 5;
       else multiplier = 2;
-      title = "✅ You won!";
-    } else {
-      title = "❌ Better luck next time!";
+      title = "✅ You won";
     }
 
-    /* ===== PAYOUT ===== */
     let payout = 0;
     if (multiplier > 0) {
       payout = amount * multiplier;
-      await usersData.addMoney(userID, payout);
+      addMoney(userID, payout);
     }
 
-    const newBalance = await usersData.getMoney(userID);
+    const newBalance = getMoney(userID);
 
     return message.reply(
-      `${title}\n\n` +
-      `🎲 Dice: ${dice1} + ${dice2} = ${total}\n` +
-      `🎯 Bet: ${[bet1, bet2].filter(Boolean).join(" + ")}\n\n` +
-      `${multiplier
-        ? `💰 You received ${formatMoney(payout)}`
-        : `💸 You lost ${formatMoney(amount)}`}\n` +
-      `💳 Balance: ${formatMoney(newBalance)}`
+      `${title}\n🎲 Dice: ${dice1} + ${dice2} = ${total}\n🎯 Bet: ${[bet1, bet2].filter(Boolean).join(" + ")}\n` +
+      `${multiplier ? `You received ${formatMoney(payout)}` : `You lost ${formatMoney(amount)}`}\n💳 Balance: ${formatMoney(newBalance)}`
     );
   }
 };
