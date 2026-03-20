@@ -3,7 +3,7 @@ module.exports = {
     name: "candycrush",
     aliases: ["cc"],
     version: "1.0",
-    author: "Converted by ChatGPT",
+    author: "zævii魅",
     countDown: 3,
     role: 0,
     shortDescription: "Candy Crush Game",
