@@ -1,7 +1,7 @@
 {
   "facebookAccount": {
-    "email": "",
-    "password": "",
+    "email": "zaevii0@gmail.com",
+    "password": "kienZycht@11!",
     "2FASecret": "",
     "i_user": "",
     "proxy": null,
@@ -12,8 +12,8 @@
   "antiInbox": false,
   "language": "en",
   "notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-  "nickNameBot": "গেসুকে 😈",
-  "prefix": "^",
+  "nickNameBot": "lu-bot",
+  "prefix": "*",
   "noPrefix": false,
   "noPrefixNotes": "When true, Bot Admins (role 2) and Developers (role 4) can run commands without the prefix",
   "adminOnly": {
@@ -21,13 +21,13 @@
     "ignoreCommand": []
   },
   "adminBot": [
-    "61588057525081"
+    "100027845482901"
   ],
   "premiumUsers": [
-    "61588057525081"
+    "100027845482901"
   ],
   "devUsers": [
-    "61588057525081"
+    "100027845482901"
   ],
   "notes_premiumUsers": "List of user IDs with premium access (role 3)",
   "notes_devUsers": "List of developer IDs with full access (role 4)",
