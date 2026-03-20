@@ -5,10 +5,10 @@ module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "4.8",
-		author: "NeoKEX",
-		shortDescription: "Show all available commands",
-		longDescription: "Displays a clean and premium-styled categorized list of commands.",
+		version: "4.9",
+		author: "NeoKEX | Premium",
+		shortDescription: "Show all available commands with a premium touch",
+		longDescription: "Displays a clean and premium-styled categorized list of commands, including new games!",
 		category: "system",
 		guide: "{pn}help [command name]"
 	},
@@ -18,11 +18,11 @@ module.exports = {
 		const categories = {};
 
 		const emojiMap = {
-			ai: "➥", "ai-image": "➥", group: "➥", system: "➥",
-			fun: "➥", owner: "➥", config: "➥", economy: "➥",
-			media: "➥", "18+": "➥", tools: "➥", utility: "➥",
-			info: "➥", image: "➥", game: "➥", admin: "➥",
-			rank: "➥", boxchat: "➥", others: "➥"
+			ai: "🤖", "ai-image": "🖼️", group: "👥", system: "⚙️",
+			fun: "🎉", owner: "👑", config: "🔧", economy: "💰",
+			media: "🎵", "18+": "🔞", tools: "🛠️", utility: "🔹",
+			info: "ℹ️", image: "🖼️", game: "🎮", admin: "🛡️",
+			rank: "📊", boxchat: "📦", others: "✨"
 		};
 
 		const cleanCategoryName = (text) => {
@@ -41,7 +41,7 @@ module.exports = {
 			categories[cat].push(cmd.config.name);
 		}
 
-
+		// ========== DETAILED COMMAND VIEW ==========
 		if (args[0]) {
 			const query = args[0].toLowerCase();
 			const cmd =
@@ -49,29 +49,14 @@ module.exports = {
 				[...allCommands.values()].find((c) => (c.config.aliases || []).includes(query));
 			if (!cmd) return message.reply(`❌ Command "${query}" not found.`);
 
-			const {
-				name,
-				version,
-				author,
-				guide,
-				category,
-				shortDescription,
-				longDescription,
-				aliases,
-				role 
-			} = cmd.config;
-
-			const desc =
-				typeof longDescription === "string"
-					? longDescription
-					: longDescription?.en || shortDescription?.en || shortDescription || "No description";
-
-			const usage =
-				typeof guide === "string"
-					? guide.replace(/{pn}/g, prefix)
-					: guide?.en?.replace(/{pn}/g, prefix) || `${prefix}${name}`;
-
-						const requiredRole = cmd.config.role !== undefined ? cmd.config.role : 0; 
+			const { name, version, author, guide, category, shortDescription, longDescription, aliases, role } = cmd.config;
+			const desc = typeof longDescription === "string"
+				? longDescription
+				: longDescription?.en || shortDescription?.en || shortDescription || "No description";
+			const usage = typeof guide === "string"
+				? guide.replace(/{pn}/g, prefix)
+				: guide?.en?.replace(/{pn}/g, prefix) || `${prefix}${name}`;
+			const requiredRole = role !== undefined ? role : 0;
 
 			return message.reply(
 				`☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
@@ -80,24 +65,33 @@ module.exports = {
 				`➥ Description: ${desc}\n` +
 				`➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
 				`➥ Usage: ${usage}\n` +
-				`➥ Permission: ${requiredRole}\n` + 
+				`➥ Permission: ${requiredRole}\n` +
 				`➥ Author: ${author}\n` +
 				`➥ Version: ${version}`
 			);
 		}
 
-		const formatCommands = (cmds) =>
-			cmds.sort().map((cmd) => `× ${cmd}`);
+		// ========== FORMAT COMMANDS ==========
+		const formatCommands = (cmds) => cmds.sort().map((cmd) => `× ${cmd}`);
 
-		let msg = `━━━ zævii魅 ━━━\n`;
+		let msg = `━━━ zævii魅 PREMIUM MENU ━━━\n`;
 		const sortedCategories = Object.keys(categories).sort();
+
 		for (const cat of sortedCategories) {
-			const emoji = emojiMap[cat] || "➥";
-			msg += `\n╭──『 ${cat.toUpperCase()} 』\n`; 
+			const emoji = emojiMap[cat] || "✨";
+			msg += `\n╭──『 ${emoji} ${cat.toUpperCase()} 』\n`; 
 			msg += `${formatCommands(categories[cat]).join(' ')}\n`; 
 			msg += `╰────────────◊\n`;
 		}
-		msg += `\n➥ Use: ${prefix}help [command name] for details\n➥Use: ${prefix}callad to talk with bot admins '_'`;
+
+		// ========== NEW GAMES HIGHLIGHT ==========
+		msg += `\n🎮 NEW PREMIUM GAMES 🎮\n`;
+		msg += `• wheel      → Spin the Premium Wheel of Fortune\n`;
+		msg += `• candycrush → Play Candy Crush style match-3 game\n`;
+		msg += `• guessword  → Guess the hidden word and win coins\n`;
+
+		msg += `\n➥ Use: ${prefix}help [command name] for details\n`;
+		msg += `➥ Chat with admins: ${prefix}callad`;
 
 		return message.reply(msg);
 	}
