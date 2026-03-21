@@ -731,7 +731,7 @@ async function startBot(loginWithEmail) {
                         // ———————————————— NKX-FCA: ANTI-SUSPENSION & HEALTH ———————————————— //
                         try {
                                 const fcaConfig = require(`${process.cwd()}/fca-config.json`);
-                                const { globalAntiSuspension } = require("nkx-fca/src/utils/antiSuspension");
+                                const { globalAntiSuspension } = require("goat-fca/src/utils/antiSuspension");
 
                                 if (fcaConfig.antiSuspension?.enabled !== false && fcaConfig.antiSuspension?.warmupOnStart !== false) {
                                         globalAntiSuspension.enableWarmup();
