@@ -1,11 +1,11 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
-const GRAPH_API_BASE = "https://graph.facebook.com";
-const FB_HARDCODED_TOKEN = "6628568379|c1e620fa708a1d5696fb991c1bde5662";
-const FBCOVER1_API = "https://nexalo-api.vercel.app/api/fb-cover";
+const GRAPH_API_BASE = 'https://graph.facebook.com';
+const FB_HARDCODED_TOKEN = '6628568379|c1e620fa708a1d5696fb991c1bde5662';
+const FBCOVER_API_URL = 'https://nexalo-api.vercel.app/api/fb-cover';
 
 function getProfilePictureURL(userID, size = [512, 512]) {
   const [height, width] = size;
@@ -16,53 +16,71 @@ module.exports = {
   config: {
     name: "fbcover1",
     aliases: [],
-    version: "1.0",
+    version: "1.2",
     author: "Hridoy",
     countDown: 5,
     adminOnly: false,
-    description: "Generate a Facebook cover image with your profile picture (text1 & text2)",
-    category: "Media",
+    category: "media", // REQUIRED
+    description: "Generate a Facebook cover image with custom text1 and text2 using your profile picture",
     guide: "{pn}fbcover1 [text1 text2] - Generate a Facebook cover using your profile picture",
     usePrefix: true
   },
 
-  ncStart: async function ({ message, event, args }) {
-    const { threadID, senderID, messageID } = event;
+  ncStart: async function({ api, event, args }) {
+    const { threadID, messageID, senderID } = event;
 
     try {
-      const textArgs = args.join(" ").trim();
-      if (!textArgs) return message.reply("⚠️ Missing text1 and text2!");
+      const textArgs = args.join(' ').trim();
+      if (!textArgs) {
+        return api.sendMessage("⚠️ Please provide two words: text1 and text2", threadID, messageID);
+      }
 
-      const [text1, ...rest] = textArgs.split(" ");
-      const text2 = rest.join(" ");
-      if (!text1 || !text2) return message.reply("⚠️ Both text1 and text2 are required!");
+      const [text1, ...rest] = textArgs.split(' ');
+      const text2 = rest.join(' ');
+
+      if (!text1 || !text2) {
+        return api.sendMessage("⚠️ You must provide both text1 and text2", threadID, messageID);
+      }
 
       const profilePicUrl = getProfilePictureURL(senderID);
+      const apiUrl = `${FBCOVER_API_URL}?firstName=${encodeURIComponent(text1)}&lastName=${encodeURIComponent(text2)}&imageUrl=${encodeURIComponent(profilePicUrl)}`;
 
-      const apiUrl = `${FBCOVER1_API}?firstName=${encodeURIComponent(text1)}&lastName=${encodeURIComponent(text2)}&imageUrl=${encodeURIComponent(profilePicUrl)}`;
-
-      const tempDir = path.join(process.cwd(), "temp");
+      // Temp file
+      const tempDir = path.join(__dirname, '..', '..', 'temp');
       if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-      const fileName = `fbcover1_${crypto.randomBytes(8).toString("hex")}.png`;
+
+      const fileName = `fbcover_${crypto.randomBytes(8).toString('hex')}.png`;
       const filePath = path.join(tempDir, fileName);
 
-      const response = await axios.get(apiUrl, { responseType: "stream", timeout: 10000 });
-      if (!response.headers["content-type"]?.startsWith("image/")) throw new Error("API response is not an image");
+      const response = await axios.get(apiUrl, { responseType: 'stream', timeout: 10000 });
+
+      const contentType = response.headers['content-type'];
+      if (!contentType || !contentType.startsWith('image/')) throw new Error("API response is not an image");
 
       const writer = fs.createWriteStream(filePath);
       response.data.pipe(writer);
-      await new Promise((resolve, reject) => writer.on("finish", resolve).on("error", reject));
 
-      await message.reply({
-        body: `🎨 Facebook cover generated successfully!`,
-        attachment: fs.createReadStream(filePath)
+      await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+
+      if (fs.statSync(filePath).size === 0) throw new Error("Downloaded Facebook cover image is empty");
+
+      await new Promise((resolve, reject) => {
+        api.sendMessage({
+          body: `🎨 Facebook cover generated successfully for you!\nText1: ${text1}, Text2: ${text2}`,
+          attachment: fs.createReadStream(filePath)
+        }, threadID, (err) => {
+          if (err) return reject(err);
+          resolve();
+        }, messageID);
       });
 
       fs.unlinkSync(filePath);
-      console.log(`[FbCover1] Generated for ${senderID} with text "${text1} ${text2}"`);
     } catch (err) {
-      console.error("[FbCover1 Error]", err);
-      return message.reply(`⚠️ Error: ${err.message}`);
+      console.error("[FbCover1 Error]", err.message);
+      api.sendMessage(`⚠️ Error: ${err.message}`, threadID, messageID);
     }
   }
 };
