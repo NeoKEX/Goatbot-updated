@@ -18,8 +18,10 @@ let myUrl = config.autoUptime.url || (
 );
 myUrl += '/uptime';
 
+const intervalMs = (config.autoUptime.timeInterval || 180) * 1000;
 let status = 'ok';
-setTimeout(async function autoUptime() {
+
+async function autoUptime() {
         try {
                 await axios.get(myUrl);
                 if (status != 'ok') {
@@ -30,8 +32,10 @@ setTimeout(async function autoUptime() {
         }
         catch (e) {
                 const err = e.response?.data || e;
-                if (status != 'ok')
+                if (status != 'ok') {
+                        global.timeOutUptime = setTimeout(autoUptime, intervalMs);
                         return;
+                }
                 status = 'failed';
 
                 if (err.statusAccountBot == "can't login") {
@@ -43,6 +47,8 @@ setTimeout(async function autoUptime() {
                         // Custome notification here
                 }
         }
-        global.timeOutUptime = setInterval(autoUptime, config.autoUptime.timeInterval);
-}, (config.autoUptime.timeInterval || 180) * 1000);
+        global.timeOutUptime = setTimeout(autoUptime, intervalMs);
+}
+
+global.timeOutUptime = setTimeout(autoUptime, intervalMs);
 log.info("AUTO UPTIME", getText("autoUptime", "autoUptimeTurnedOn", myUrl));
