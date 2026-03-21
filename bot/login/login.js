@@ -15,7 +15,7 @@ const path = defaultRequire("path");
 const readline = defaultRequire("readline");
 const fs = defaultRequire("fs-extra");
 const toptp = defaultRequire("totp-generator");
-const { login } = defaultRequire("goat-fca");
+const { login } = defaultRequire("baler-fca");
 const qr = new (defaultRequire("qrcode-reader"));
 const Canvas = defaultRequire("canvas");
 const https = defaultRequire("https");
@@ -720,11 +720,11 @@ async function startBot(loginWithEmail) {
                         // ———————————————— NKX-FCA: ANTI-SUSPENSION & HEALTH ———————————————— //
                         try {
                                 const fcaConfig = require(`${process.cwd()}/fca-config.json`);
-                                const { globalAntiSuspension } = require("goat-fca/src/utils/antiSuspension");
+                                const { globalAntiSuspension } = require("baler-fca/src/utils/antiSuspension");
 
                                 if (fcaConfig.antiSuspension?.enabled !== false && fcaConfig.antiSuspension?.warmupOnStart !== false) {
                                         globalAntiSuspension.enableWarmup();
-                                        log.info("NKX-FCA", "Anti-suspension warmup mode enabled (limits rate for 20 min on fresh start)");
+                                        log.info("baler-fca", "Anti-suspension warmup mode enabled (limits rate for 20 min on fresh start)");
                                 }
 
                                 if (typeof api.getHealthStatus === "function") {
