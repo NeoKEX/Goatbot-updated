@@ -1,70 +1,50 @@
-module.exports = {
-  config: {
-    name: "sudoku",
-    aliases: ["sud"],
-    version: "1.0",
-    author: "Zaevii",
-    countDown: 5,
-    adminOnly: false,
-    description: "Play Sudoku directly in chat",
-    category: "game", // REQUIRED for GoatBot
-    guide: "{pn}sudoku - Start a new Sudoku game",
-    usePrefix: true
-  },
+const fs = require("fs");
+const path = require("path");
 
-  ncStart: async function({ message, event, args }) {
-    // Simple Sudoku placeholder
-    const sudokuBoard = `
-🟦 Sudoku Board 🟦
+module.exports.config = {
+  name: "sudoku",
+  version: "1.0",
+  author: "Zaevii",
+  countDown: 5,
+  adminOnly: false,
+  description: "Play Sudoku directly in chat",
+  guide: "{pn}sudoku - Start a new Sudoku game",
+  usePrefix: true
+};
 
-5 3 _ | _ 7 _ | _ _ _
-6 _ _ | 1 9 5 | _ _ _
-_ 9 8 | _ _ _ | _ 6 _ 
-------+-------+------
-8 _ _ | _ 6 _ | _ _ 3
-4 _ _ | 8 _ 3 | _ _ 1
-7 _ _ | _ 2 _ | _ _ 6
-------+-------+------
-_ 6 _ | _ _ _ | 2 8 _
-_ _ _ | 4 1 9 | _ _ 5
-_ _ _ | _ 8 _ | _ 7 9
-`;
+// Utility to generate a simple Sudoku board
+function generateSudoku() {
+  // 9x9 empty board
+  const board = Array.from({ length: 9 }, () => Array(9).fill(0));
 
-    await message.reply(
-      "🧩 Starting a Sudoku game!\n" + sudokuBoard +
-      "\nReply with your moves in format: row,column,value\nExample: 1,3,4"
-    );
+  // Fill some random numbers for demo (simple, not full Sudoku generation)
+  for (let i = 0; i < 20; i++) {
+    const row = Math.floor(Math.random() * 9);
+    const col = Math.floor(Math.random() * 9);
+    const num = Math.floor(Math.random() * 9) + 1;
+    board[row][col] = num;
+  }
 
-    // You can store game state in global or a simple Map if you want multi-user games
-    global.sudokuGames = global.sudokuGames || {};
-    global.sudokuGames[event.threadID] = {
-      board: sudokuBoard,
-      player: event.senderID
-    };
-  },
+  return board;
+}
 
-  ncReply: async function({ message, Reply, event }) {
-    // Check if a Sudoku game exists for this thread
-    if (!global.sudokuGames || !global.sudokuGames[event.threadID]) {
-      return message.reply("⚠️ No active Sudoku game in this chat. Start one with {pn}sudoku");
-    }
+// Convert board to string for chat
+function boardToString(board) {
+  return board.map(row => row.map(n => (n === 0 ? "·" : n)).join(" ")).join("\n");
+}
 
-    const game = global.sudokuGames[event.threadID];
+module.exports.onStart = async function({ api, event }) {
+  const { threadID, messageID } = event;
 
-    // Parse user input
-    const move = event.body.trim().split(",");
-    if (move.length !== 3) {
-      return message.reply("⚠️ Invalid format! Use row,column,value e.g., 1,3,4");
-    }
+  try {
+    const board = generateSudoku();
+    const boardStr = boardToString(board);
 
-    const [row, col, value] = move.map(Number);
-    if ([row, col, value].some(n => isNaN(n) || n < 1 || n > 9)) {
-      return message.reply("⚠️ Numbers must be between 1 and 9");
-    }
+    const msg = `🧩 Sudoku Game Started!\n\n${boardStr}\n\nReply with your moves in format: row col number`;
 
-    // Placeholder logic (just acknowledge the move)
-    await message.reply(`✅ Move registered: row ${row}, column ${col}, value ${value}\n(Full Sudoku logic not implemented yet)`);
-
-    // Here you could update `game.board` and check for completion
+    api.sendMessage(msg, threadID, messageID);
+  } catch (err) {
+    console.error("[Sudoku Command Error]", err.message);
+    api.sendMessage(`⚠️ Error starting Sudoku: ${err.message}`, threadID, messageID);
   }
 };
