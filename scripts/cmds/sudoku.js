@@ -1,95 +1,70 @@
-const axios = require("axios");
-
 module.exports = {
   config: {
     name: "sudoku",
-    aliases: ["sd"],
+    aliases: ["sud"],
     version: "1.0",
     author: "Zaevii",
     countDown: 5,
-    role: 0,
-    guide: { en: "{pn} — Start a Sudoku game and solve the puzzle!" }
+    adminOnly: false,
+    description: "Play Sudoku directly in chat",
+    category: "game", // REQUIRED for GoatBot
+    guide: "{pn}sudoku - Start a new Sudoku game",
+    usePrefix: true
   },
 
-  ncStart: async function ({ api, event, usersData }) {
-    try {
-      // Fetch a Sudoku puzzle
-      const { data } = await axios.get("https://sugoku.herokuapp.com/board?difficulty=easy");
-      const puzzle = data.board;
+  ncStart: async function({ message, event, args }) {
+    // Simple Sudoku placeholder
+    const sudokuBoard = `
+🟦 Sudoku Board 🟦
 
-      // Format puzzle for display
-      let display = "╭──❖  SUDOKU  ❖──╮\n";
-      puzzle.forEach((row, i) => {
-        display += row.map(n => (n === 0 ? "⬜" : n)).join(" ") + "\n";
-      });
-      display += "╰────────────────╯\nReply with your answer as row,col,value (e.g., 1,3,5)";
+5 3 _ | _ 7 _ | _ _ _
+6 _ _ | 1 9 5 | _ _ _
+_ 9 8 | _ _ _ | _ 6 _ 
+------+-------+------
+8 _ _ | _ 6 _ | _ _ 3
+4 _ _ | 8 _ 3 | _ _ 1
+7 _ _ | _ 2 _ | _ _ 6
+------+-------+------
+_ 6 _ | _ _ _ | 2 8 _
+_ _ _ | 4 1 9 | _ _ 5
+_ _ _ | _ 8 _ | _ 7 9
+`;
 
-      // Save game state in global cache
-      global.noobCore.ncReply.set(event.messageID, {
-        commandName: this.config.name,
-        type: "sudoku",
-        puzzle,
-        author: event.senderID,
-        attempts: 0,
-        maxAttempts: 3
-      });
+    await message.reply(
+      "🧩 Starting a Sudoku game!\n" + sudokuBoard +
+      "\nReply with your moves in format: row,column,value\nExample: 1,3,4"
+    );
 
-      return api.sendMessage(display, event.threadID, event.messageID);
-    } catch (err) {
-      console.error(err);
-      return api.sendMessage("❌ Failed to load Sudoku puzzle!", event.threadID, event.messageID);
-    }
+    // You can store game state in global or a simple Map if you want multi-user games
+    global.sudokuGames = global.sudokuGames || {};
+    global.sudokuGames[event.threadID] = {
+      board: sudokuBoard,
+      player: event.senderID
+    };
   },
 
-  ncReply: async function ({ api, event, Reply, usersData }) {
-    const game = Reply;
-    if (event.senderID !== game.author)
-      return api.sendMessage("⚠️ This Sudoku game is not yours!", event.threadID, event.messageID);
-
-    const answer = event.body?.trim().split(",").map(x => parseInt(x));
-    if (!answer || answer.length !== 3 || answer.some(isNaN))
-      return api.sendMessage("❌ Invalid format! Use row,col,value (e.g., 1,3,5)", event.threadID, event.messageID);
-
-    const [row, col, value] = answer.map(n => n - 1); // 0-indexed
-    if (game.puzzle[row][col] !== 0)
-      return api.sendMessage("❌ That cell is already filled!", event.threadID, event.messageID);
-
-    // Simple check using solved API
-    game.puzzle[row][col] = value + 1; // set temporarily
-    try {
-      const { data } = await axios.post("https://sugoku.herokuapp.com/validate", `board=${encodeURIComponent(JSON.stringify(game.puzzle))}`, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-      });
-
-      game.attempts += 1;
-
-      if (data.status === "solved") {
-        // Give reward
-        const rewardCoin = 200;
-        const rewardExp = 50;
-        const userData = await usersData.get(event.senderID);
-        userData.money += rewardCoin;
-        userData.exp += rewardExp;
-        await usersData.set(event.senderID, userData);
-
-        global.noobCore.ncReply.delete(event.messageID);
-        return api.sendMessage(
-          `✅ Congratulations! Sudoku solved!\n💰 +${rewardCoin} Coin\n✨ +${rewardExp} EXP`,
-          event.threadID,
-          event.messageID
-        );
-      } else {
-        if (game.attempts >= game.maxAttempts) {
-          global.noobCore.ncReply.delete(event.messageID);
-          return api.sendMessage("😢 Max attempts reached! Game over.", event.threadID, event.messageID);
-        } else {
-          global.noobCore.ncReply.set(event.messageID, game);
-          return api.sendMessage(`❌ Wrong move! Attempts left: ${game.maxAttempts - game.attempts}`, event.threadID, event.messageID);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      return api.sendMessage("❌ Error checking Sudoku move!", event.threadID, event.messageID);
+  ncReply: async function({ message, Reply, event }) {
+    // Check if a Sudoku game exists for this thread
+    if (!global.sudokuGames || !global.sudokuGames[event.threadID]) {
+      return message.reply("⚠️ No active Sudoku game in this chat. Start one with {pn}sudoku");
     }
+
+    const game = global.sudokuGames[event.threadID];
+
+    // Parse user input
+    const move = event.body.trim().split(",");
+    if (move.length !== 3) {
+      return message.reply("⚠️ Invalid format! Use row,column,value e.g., 1,3,4");
+    }
+
+    const [row, col, value] = move.map(Number);
+    if ([row, col, value].some(n => isNaN(n) || n < 1 || n > 9)) {
+      return message.reply("⚠️ Numbers must be between 1 and 9");
+    }
+
+    // Placeholder logic (just acknowledge the move)
+    await message.reply(`✅ Move registered: row ${row}, column ${col}, value ${value}\n(Full Sudoku logic not implemented yet)`);
+
+    // Here you could update `game.board` and check for completion
   }
 };
