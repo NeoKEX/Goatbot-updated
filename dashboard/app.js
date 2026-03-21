@@ -67,8 +67,16 @@ module.exports = async (api) => {
         app.use(bodyParser.json());
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(cookieParser());
+        const sessionSecretFile = `${process.cwd()}/.session_secret`;
+        const sessionSecret = fs.existsSync(sessionSecretFile)
+                ? fs.readFileSync(sessionSecretFile, "utf8").trim()
+                : (() => {
+                        const secret = utils.randomString(64);
+                        fs.writeFileSync(sessionSecretFile, secret);
+                        return secret;
+                })();
         app.use(session({
-                secret: utils.randomString(32),
+                secret: sessionSecret,
                 resave: false,
                 saveUninitialized: true,
                 cookie: {
@@ -253,40 +261,17 @@ module.exports = async (api) => {
         });
 
         const PORT = process.env.PORT || config.dashBoard.port || config.serverUptime.port || 3001;
-        let dashBoardUrl = `https://${process.env.REPL_OWNER
-                ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+        const replitDomain = process.env.REPLIT_DOMAINS?.split(",")[0];
+        const dashBoardUrl = replitDomain
+                ? `https://${replitDomain}`
                 : process.env.API_SERVER_EXTERNAL == "https://api.glitch.com"
-                        ? `${process.env.PROJECT_DOMAIN}.glitch.me`
-                        : `localhost:${PORT}`}`;
-        dashBoardUrl.includes("localhost") && (dashBoardUrl = dashBoardUrl.replace("https", "http"));
+                        ? `https://${process.env.PROJECT_DOMAIN}.glitch.me`
+                        : `http://localhost:${PORT}`;
         await server.listen(PORT);
         utils.log.info("DASHBOARD", `Dashboard is running: ${dashBoardUrl}`);
         if (config.serverUptime.socket.enable == true)
                 require("../bot/login/socketIO.js")(server);
 };
 
-function randomStringApikey(max) {
-        let text = "";
-        const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        for (let i = 0; i < max; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-}
 
-function randomNumberApikey(maxLength) {
-        let text = "";
-        const possible = "0123456789";
-        for (let i = 0; i < maxLength; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-        return text;
-}
-
-function validateEmail(email) {
-        const re = /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return re.test(email);
-}
-
-function convertSize(byte) {
-        return byte > 1024 ? byte > 1024 * 1024 ? (byte / 1024 / 1024).toFixed(2) + " MB" : (byte / 1024).toFixed(2) + " KB" : byte + " Byte";
-}
 

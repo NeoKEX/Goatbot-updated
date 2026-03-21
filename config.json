@@ -34,7 +34,6 @@
   "whiteListMode": {
     "enable": false,
     "whiteListIds": [
-      "61588057525081",
       "61588057525081"
     ],
     "notes": "if you enable this feature, only the ids in the whiteListIds list can use the bot"
@@ -80,7 +79,7 @@
   "autoUptime": {
     "enable": true,
     "timeInterval": 180,
-    "url": "https://${process.env.RAILWAY_STATIC_URL || process.env.RENDER_EXTERNAL_URL}",
+    "url": "",
     "notes": "the value of timeInterval is seconds, url is the url you want to send the request to (automatically detected for hosting glitch or replit)"
   },
   "autoLoadScripts": {

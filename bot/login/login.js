@@ -31,17 +31,6 @@ async function getName(userID) {
 }
 
 
-function compareVersion(version1, version2) {
-        const v1 = version1.split(".");
-        const v2 = version2.split(".");
-        for (let i = 0; i < 3; i++) {
-                if (parseInt(v1[i]) > parseInt(v2[i]))
-                        return 1; // version1 > version2
-                if (parseInt(v1[i]) < parseInt(v2[i]))
-                        return -1; // version1 < version2
-        }
-        return 0; // version1 = version2
-}
 
 const { writeFileSync, readFileSync, existsSync, watch } = require("fs-extra");
 const handlerWhenListenHasError = require("./handlerWhenListenHasError.js");
@@ -630,7 +619,7 @@ async function startBot(loginWithEmail) {
         const currentVersion = require("../../package.json").version;
         const tooOldVersion = (await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2-Storage/main/tooOldVersions.txt")).data || "0.0.0";
         // nếu version cũ hơn
-        if ([-1, 0].includes(compareVersion(currentVersion, tooOldVersion))) {
+        if ([-1, 0].includes(global.utils.compareVersion(currentVersion, tooOldVersion))) {
                 log.err("VERSION", getText('version', 'tooOldVersion', colors.yellowBright('node update')));
                 process.exit();
         }

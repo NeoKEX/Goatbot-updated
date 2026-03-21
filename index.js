@@ -29,6 +29,10 @@ function startProject() {
 
         child.on("close", (code) => {
                 log.info("Project stopped with code:", code);
+                if (code === 2) {
+                        log.info("Project", "Restarting...");
+                        startProject();
+                }
         });
 }
 

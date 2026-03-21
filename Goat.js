@@ -212,7 +212,7 @@ if (config.autoRestart) {
         // ———————————————— CHECK VERSION ———————————————— //
         const { data: { version } } = await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2/main/package.json");
         const currentVersion = require("./package.json").version;
-        if (compareVersion(version, currentVersion) === 1)
+        if (utils.compareVersion(version, currentVersion) === 1)
                 utils.log.master("NEW VERSION", getText(
                         "Goat",
                         "newVersionDetected",
@@ -224,14 +224,3 @@ if (config.autoRestart) {
         require('./bot/login/login.js');
 })();
 
-function compareVersion(version1, version2) {
-        const v1 = version1.split(".");
-        const v2 = version2.split(".");
-        for (let i = 0; i < 3; i++) {
-                if (parseInt(v1[i]) > parseInt(v2[i]))
-                        return 1; // version1 > version2
-                if (parseInt(v1[i]) < parseInt(v2[i]))
-                        return -1; // version1 < version2
-        }
-        return 0; // version1 = version2
-}
