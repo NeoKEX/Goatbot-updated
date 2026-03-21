@@ -1,63 +1,64 @@
 const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "edit",
-    aliases: ["imgedit"],
-    version: "2.4",
-    author: "Neoaz ゐ", //API by RIFAT
-    countDown: 15,
+    aliases: ["fedit", "deepfake"],
+    version: "1.0",
+    author: "Neoaz 🐊",
+    countDown: 10,
     role: 0,
-    shortDescription: { en: "Edit image with Seedream V4" },
-    longDescription: { en: "Edit or modify an existing image using Seedream V4 Edit AI model" },
+    shortDescription: { en: "Edit images using AI" },
+    longDescription: { en: "Edit an image by replying to it with a prompt." },
     category: "image",
-    guide: {
-      en: "Reply to an image with: {pn} <prompt>"
-    }
+    guide: { en: "{pn} <prompt> (reply to an image)" }
   },
 
-  onStart: async function ({ message, event, api, args }) {
-    const hasPhotoReply = event.type === "message_reply" && event.messageReply?.attachments?.[0]?.type === "photo";
+  onStart: async function ({ message, args, event, api }) {
+    const { type, messageReply } = event;
+    const prompt = args.join(" ");
 
-    if (!hasPhotoReply) {
-      return message.reply("Please reply to an image to edit.");
+    if (type !== "message_reply" || !messageReply.attachments || messageReply.attachments[0].type !== "photo") {
+      return message.reply("Please reply to an image to edit it.");
     }
 
-    const prompt = args.join(" ").trim();
     if (!prompt) {
-      return message.reply("Please provide a prompt.");
+      return message.reply("Please provide a prompt to tell the AI how to edit the image.");
     }
 
-    const model = "seedream v4 edit";
-    const imageUrl = event.messageReply.attachments[0].url;
+    const imageUrl = messageReply.attachments[0].url;
+    const cacheDir = path.join(__dirname, "cache");
+    await fs.ensureDir(cacheDir);
+    const imgPath = path.join(cacheDir, `edit_${Date.now()}.png`);
+
+    api.setMessageReaction("⏳", event.messageID);
 
     try {
-      api.setMessageReaction("⏳", event.messageID, () => {}, true);
+      const apiUrl = `https://smfahim.xyz/ai/deepfake/gen?prompt=${encodeURIComponent(prompt)}&imageUrl=${encodeURIComponent(imageUrl)}`;
+      const response = await axios.get(apiUrl);
+      const { success, generate_url } = response.data;
 
-      const res = await axios.get("https://fluxcdibai-1.onrender.com/generate", {
-        params: { prompt, model, imageUrl },
-        timeout: 120000
-      });
-
-      const data = res.data;
-      const resultUrl = data?.data?.imageResponseVo?.url;
-
-      if (!resultUrl) {
-        api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return message.reply("Failed to edit image.");
+      if (!success || !generate_url) {
+        throw new Error("AI editing failed.");
       }
 
-      api.setMessageReaction("✅", event.messageID, () => {}, true);
+      const imgRes = await axios.get(generate_url, { responseType: "arraybuffer" });
+      await fs.writeFile(imgPath, Buffer.from(imgRes.data));
 
-      await message.reply({
-        body: "Image edited 🐦",
-        attachment: await global.utils.getStreamFromURL(resultUrl)
-      });
+      await message.reply({ attachment: fs.createReadStream(imgPath) });
+      
+      api.setMessageReaction("✅", event.messageID);
 
-    } catch (err) {
-      console.error(err);
-      api.setMessageReaction("❌", event.messageID, () => {}, true);
-      return message.reply("Error while editing image.");
+    } catch (error) {
+      console.error(error);
+      api.setMessageReaction("❌", event.messageID);
+      message.reply(`❌ Error: ${error.message}`);
+    } finally {
+      if (await fs.pathExists(imgPath)) {
+        await fs.remove(imgPath);
+      }
     }
   }
 };
