@@ -1,0 +1,10 @@
+{
+  "antiSuspension": {
+    "enabled": true,
+    "warmupOnStart": true
+  },
+  "healthMonitor": {
+    "enabled": true,
+    "logIntervalMs": 3600000
+  }
+}
