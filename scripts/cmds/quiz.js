@@ -4,22 +4,43 @@ module.exports = {
   config: {
     name: "quiz",
     aliases: ["qz"],
-    version: "2.0.0",
+    version: "3.0.0",
     author: "Revised by ChatGPT",
     role: 0,
     category: "game",
     shortDescription: "🧠 Quiz Game",
-    longDescription: "Answer quiz questions and earn rewards.",
+    longDescription: "Answer quiz questions and earn rewards (English only).",
     guide: { en: "{pn}" }
   },
 
   onStart: async function ({ api, event }) {
     try {
-      const res = await axios.get("https://raw.githubusercontent.com/noobcore404/NC-STORE/main/NCApiUrl.json");
-      const apiBase = res.data.apiv1;
+      // FETCH ENGLISH QUIZ (OpenTDB)
+      const res = await axios.get("https://opentdb.com/api.php?amount=1&type=multiple");
+      const quiz = res.data.results[0];
 
-      const { data } = await axios.get(`${apiBase}/api/quiz`);
-      const { question, options, answer } = data;
+      // Decode HTML entities (fix weird symbols)
+      const decode = (text) =>
+        text
+          .replace(/&quot;/g, '"')
+          .replace(/&#039;/g, "'")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">");
+
+      const question = decode(quiz.question);
+      const correct = decode(quiz.correct_answer);
+      const incorrect = quiz.incorrect_answers.map(decode);
+
+      // Shuffle options
+      const allOptions = [...incorrect, correct].sort(() => Math.random() - 0.5);
+
+      const options = {
+        a: allOptions[0],
+        b: allOptions[1],
+        c: allOptions[2],
+        d: allOptions[3]
+      };
 
       const body = 
 `╭──❖ QUIZ GAME ❖──╮
@@ -43,11 +64,10 @@ ${question}
         (err, info) => {
           if (err) return;
 
-          /* SAVE REPLY (FIXED) */
           global.GoatBot.onReply.set(info.messageID, {
             commandName: "quiz",
             author: event.senderID,
-            correctAnswer: answer.trim(),
+            correctAnswer: correct.trim(),
             chances: 3,
             options
           });
@@ -66,12 +86,12 @@ ${question}
 
     const reply = event.body?.trim().toUpperCase();
 
-    /* NOT OWNER */
+    // NOT OWNER
     if (event.senderID !== author) {
       return api.sendMessage("⚠️ This is not your quiz!", event.threadID, event.messageID);
     }
 
-    /* INVALID INPUT */
+    // INVALID INPUT
     if (!["A", "B", "C", "D"].includes(reply)) {
       return api.sendMessage("❌ Reply only A, B, C or D.", event.threadID, event.messageID);
     }
@@ -82,7 +102,7 @@ ${question}
       reply === "C" ? options.c :
       reply === "D" ? options.d : "";
 
-    /* CORRECT */
+    // CORRECT
     if (selected.trim() === correctAnswer.trim()) {
       try { await api.unsendMessage(Reply.messageID); } catch {}
 
@@ -111,7 +131,7 @@ ${question}
       );
     }
 
-    /* WRONG */
+    // WRONG
     chances--;
 
     if (chances > 0) {
@@ -128,7 +148,7 @@ ${question}
       );
     }
 
-    /* OUT OF CHANCES */
+    // OUT OF CHANCES
     try { await api.unsendMessage(Reply.messageID); } catch {}
 
     global.GoatBot.onReply.delete(Reply.messageID);
