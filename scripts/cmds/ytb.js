@@ -1,127 +1,101 @@
-const a = require("yt-search");
-const b = require("axios");
-const c = require("fs");
-const d = require("path");
-
-const nix = "https://raw.githubusercontent.com/aryannix/stuffs/master/raw/apis.json";
-
-async function f(g) {
-  const h = await b({ url: g, responseType: "stream" });
-  return h.data;
-}
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
-    name: "youtube",
-    aliases: ["ytb"],
-    version: "0.0.9",
-    author: "ArYAN",
+    name: "ytb",
+    version: "1.1",
+    author: "Neoaz 🐊",
     countDown: 5,
     role: 0,
-    description: { en: "Search and download YouTube video/audio" },
+    shortDescription: { en: "YouTube downloader" },
     category: "media",
-    guide: { en: "{pn} -v <query|url>\n{pn} -a <query|url>" }
+    guide: { en: "{pn} -a <query> or {pn} -v <query>" }
   },
 
-  onStart: async function ({ api: i, args, event: k, commandName: l }) {
-    let e;
+  onStart: async function ({ message, args, event, api, commandName }) {
+    const type = args[0];
+    const query = args.slice(1).join(" ");
+
+    if (!["-a", "-v"].includes(type) || !query) {
+      return message.reply(`Usage: ${this.config.name} -a <query> or -v <query>`);
+    }
+
     try {
-      const apiConfig = await b.get(nix);
-      e = apiConfig.data && apiConfig.data.api;
-      if (!e) {
-        return i.sendMessage("❌ Configuration Error: GitHub apis.json is missing the 'api' field.", k.threadID, k.messageID);
+      const res = await axios.get(`https://neokex-dlapis.vercel.app/api/search?q=${encodeURIComponent(query)}`);
+      const results = res.data.results.slice(0, 6);
+
+      if (results.length === 0) return message.reply("No results found.");
+
+      let msg = "";
+      const attachments = [];
+      const cacheDir = path.join(__dirname, "cache");
+      await fs.ensureDir(cacheDir);
+
+      for (let i = 0; i < results.length; i++) {
+        msg += `${i + 1}. ${results[i].title}\n[${results[i].duration}]\n\n`;
+        const imgPath = path.join(cacheDir, `yt_${Date.now()}_${i}.jpg`);
+        const imgRes = await axios.get(results[i].thumbnail, { responseType: "arraybuffer" });
+        await fs.writeFile(imgPath, Buffer.from(imgRes.data));
+        attachments.push(fs.createReadStream(imgPath));
       }
-    } catch (error) {
-      console.error("API Config Fetch Error:", error);
-      return i.sendMessage("❌ Failed to fetch API configuration from GitHub.", k.threadID, k.messageID);
+
+      message.reply({ body: msg.trim(), attachment: attachments }, (err, info) => {
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName,
+          author: event.senderID,
+          results,
+          downloadType: type === "-a" ? "audio" : "video"
+        });
+        attachments.forEach(s => setTimeout(() => fs.remove(s.path).catch(() => {}), 10000));
+      });
+    } catch (e) {
+      message.reply("Search error.");
     }
+  },
 
-    const aryan = args;
-    const n = aryan[0];
-    if (!["-v", "-a"].includes(n)) return i.sendMessage("❌ Usage: /ytb [-a|-v] <search or YouTube URL>", k.threadID, k.messageID);
+  onReply: async function ({ message, event, Reply, api }) {
+    const choice = parseInt(event.body);
+    if (isNaN(choice) || choice < 1 || choice > Reply.results.length) return;
 
-    const o = aryan.slice(1).join(" ");
-    if (!o) return i.sendMessage("❌ Provide a search query or URL.", k.threadID, k.messageID);
-
-    if (o.startsWith("http")) {
-      if (n === "-v") return await p(o, "mp4", i, k, e);
-      else return await p(o, "mp3", i, k, e);
-    }
+    const selected = Reply.results[choice - 1];
+    api.unsendMessage(event.messageReply.messageID);
+    api.setMessageReaction("⏳", event.messageID);
 
     try {
-      const q = await a(o);
-      const r = q.videos.slice(0, 6);
-      if (r.length === 0) return i.sendMessage("❌ No results found.", k.threadID, k.messageID);
+      const dlRes = await axios.get(`https://neokex-dlapis.vercel.app/api/alldl?url=${encodeURIComponent(selected.url)}`);
+      const pollUrl = dlRes.data[Reply.downloadType].downloadUrl;
 
-      let s = "";
-      r.forEach((t, u) => {
-        const v = n === "-v" ? t.seconds ? "360p" : "Unknown" : "128kbps";
-        s += `• Title: ${t.title}\n• Quality: ${v}\n\n`;
+      let streamUrl = null;
+      for (let i = 0; i < 60; i++) { // Max 60 seconds
+        const statusRes = await axios.get(pollUrl);
+        if (statusRes.data.status === "completed") {
+          streamUrl = statusRes.data.viewUrl;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 1000)); // ১ সেকেন্ড পর পর চেক
+      }
+
+      if (!streamUrl) throw new Error("Processing timeout.");
+
+      const cacheDir = path.join(__dirname, "cache");
+      const ext = Reply.downloadType === "audio" ? "mp3" : "mp4";
+      const filePath = path.join(cacheDir, `${Date.now()}.${ext}`);
+      
+      const fileRes = await axios.get(streamUrl, { responseType: "arraybuffer" });
+      await fs.writeFile(filePath, Buffer.from(fileRes.data));
+
+      await message.reply({
+        body: selected.title,
+        attachment: fs.createReadStream(filePath)
       });
 
-      const w = await Promise.all(r.map(x => f(x.thumbnail)));
-
-      i.sendMessage(
-        { body: s + "Reply with number (1-6) to download", attachment: w },
-        k.threadID,
-        (err, y) => {
-          global.GoatBot.onReply.set(y.messageID, {
-            commandName: l,
-            messageID: y.messageID,
-            author: k.senderID,
-            results: r,
-            type: n,
-            baseApi: e
-          });
-        },
-        k.messageID
-      );
-    } catch (err) {
-      console.error(err);
-      i.sendMessage("❌ Failed to search YouTube.", k.threadID, k.messageID);
+      api.setMessageReaction("✅", event.messageID);
+      fs.remove(filePath).catch(() => {});
+    } catch (e) {
+      api.setMessageReaction("❌", event.messageID);
+      message.reply("Download error.");
     }
-  },
-
-  onReply: async function ({ event: z, api: A, Reply: B }) {
-    const { results: C, type: D, baseApi: e } = B;
-    if (!e) return A.sendMessage("❌ Configuration lost. Please try the command again.", z.threadID, z.messageID);
-
-    const E = parseInt(z.body);
-
-    if (isNaN(E) || E < 1 || E > C.length) return A.sendMessage("❌ Invalid selection. Choose 1-6.", z.threadID, z.messageID);
-
-    const F = C[E - 1];
-    await A.unsendMessage(B.messageID);
-
-    if (D === "-v") await p(F.url, "mp4", A, z, e);
-    else await p(F.url, "mp3", A, z, e);
   }
 };
-
-async function p(q, r, s, t, e) {
-  try {
-    const { data: u } = await b.get(`${e}/yx?url=${encodeURIComponent(q)}&type=${r}`);
-    const v = u.download_url;
-    if (!u.status || !v) throw new Error("API failed");
-
-    const w = d.join(__dirname, `yt_${Date.now()}.${r}`);
-    const x = c.createWriteStream(w);
-    const y = await b({ url: v, responseType: "stream" });
-    y.data.pipe(x);
-
-    await new Promise((resolve, reject) => {
-      x.on("finish", resolve);
-      x.on("error", reject);
-    });
-
-    await s.sendMessage(
-      { attachment: c.createReadStream(w) },
-      t.threadID,
-      () => c.unlinkSync(w),
-      t.messageID
-    );
-  } catch (err) {
-    console.error(`${r} error:`, err.message);
-    s.sendMessage(`❌ Failed to download ${r}.`, t.threadID, t.messageID);
-  }
-}
