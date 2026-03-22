@@ -1,73 +1,49 @@
 const axios = require("axios");
 
-const configUrl = "https://raw.githubusercontent.com/aryannix/stuffs/master/raw/apis.json";
-
 module.exports = {
   config: {
     name: "prompt",
-    aliases: ["p"],
-    version: "0.0.1",
+    version: "1.0",
+    author: "NeoKEX",
+    countDown: 5,
     role: 0,
-    author: "ArYAN",
+    shortDescription: { en: "Get prompt from image" },
+    longDescription: { en: "Extracts prompt from an image URL or replied image." },
     category: "ai",
-    cooldowns: 5,
-    guide: { en: "Reply to an image to generate Midjourney prompt" }
+    guide: { en: "{pn} [image url] or reply to an image" }
   },
 
-  onStart: async ({ api, event }) => {
-    const { threadID, messageID, messageReply } = event;
+  onStart: async function ({ message, args, event, api }) {
+    let imageUrl = args[0];
+    const { type, messageReply } = event;
 
-    let baseApi;
-    try {
-      const configRes = await axios.get(configUrl);
-      baseApi = configRes.data && configRes.data.api;
-      if (!baseApi) throw new Error("Configuration Error: Missing API in GitHub JSON.");
-    } catch (error) {
-      return api.sendMessage("❌ Failed to fetch API configuration from GitHub.", threadID, messageID);
+    if (type === "message_reply" && messageReply.attachments?.[0]?.type === "photo") {
+      imageUrl = messageReply.attachments[0].url;
     }
 
-    if (
-      !messageReply ||
-      !messageReply.attachments ||
-      messageReply.attachments.length === 0 ||
-      !messageReply.attachments[0].url
-    ) {
-      return api.sendMessage("Please reply to an image.", threadID, messageID);
-    }
+    if (!imageUrl) return message.reply("Please provide an image URL or reply to an image.");
 
     try {
-      api.setMessageReaction("⏰", messageID, () => {}, true);
-
-      const imageUrl = messageReply.attachments[0].url;
-      const apiUrl = `${baseApi}/promptv2`;
-
-      const apiResponse = await axios.get(apiUrl, {
-        params: { imageUrl }
+      api.setMessageReaction("⏳", event.messageID);
+      
+      const res = await axios.get(`https://smfahim.xyz/ai/img2prompt/v3`, {
+        params: {
+          imageUrl: imageUrl,
+          language: "en",
+          model: "0"
+        }
       });
 
-      const result = apiResponse.data;
-
-      if (!result.success) {
-        throw new Error(result.message || "Prompt API failed.");
+      if (res.data.success && res.data.prompt) {
+        message.reply(res.data.prompt);
+        api.setMessageReaction("✅", event.messageID);
+      } else {
+        throw new Error();
       }
 
-      const promptText = result.prompt || "No prompt returned.";
-
-      await api.sendMessage(
-        { body: `${promptText}` },
-        threadID,
-        messageID
-      );
-
-      api.setMessageReaction("✅", messageID, () => {}, true);
-    } catch (e) {
-      api.setMessageReaction("❌", messageID, () => {}, true);
-
-      let msg = "Error while generating prompt.";
-      if (e.response?.data?.error) msg = e.response.data.error;
-      else if (e.message) msg = e.message;
-
-      api.sendMessage(msg, threadID, messageID);
+    } catch (err) {
+      api.setMessageReaction("❌", event.messageID);
+      message.reply("Failed to extract prompt from this image.");
     }
   }
 };
