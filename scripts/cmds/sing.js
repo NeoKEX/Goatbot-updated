@@ -1,119 +1,96 @@
-const a = require("axios");
-const b = require("fs");
-const c = require("path");
-const d = require("yt-search");
-
-const nix = "https://raw.githubusercontent.com/aryannix/stuffs/master/raw/apis.json";
-
-async function getStream(url) {
-  const res = await a({ url, responseType: "stream" });
-  return res.data;
-}
-
-async function downloadSong(baseApi, url, api, event, title = null) {
-  try {
-    const apiUrl = `${baseApi}/play?url=${encodeURIComponent(url)}`;
-    const res = await a.get(apiUrl);
-    const data = res.data;
-
-    if (!data.status || !data.downloadUrl) throw new Error("API failed to return download URL.");
-
-    const songTitle = title || data.title;
-    const fileName = `${songTitle}.mp3`.replace(/[\\/:"*?<>|]/g, "");
-    const filePath = c.join(__dirname, fileName);
-
-    const songData = await a.get(data.downloadUrl, { responseType: "arraybuffer" });
-    b.writeFileSync(filePath, songData.data);
-
-    await api.sendMessage(
-      { body: `• ${songTitle}`, attachment: b.createReadStream(filePath) },
-      event.threadID,
-      () => b.unlinkSync(filePath),
-      event.messageID
-    );
-  } catch (err) {
-    console.error(err);
-    api.sendMessage(`❌ Failed to download song: ${err.message}`, event.threadID, event.messageID);
-  }
-}
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
-    name: "song",
-    aliases: ["music", "sing"],
-    version: "0.0.1",
-    author: "ArYAN",
+    name: "sing",
+    aliases: ["song", "music"],
+    version: "1.1",
+    author: "Neoaz 🐊",
     countDown: 5,
     role: 0,
-    shortDescription: "Sing tomake chai",
-    longDescription: "Search and download music from YouTube",
-    category: "MUSIC",
-    guide: "/play <song name or YouTube URL>"
+    shortDescription: { en: "Search and download YouTube audio" },
+    category: "media",
+    guide: { en: "{pn} <song name>" }
   },
 
-  onStart: async function ({ api: e, event: f, args: g, commandName: cmd }) {
-    let baseApi;
-    try {
-      const configRes = await a.get(nix);
-      baseApi = configRes.data && configRes.data.api;
-      if (!baseApi) throw new Error("Configuration Error: Missing API in GitHub JSON.");
-    } catch (error) {
-      return e.sendMessage("❌ Failed to fetch API configuration from GitHub.", f.threadID, f.messageID);
-    }
-    
-    if (!g.length) return e.sendMessage("❌ Provide a song name or YouTube URL.", f.threadID, f.messageID);
-
-    const aryan = g;
-    const query = aryan.join(" ");
-    if (query.startsWith("http")) return downloadSong(baseApi, query, e, f);
+  onStart: async function ({ message, args, event, api, commandName }) {
+    const query = args.join(" ");
+    if (!query) return message.reply("Please provide a song name.");
 
     try {
-      const res = await d(query);
-      const results = res.videos.slice(0, 6);
-      if (!results.length) return e.sendMessage("❌ No results found.", f.threadID, f.messageID);
+      const res = await axios.get(`https://neokex-dlapis.vercel.app/api/search?q=${encodeURIComponent(query)}`);
+      const results = res.data.results.slice(0, 6);
+
+      if (results.length === 0) return message.reply("No songs found.");
 
       let msg = "";
-      results.forEach((v, i) => {
-        msg += `${i + 1}. ${v.title}\n⏱ ${v.timestamp} | 👀 ${v.views}\n\n`;
+      const attachments = [];
+      const cacheDir = path.join(__dirname, "cache");
+      await fs.ensureDir(cacheDir);
+
+      for (let i = 0; i < results.length; i++) {
+        msg += `${i + 1}. ${results[i].title}\n[${results[i].duration}]\n\n`;
+        const imgPath = path.join(cacheDir, `sing_${Date.now()}_${i}.jpg`);
+        const imgRes = await axios.get(results[i].thumbnail, { responseType: "arraybuffer" });
+        await fs.writeFile(imgPath, Buffer.from(imgRes.data));
+        attachments.push(fs.createReadStream(imgPath));
+      }
+
+      message.reply({ body: msg.trim(), attachment: attachments }, (err, info) => {
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName,
+          author: event.senderID,
+          results
+        });
+        attachments.forEach(s => setTimeout(() => fs.remove(s.path).catch(() => {}), 10000));
       });
-
-      const thumbs = await Promise.all(results.map(v => getStream(v.thumbnail)));
-
-      e.sendMessage(
-        { body: msg + "Reply with number (1-6) to download song", attachment: thumbs },
-        f.threadID,
-        (err, info) => {
-          if (err) return console.error(err);
-          global.GoatBot.onReply.set(info.messageID, {
-            results,
-            messageID: info.messageID,
-            author: f.senderID,
-            commandName: cmd,
-            baseApi
-          });
-        },
-        f.messageID
-      );
-    } catch (err) {
-      console.error(err);
-      e.sendMessage("❌ Failed to search YouTube.", f.threadID, f.messageID);
+    } catch (e) {
+      message.reply("Search error.");
     }
   },
 
-  onReply: async function ({ api: e, event: f, Reply: g }) {
-    const results = g.results;
-    const baseApi = g.baseApi;
-    if (!baseApi) return e.sendMessage("❌ Session expired. Please restart the command.", f.threadID, f.messageID);
+  onReply: async function ({ message, event, Reply, api }) {
+    const choice = parseInt(event.body);
+    if (isNaN(choice) || choice < 1 || choice > Reply.results.length) return;
 
-    const choice = parseInt(f.body);
+    const selected = Reply.results[choice - 1];
+    api.unsendMessage(event.messageReply.messageID);
+    api.setMessageReaction("⏳", event.messageID);
 
-    if (isNaN(choice) || choice < 1 || choice > results.length) {
-      return e.sendMessage("❌ Invalid selection.", f.threadID, f.messageID);
+    try {
+      const dlRes = await axios.get(`https://neokex-dlapis.vercel.app/api/alldl?url=${encodeURIComponent(selected.url)}`);
+      const pollUrl = dlRes.data.audio.downloadUrl;
+
+      let streamUrl = null;
+      for (let i = 0; i < 60; i++) {
+        const statusRes = await axios.get(pollUrl);
+        if (statusRes.data.status === "completed") {
+          streamUrl = statusRes.data.viewUrl;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      if (!streamUrl) throw new Error("Processing timeout.");
+
+      const cacheDir = path.join(__dirname, "cache");
+      const filePath = path.join(cacheDir, `${Date.now()}.mp3`);
+      
+      const fileRes = await axios.get(streamUrl, { responseType: "arraybuffer" });
+      await fs.writeFile(filePath, Buffer.from(fileRes.data));
+
+      await message.reply({
+        body: selected.title,
+        attachment: fs.createReadStream(filePath)
+      });
+
+      api.setMessageReaction("✅", event.messageID);
+      fs.remove(filePath).catch(() => {});
+    } catch (e) {
+      api.setMessageReaction("❌", event.messageID);
+      message.reply("Download error.");
     }
-
-    const selected = results[choice - 1];
-    await e.unsendMessage(g.messageID);
-
-    downloadSong(baseApi, selected.url, e, f, selected.title);
   }
 };
