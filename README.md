@@ -20,7 +20,7 @@
   
   <p>
     <strong>🚀 No Google Credentials Required!</strong><br>
-    <em>Uses dhoner-fca for seamless Facebook integration</em>
+    <em>Uses @neoaz07/nkxfca for seamless Facebook integration</em>
   </p>
 </div>
 
