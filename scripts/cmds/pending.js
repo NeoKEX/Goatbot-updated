@@ -5,7 +5,7 @@ module.exports = {
   config: {
     name: "approve",
     aliases: ["pending", "pend", "pe"],
-    version: "2.0.0",
+    version: "2.0.1",
     author: "Neoaz 🐊",
     countDown: 5,
     role: 2,
@@ -55,11 +55,11 @@ module.exports = {
     return message.reply(`✓ [ SUCCESS ] Approved ${count} ${count > 1 ? "Entries" : "Entry"}!`);
   },
 
-  onStart: async function ({ api, event, args, usersData }) {
+  onStart: async function ({ message, api, event, args, usersData }) {
     const { threadID, messageID } = event;
     const type = args[0]?.toLowerCase();
 
-    if (!["user", "thread", "all"].some(t => type?.startsWith(t))) {
+    if (!type || !["user", "thread", "all"].some(t => type.startsWith(t))) {
       return message.reply(`『 USAGE 』\n\n${this.config.name} user  — Approve users\n${this.config.name} thread — Approve groups\n${this.config.name} all    — Approve everything`);
     }
 
