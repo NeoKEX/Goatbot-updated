@@ -1,0 +1,67 @@
+const fs = require('fs');
+const path = require('path');
+
+// owner.json load
+let ownerData = { ownerID: "61588349794704" };
+
+try {
+    const ownerPath = path.join(__dirname, 'owner.json');
+
+    if (fs.existsSync(ownerPath)) {
+        const raw = fs.readFileSync(ownerPath, 'utf8');
+        ownerData = JSON.parse(raw);
+        console.log("✅ owner.json সফলভাবে লোড হয়েছে!");
+    } else {
+        console.warn("⚠️ owner.json পাওয়া যায়নি, default ownerID ব্যবহার করা হচ্ছে!");
+    }
+
+} catch (error) {
+    console.error("❌ owner.json load করতে সমস্যা:", error.message);
+}
+
+module.exports = {
+    name: "owner",
+    description: "Bot owner এর personal information দেখায় (শুধু owner)",
+
+    execute: function (api, event) {
+        try {
+            const senderID = event.senderID || event.userID;
+
+            if (!senderID) {
+                return api.sendMessage("❌ Sender ID পাওয়া যায়নি!", event.threadID);
+            }
+
+            // owner check
+            if (senderID.toString() !== ownerData.ownerID.toString()) {
+                return api.sendMessage(
+                    "❌ এই কমান্ড শুধুমাত্র Bot Owner ব্যবহার করতে পারবে!\nঅনুমতি নেই!",
+                    event.threadID
+                );
+            }
+
+            const replyMessage = `╔═══════════════✿
+║ ✨ 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢 ✨
+╠═══════════════✿
+║ 👑 𝗡𝗮𝗺𝗲 : Ajmaul 𝗜𝘀𝗹𝗮𝗺
+║ 🧸 𝗡𝗶𝗰𝗸 𝗡𝗮𝗺𝗲 : Ajmaul
+║ 🎂 𝗔𝗴𝗲 : 18
+║ 💘 𝗥𝗲𝗹𝗮𝘁𝗶𝗼𝗻 : 𝗦𝗶𝗻𝗴𝗹𝗲
+║ 🎓 𝗣𝗿𝗼𝗳𝗲𝘀𝘀𝗶𝗼𝗻 : 𝗦𝘁𝘂𝗱𝗲𝗻𝘁
+║ 🏡 𝗔𝗱𝗱𝗿𝗲𝘀𝘀 : Joypurhat
+╠═══════════════✿
+║ 🔗 𝗖𝗢𝗡𝗧𝗔𝗖𝗧 𝗟𝗜𝗡𝗞𝗦
+╠═══════════════✿
+║ 📘 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸 :
+║ fb.com/61588349794704
+║ 💬 𝗠𝗲𝘀𝗲𝗻𝗴𝗲𝗿 :
+║ m.me/61588349794704
+╚═══════════════✿`;
+
+            api.sendMessage(replyMessage, event.threadID);
+
+        } catch (err) {
+            console.error("❌ owner command error:", err);
+            api.sendMessage("⚠️ Owner command এ error হয়েছে!", event.threadID);
+        }
+    }
+};
