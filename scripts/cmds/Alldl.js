@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "alldl",
     aliases: ["fbdl", "igdl", "ttdl", "ytdl", "dl"],
-    version: "2.0",
+    version: "2.1",
     author: "Neoaz 🐊",
     countDown: 5,
     role: 0,
@@ -19,7 +19,6 @@ module.exports = {
   onStart: async function ({ message, args, event, api }) {
     const input = args[0];
 
-    // Auto-download toggle logic
     if (input === "auto") {
       if (!global.alldl_auto) global.alldl_auto = {};
       const threadID = event.threadID;
@@ -47,10 +46,7 @@ module.exports = {
     const threadID = event.threadID;
     if (!global.alldl_auto) global.alldl_auto = {};
     
-    // Default is ON, so if it's undefined or true, proceed
     if (global.alldl_auto[threadID] === false) return;
-    
-    // Check if event.body exists (not undefined for stickers, reactions, etc.)
     if (!event.body || typeof event.body !== 'string') return;
 
     const urlMatch = event.body.match(/https?:\/\/(www\.)?(facebook|fb|instagram|tiktok|youtube|youtu|shorts)\.[^\s]+/);
@@ -66,15 +62,25 @@ module.exports = {
     const filePath = path.join(cacheDir, `dl_${Date.now()}.mp4`);
 
     try {
-      const res = await axios.get(`https://neokex-dlapis.vercel.app/api/alldl?url=${encodeURIComponent(url)}`);
-      
+      const res = await axios.get(`https://neoaz.is-a.dev/api/download?url=${encodeURIComponent(url)}`);
       const videoUrl = res.data.video?.directUrl || res.data.video?.downloadUrl;
       const title = res.data.info?.title || "Downloaded Video";
 
       if (!videoUrl) throw new Error("Could not find direct stream URL.");
 
-      const videoStream = await axios.get(videoUrl, { responseType: "arraybuffer" });
-      await fs.writeFile(filePath, Buffer.from(videoStream.data));
+      const response = await axios({
+        method: 'get',
+        url: videoUrl,
+        responseType: 'stream'
+      });
+
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
 
       await message.reply({
         body: title,
@@ -86,8 +92,8 @@ module.exports = {
       console.error(error);
       api.setMessageReaction("❌", event.messageID);
     } finally {
-      if (await fs.pathExists(filePath)) {
-        setTimeout(() => fs.remove(filePath).catch(() => {}), 5000);
+      if (fs.existsSync(filePath)) {
+        setTimeout(() => fs.unlinkSync(filePath), 10000);
       }
     }
   }
