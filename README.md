@@ -20,7 +20,7 @@
   
   <p>
     <strong>🚀 No Google Credentials Required!</strong><br>
-    <em>Uses dhoner-fca for seamless Facebook integration</em>
+    <em>Uses @neoaz07/nkxfca for seamless Facebook integration</em>
   </p>
 </div>
 
@@ -65,7 +65,7 @@
 ## 📝 **Important Notes**
 
 > ⚠️ **Account Safety First**
-> - This bot uses [dhoner-fca](https://github.com/NeoKEX/dhoner-fca) (Facebook Chat API)
+> - This bot uses [@neoaz07/nkxfca](https://github.com/NeoKEX/nkxfca) (Facebook Chat API)
 > - **No Google API credentials needed** - Simple setup with just your Facebook account
 > - Using unofficial APIs may risk account restrictions
 > - **Recommended:** Use a secondary/clone Facebook account
@@ -87,17 +87,11 @@
   - Typing Indicator support
   - Graceful Shutdown handling
   - **Memory Management**: TTLMap for auto-expiring data, MemoryManager for heap monitoring, DatabaseCacheManager for LRU eviction
-- � **Multi-Account Support**:
+- 🔄 **Multi-Account Support**:
   - Auto-switch to backup accounts on suspension/lockout
   - Single account mode: auto-retry with exponential backoff
   - Admin commands: `{prefix}account status`, `{prefix}account switch`
   - Create `account2.txt`, `account3.txt` for backup accounts
-- �️ **New Commands**:
-  - `4k` - AI image upscaling
-  - `rbg` - Remove image background
-  - `nbpro` (edit) - AI image generation & editing with Nano-banana Pro
-  - `account` - Manage multiple accounts (admin only)
-  - Enhanced `up`, `stats`, `perf` commands with detailed system info
 
 ## 🚧 **Requirements**
 - Node.js 16.x or 20.x [Download](https://nodejs.org/dist/v20.0.0) | [Home](https://nodejs.org/en/download/)
