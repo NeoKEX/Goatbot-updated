@@ -9,11 +9,7 @@
         },
         "dependencies": {
                 "@distube/ytdl-core": "^4.13.3",
-<<<<<<< HEAD
                 "@neoaz07/nkxfca": "^1.0.9",
-=======
-                "@neoaz07/nkxfca": "^1.0.5",
->>>>>>> 23c069d26e8ef81fed458c0830d5239430ba4f8a
                 "axios": "^1.4.0",
                 "bcrypt": "^5.0.1",
                 "btch-downloader": "^6.0.22",
