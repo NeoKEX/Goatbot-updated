@@ -41,6 +41,7 @@
   | ☁️ **Deploy Anywhere** | Ready for Render, Railway, Replit, VPS, and more |
   | 🚀 **Performance** | Optimized with caching, batching, and efficient memory management |
   | 🤖 **AI Commands** | Image generation, editing, upscaling, and background removal |
+  | 🔄 **Multi-Account** | Auto-switch accounts on suspension/lockout - no restarts needed |
   
 </div>
 
@@ -85,10 +86,17 @@
   - Thread Batching for efficient loading
   - Typing Indicator support
   - Graceful Shutdown handling
-- 🖼️ **New Commands**:
+  - **Memory Management**: TTLMap for auto-expiring data, MemoryManager for heap monitoring, DatabaseCacheManager for LRU eviction
+- � **Multi-Account Support**:
+  - Auto-switch to backup accounts on suspension/lockout
+  - Single account mode: auto-retry with exponential backoff
+  - Admin commands: `{prefix}account status`, `{prefix}account switch`
+  - Create `account2.txt`, `account3.txt` for backup accounts
+- �️ **New Commands**:
   - `4k` - AI image upscaling
   - `rbg` - Remove image background
   - `nbpro` (edit) - AI image generation & editing with Nano-banana Pro
+  - `account` - Manage multiple accounts (admin only)
   - Enhanced `up`, `stats`, `perf` commands with detailed system info
 
 ## 🚧 **Requirements**
@@ -125,6 +133,36 @@ Choose your preferred platform:
   
 Summary instructions:
 - See [here](https://github.com/ntkhang03/Goat-Bot-V2/blob/main/STEP_INSTALL.md)
+
+---
+
+## 🔄 **Multi-Account Support (New)**
+
+The bot now supports multiple Facebook accounts with automatic failover:
+
+### Setup
+1. **Primary Account**: Paste credentials in `account.txt`
+2. **Backup Accounts**: Create `account2.txt`, `account3.txt`, etc. with backup account credentials
+
+### How It Works
+| Scenario | Behavior |
+|----------|----------|
+| **Single Account** (`account.txt` only) | Auto-retry with exponential backoff (30s → 5min). Bot never exits, keeps trying until account recovers |
+| **Multiple Accounts** | Auto-switch to backup account when current account is suspended/locked/logged out. No restart needed |
+| **All Accounts Failed** | Cycles back to first account and continues retrying |
+
+### Admin Commands
+- `{prefix}account status` - View multi-account status and available accounts
+- `{prefix}account switch` - Manually switch to next account
+- `{prefix}account reset` - Reset failed accounts list
+
+### Supported Account Formats
+- **JSON Cookies**: `[{"key":"c_user","value":"123","domain":"facebook.com"}]`
+- **String Cookies**: `c_user=123; xs=abc123`
+- **Access Token**: `EAAAA...`
+- **Email/Password**: `email|password|2fa_code`
+
+---
 
 
 
