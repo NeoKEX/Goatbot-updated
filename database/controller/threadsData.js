@@ -370,6 +370,11 @@ module.exports = async function (databaseType, threadModel, api, fakeGraphql) {
                 else
                         threadData = global.db.allThreadData[index];
 
+                // Track access for cache eviction
+                if (global.dbCacheManager) {
+                        global.dbCacheManager.recordAccess(threadID, 'thread');
+                }
+
                 if (query)
                         if (typeof query != "string")
                                 throw new CustomError({

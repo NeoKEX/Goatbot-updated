@@ -359,6 +359,11 @@ module.exports = async function (databaseType, userModel, api, fakeGraphql) {
                 else
                         userData = global.db.allUserData[index];
 
+                // Track access for cache eviction
+                if (global.dbCacheManager) {
+                        global.dbCacheManager.recordAccess(userID, 'user');
+                }
+
                 if (query)
                         if (typeof query !== "string")
                                 throw new CustomError({

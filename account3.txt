@@ -1,4 +1,6 @@
-# Paste your primary Facebook account credentials here
+# Backup Account #3 - Paste your third Facebook account credentials here
+# This account will be used if account2.txt fails (suspended, locked, etc.)
+#
 # Format options:
 # 1. Cookies (JSON format): [{"key":"c_user","value":"123456","domain":"facebook.com"}]
 # 2. Cookies (string format): c_user=123456; xs=abc123

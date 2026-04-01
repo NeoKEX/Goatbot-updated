@@ -1,5 +1,5 @@
 /**
- * @author NTKhang
+ * @author NTKhang & Modded by NeoKEX
  * ! The source code is written by NTKhang, please don't change the author's name everywhere. Thank you for using
  * ! Official source code: https://github.com/ntkhang03/Goat-Bot-V2
  * ! If you do not download the source code from the above address, you are using an unknown version and at risk of having your account hacked
@@ -17,8 +17,79 @@
  * Cảm ơn bạn đã sử dụng
  */
 
-process.on('unhandledRejection', error => console.log(error));
-process.on('uncaughtException', error => console.log(error));
+process.on('unhandledRejection', (error, promise) => {
+	log.error('UNHANDLED_REJECTION', error.message || error);
+	// Don't store the promise to avoid memory leak
+	// Just log and continue
+});
+
+process.on('uncaughtException', (error) => {
+	log.error('UNCAUGHT_EXCEPTION', error.message || error);
+	log.error('UNCAUGHT_EXCEPTION', error.stack || 'No stack trace');
+	// Give time for logs to flush before exiting
+	setTimeout(() => process.exit(1), 1000);
+});
+
+/**
+ * TTLMap - A Map with automatic TTL (Time To Live) expiration
+ * Automatically removes entries after specified time to prevent memory leaks
+ */
+class TTLMap extends Map {
+	constructor(options = {}) {
+		super();
+		this.ttl = options.ttl || 3600000; // Default 1 hour
+		this.maxSize = options.maxSize || 1000;
+		this.timestamps = new Map();
+		this.cleanupInterval = setInterval(() => this._cleanup(), options.cleanupInterval || 60000);
+	}
+
+	set(key, value) {
+		// Check max size and remove oldest if needed
+		if (this.size >= this.maxSize && !this.has(key)) {
+			const oldestKey = this.timestamps.keys().next().value;
+			this.delete(oldestKey);
+		}
+
+		super.set(key, value);
+		this.timestamps.set(key, Date.now());
+		return this;
+	}
+
+	get(key) {
+		const value = super.get(key);
+		if (value !== undefined) {
+			// Update timestamp on access (LRU behavior)
+			this.timestamps.set(key, Date.now());
+		}
+		return value;
+	}
+
+	delete(key) {
+		this.timestamps.delete(key);
+		return super.delete(key);
+	}
+
+	_cleanup() {
+		const now = Date.now();
+		const cutoff = now - this.ttl;
+		let cleaned = 0;
+
+		for (const [key, timestamp] of this.timestamps) {
+			if (timestamp < cutoff) {
+				this.delete(key);
+				cleaned++;
+			}
+		}
+
+		return cleaned;
+	}
+
+	destroy() {
+		clearInterval(this.cleanupInterval);
+		this.clear();
+		this.timestamps.clear();
+	}
+}
 
 const axios = require("axios");
 const fs = require("fs-extra");
@@ -69,11 +140,11 @@ global.GoatBot = {
         commandFilesPath: [], // [{ filePath: "", commandName: [] }
         eventCommandsFilesPath: [], // [{ filePath: "", commandName: [] }
         aliases: new Map(), // store all aliases
-        onFirstChat: [], // store all onFirstChat [{ commandName: "", threadIDsChattedFirstTime: [] }}]
+        onFirstChat: new Set(), // store threadIDs that have been first chatted (memory efficient with automatic cleanup)
         onChat: [], // store all onChat
         onEvent: [], // store all onEvent
-        onReply: new Map(), // store all onReply
-        onReaction: new Map(), // store all onReaction
+        onReply: new TTLMap({ ttl: 30 * 60 * 1000, maxSize: 500, cleanupInterval: 60000 }), // 30 min TTL, max 500 entries
+        onReaction: new TTLMap({ ttl: 30 * 60 * 1000, maxSize: 500, cleanupInterval: 60000 }), // 30 min TTL, max 500 entries
         onAnyEvent: [], // store all onAnyEvent
         config, // store config
         configCommands, // store config commands
@@ -196,6 +267,135 @@ global.GoatBot.envEvents = global.GoatBot.configCommands.envEvents;
 
 // ———————————————— LOAD LANGUAGE ———————————————— //
 const getText = global.utils.getText;
+
+/**
+ * MemoryManager - Monitors and manages memory to prevent leaks and ensure long-term stability
+ */
+class MemoryManager {
+	constructor(options = {}) {
+		this.options = {
+			checkInterval: options.checkInterval || 5 * 60 * 1000, // 5 minutes
+			heapThreshold: options.heapThreshold || 512 * 1024 * 1024, // 512MB
+			maxOldListening: options.maxOldListening || 10,
+			maxCallbackListenTime: options.maxCallbackListenTime || 100,
+			maxOnFirstChatSize: options.maxOnFirstChatSize || 10000,
+			...options
+		};
+
+		this.stats = {
+			cleanups: 0,
+			lastHeapUsed: 0,
+			peakHeapUsed: 0
+		};
+
+		this._startMonitoring();
+	}
+
+	_startMonitoring() {
+		setInterval(() => this._checkMemory(), this.options.checkInterval);
+	}
+
+	_checkMemory() {
+		const memUsage = process.memoryUsage();
+		this.stats.lastHeapUsed = memUsage.heapUsed;
+		this.stats.peakHeapUsed = Math.max(this.stats.peakHeapUsed, memUsage.heapUsed);
+
+		// Cleanup if heap exceeds threshold
+		if (memUsage.heapUsed > this.options.heapThreshold) {
+			this._performCleanup();
+		}
+
+		// Always do light cleanup
+		this._lightCleanup();
+	}
+
+	_performCleanup() {
+		const { GoatBot } = global;
+		let cleaned = 0;
+
+		// Cleanup old listening handles
+		if (GoatBot.oldListening.length > this.options.maxOldListening) {
+			const toRemove = GoatBot.oldListening.length - this.options.maxOldListening;
+			for (let i = 0; i < toRemove; i++) {
+				const handle = GoatBot.oldListening.shift();
+				if (handle && typeof handle.stop === 'function') {
+					try { handle.stop(); } catch (e) {}
+				}
+			}
+			cleaned += toRemove;
+		}
+
+		// Cleanup callbackListenTime
+		const callbackEntries = Object.keys(GoatBot.callbackListenTime);
+		if (callbackEntries.length > this.options.maxCallbackListenTime) {
+			// Sort by timestamp and remove oldest
+			const sorted = callbackEntries
+				.map(key => ({ key, time: GoatBot.callbackListenTime[key] }))
+				.sort((a, b) => a.time - b.time);
+
+			const toRemove = sorted.length - this.options.maxCallbackListenTime;
+			for (let i = 0; i < toRemove; i++) {
+				delete GoatBot.callbackListenTime[sorted[i].key];
+			}
+			cleaned += toRemove;
+		}
+
+		// Cleanup onFirstChat if too large
+		if (GoatBot.onFirstChat.size > this.options.maxOnFirstChatSize) {
+			const entries = Array.from(GoatBot.onFirstChat);
+			const toRemove = entries.slice(0, entries.length - this.options.maxOnFirstChatSize);
+			toRemove.forEach(id => GoatBot.onFirstChat.delete(id));
+			cleaned += toRemove.length;
+		}
+
+		// Clear expired premium users cache
+		if (global.temp?.expiredPremiumUsers?.length > 1000) {
+			global.temp.expiredPremiumUsers.splice(0, global.temp.expiredPremiumUsers.length - 1000);
+			cleaned++;
+		}
+
+		// Force garbage collection if available
+		if (global.gc && memUsage.heapUsed > this.options.heapThreshold * 1.5) {
+			global.gc();
+			cleaned++;
+		}
+
+		if (cleaned > 0) {
+			this.stats.cleanups++;
+			log.info('MEMORY', `Cleaned ${cleaned} items, heap: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`);
+		}
+	}
+
+	_lightCleanup() {
+		// Cleanup client cache
+		if (global.client?.cache) {
+			const cache = global.client.cache;
+			const now = Date.now();
+			for (const [key, value] of Object.entries(cache)) {
+				if (value?._timestamp && now - value._timestamp > 3600000) {
+					delete cache[key];
+				}
+			}
+		}
+	}
+
+	getStats() {
+		const memUsage = process.memoryUsage();
+		return {
+			...this.stats,
+			heapUsed: memUsage.heapUsed,
+			heapTotal: memUsage.heapTotal,
+			rss: memUsage.rss,
+			external: memUsage.external,
+			heapUsedMB: (memUsage.heapUsed / 1024 / 1024).toFixed(2),
+			heapTotalMB: (memUsage.heapTotal / 1024 / 1024).toFixed(2),
+			rssMB: (memUsage.rss / 1024 / 1024).toFixed(2)
+		};
+	}
+}
+
+// Initialize memory manager
+const memoryManager = new MemoryManager();
 
 // ———————————————— AUTO RESTART ———————————————— //
 if (config.autoRestart) {

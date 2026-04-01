@@ -547,6 +547,15 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                 // Set cooldown after successful execution
                                 cooldownManager.setCooldown(commandName, senderID);
                                 
+                                // Deduct money if requiredMoney was set
+                                if (requiredMoney && requiredMoney > 0) {
+                                        try {
+                                                await usersData.subtractMoney(senderID, requiredMoney);
+                                        } catch (err) {
+                                                log.err("MONEY", `Failed to deduct $${requiredMoney} from ${senderID}`, err);
+                                        }
+                                }
+                                
                                 log.info("CALL COMMAND", `${commandName} | ${userData.name} | ${senderID} | ${threadID} | ${args.join(" ")}`);
                         }
                         catch (err) {
@@ -676,54 +685,57 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                  +------------------------------------------------+
                 */
                 async function onFirstChat() {
-                        const allOnFirstChat = GoatBot.onFirstChat || [];
-                        const args = body ? body.split(/ +/) : [];
+					// onFirstChat is now a Set of threadIDs that have been first chatted
+					// Commands register themselves in GoatBot.onChat with a flag for firstChat
+					if (GoatBot.onFirstChat.has(threadID))
+						return;
 
-                        for (const itemOnFirstChat of allOnFirstChat) {
-                                const { commandName, threadIDsChattedFirstTime } = itemOnFirstChat;
-                                if (threadIDsChattedFirstTime.includes(threadID))
-                                        continue;
-                                const command = GoatBot.commands.get(commandName);
-                                if (!command)
-                                        continue;
+					const args = body ? body.split(/ +/) : [];
 
-                                itemOnFirstChat.threadIDsChattedFirstTime.push(threadID);
-                                const getText2 = createGetText2(langCode, `${process.cwd()}/languages/cmds/${langCode}.js`, prefix, command);
-                                const time = getTime("DD/MM/YYYY HH:mm:ss");
-                                createMessageSyntaxError(commandName);
+					for (const commandName of GoatBot.onFirstChat._commandNames || []) {
+						const command = GoatBot.commands.get(commandName);
+						if (!command || !command.onFirstChat)
+							continue;
 
-                                if (getType(command.onFirstChat) == "Function") {
-                                        const defaultOnFirstChat = command.onFirstChat;
-                                        // convert to AsyncFunction
-                                        command.onFirstChat = async function () {
-                                                return defaultOnFirstChat(...arguments);
-                                        };
-                                }
+						const getText2 = createGetText2(langCode, `${process.cwd()}/languages/cmds/${langCode}.js`, prefix, command);
+						const time = getTime("DD/MM/YYYY HH:mm:ss");
+						createMessageSyntaxError(commandName);
 
-                                command.onFirstChat({
-                                        ...parameters,
-                                        isUserCallCommand,
-                                        args,
-                                        commandName,
-                                        getLang: getText2
-                                })
-                                        .then(async (handler) => {
-                                                if (typeof handler == "function") {
-                                                        if (isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, commandName, message, langCode))
-                                                                return;
-                                                        try {
-                                                                await handler();
-                                                                log.info("onFirstChat", `${commandName} | ${userData.name} | ${senderID} | ${threadID} | ${args.join(" ")}`);
-                                                        }
-                                                        catch (err) {
-                                                                await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "errorOccurred2", time, commandName, removeHomeDir(err.stack ? err.stack.split("\n").slice(0, 5).join("\n") : JSON.stringify(err, null, 2))));
-                                                        }
-                                                }
-                                        })
-                                        .catch(err => {
-                                                log.err("onFirstChat", `An error occurred when calling the command onFirstChat ${commandName}`, err);
-                                        });
-                        }
+						if (getType(command.onFirstChat) == "Function") {
+							const defaultOnFirstChat = command.onFirstChat;
+							// convert to AsyncFunction
+							command.onFirstChat = async function () {
+								return defaultOnFirstChat(...arguments);
+							};
+						}
+
+						command.onFirstChat({
+							...parameters,
+							isUserCallCommand,
+							args,
+							commandName,
+							getLang: getText2
+						})
+							.then(async (handler) => {
+								if (typeof handler == "function") {
+									if (isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, commandName, message, langCode))
+										return;
+									try {
+										await handler();
+										log.info("onFirstChat", `${commandName} | ${userData.name} | ${senderID} | ${threadID} | ${args.join(" ")}`);
+									}
+									catch (err) {
+										await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "errorOccurred2", time, commandName, removeHomeDir(err.stack ? err.stack.split("\n").slice(0, 5).join("\n") : JSON.stringify(err, null, 2))));
+									}
+								}
+							})
+							.catch(err => {
+								log.err("onFirstChat", `An error occurred when calling the command onFirstChat ${commandName}`, err);
+							});
+					}
+
+					// Mark this thread as having received first chat
+					GoatBot.onFirstChat.add(threadID);
                 }
 
 

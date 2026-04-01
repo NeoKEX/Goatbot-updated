@@ -55,6 +55,11 @@ module.exports = {
 
         onStart: async function ({ message, event, getLang }) {
                 const pathFile = `${__dirname}/tmp/restart.txt`;
+                // Ensure tmp folder exists
+                const tmpDir = `${__dirname}/tmp`;
+                if (!fs.existsSync(tmpDir)) {
+                        fs.mkdirSync(tmpDir, { recursive: true });
+                }
                 fs.writeFileSync(pathFile, `${event.threadID} ${Date.now()}`);
                 await message.reply(getLang("restartting"));
                 process.exit(2);

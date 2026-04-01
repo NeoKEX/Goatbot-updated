@@ -35,6 +35,7 @@ async function getName(userID) {
 const { writeFileSync, readFileSync, existsSync, watch } = require("fs-extra");
 const handlerWhenListenHasError = require("./handlerWhenListenHasError.js");
 const checkLiveCookie = require("./checkLiveCookie.js");
+const multiAccountManager = require("./multiAccountManager.js"); // Multi-account support
 const { callbackListenTime, storage5Message } = global.GoatBot;
 const { log, logColor, getPrefix, createOraDots, jsonStringifyColor, getText, convertTime, colors, randomString } = global.utils;
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -225,6 +226,55 @@ global.statusAccountBot = 'good';
 let changeFbStateByCode = false;
 let latestChangeContentAccount = fs.statSync(dirAccount).mtimeMs;
 let dashBoardIsRunning = false;
+
+// ——————————— MULTI-ACCOUNT SETUP ——————————— //
+// Scan for available accounts and set initial account
+multiAccountManager.scanAccounts();
+let currentAccountFile = multiAccountManager.getCurrentAccount();
+if (currentAccountFile) {
+	// Override dirAccount with current account from manager
+	global.client.dirAccount = currentAccountFile;
+	log.info("MULTI_ACCOUNT", `Using account: ${path.basename(currentAccountFile)}`);
+}
+
+// Function to switch to next account
+async function switchToNextAccount(reason = "Account issue detected") {
+	if (!multiAccountManager.canSwitch()) {
+		log.warn("MULTI_ACCOUNT", "Switch cooldown active, cannot switch accounts now");
+		return false;
+	}
+
+	if (!multiAccountManager.hasMoreAccounts()) {
+		log.warn("MULTI_ACCOUNT", "No more accounts available to switch");
+		return false;
+	}
+
+	log.warn("MULTI_ACCOUNT", `${reason}, switching to next account...`);
+	multiAccountManager.isSwitching = true;
+
+	try {
+		// Stop current listening
+		await stopListening();
+
+		// Get next account
+		const nextAccount = multiAccountManager.nextAccount();
+		global.client.dirAccount = nextAccount;
+
+		log.info("MULTI_ACCOUNT", `Switched to: ${path.basename(nextAccount)}`);
+
+		// Restart bot with new account
+		setTimeout(() => {
+			multiAccountManager.isSwitching = false;
+			startBot();
+		}, 3000);
+
+		return true;
+	} catch (err) {
+		log.err("MULTI_ACCOUNT", "Error switching accounts:", err);
+		multiAccountManager.isSwitching = false;
+		return false;
+	}
+}
 
 
 async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { } }, facebookAccount) {
@@ -685,6 +735,32 @@ async function startBot(loginWithEmail) {
                         if (error) {
                                 log.err("LOGIN FACEBOOK", getText('login', 'loginError'), error);
                                 global.statusAccountBot = 'can\'t login';
+
+                                // ——————————— SINGLE ACCOUNT MODE ——————————— //
+                                // If only one account, keep retrying with exponential backoff
+                                if (multiAccountManager.isSingleAccount()) {
+                                        multiAccountManager.singleAccountRetryCount++;
+                                        const retryDelay = multiAccountManager.getRetryDelay(multiAccountManager.singleAccountRetryCount);
+                                        
+                                        log.warn("SINGLE ACCOUNT", `Only one account configured. Will retry in ${(retryDelay / 1000).toFixed(0)} seconds (attempt #${multiAccountManager.singleAccountRetryCount})...`);
+                                        
+                                        setTimeout(() => {
+                                                log.info("SINGLE ACCOUNT", "Retrying login with same account...");
+                                                startBot(true);
+                                        }, retryDelay);
+                                        return; // Don't exit, retry scheduled
+                                }
+
+                                // ——————————— MULTI-ACCOUNT SWITCHING ——————————— //
+                                // Check if we have multiple accounts and should switch instead of restarting
+                                if (multiAccountManager.getAvailableAccounts().length > 1) {
+                                        log.warn("LOGIN FACEBOOK", "Login failed, attempting to switch to next account...");
+                                        const switched = await switchToNextAccount(`Login failed: ${error.message || error}`);
+                                        if (switched) {
+                                                return; // Don't exit, account switch in progress
+                                        }
+                                }
+
                                 if (facebookAccount.email && facebookAccount.password) {
                                         return startBot(true);
                                 }
@@ -707,6 +783,10 @@ async function startBot(loginWithEmail) {
                         global.GoatBot.fcaApi = api;
                         global.GoatBot.botID = api.getCurrentUserID();
                         log.info("LOGIN FACEBOOK", getText('login', 'loginSuccess'));
+
+                        // Mark current account as working
+                        multiAccountManager.markCurrentAsWorking();
+
                         let hasBanned = false;
                         global.botID = api.getCurrentUserID();
                         logColor("#f5ab00", createLine("BOT INFO"));
@@ -952,11 +1032,65 @@ async function startBot(loginWithEmail) {
                                         if (
                                                 error.error == "Not logged in" ||
                                                 error.error == "Not logged in." ||
-                                                error.error == "Connection refused: Server unavailable"
+                                                error.error == "Connection refused: Server unavailable" ||
+                                                error.error?.includes("logout") ||
+                                                error.error?.includes("suspended") ||
+                                                error.error?.includes("checkpoint") ||
+                                                error.error?.includes("locked")
                                         ) {
-                                                log.err("NOT LOGGEG IN", getText('login', 'notLoggedIn'), error);
+                                                log.err("ACCOUNT ISSUE", getText('login', 'notLoggedIn'), error);
                                                 global.responseUptimeCurrent = responseUptimeError;
                                                 global.statusAccountBot = 'can\'t login';
+
+                                                // ——————————— SINGLE ACCOUNT MODE ——————————— //
+                                                // If only one account, keep retrying instead of restarting
+                                                if (multiAccountManager.isSingleAccount()) {
+                                                        if (!isSendNotiErrorMessage) {
+                                                                await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
+                                                                isSendNotiErrorMessage = true;
+                                                        }
+
+                                                        multiAccountManager.singleAccountRetryCount++;
+                                                        const retryDelay = multiAccountManager.getRetryDelay(multiAccountManager.singleAccountRetryCount);
+                                                        
+                                                        log.warn("SINGLE ACCOUNT", `Account issue detected. Will retry in ${(retryDelay / 1000).toFixed(0)} seconds (attempt #${multiAccountManager.singleAccountRetryCount})...`);
+                                                        
+                                                        // Clear retry count on successful recovery after 10 minutes
+                                                        setTimeout(() => {
+                                                                multiAccountManager.singleAccountRetryCount = 0;
+                                                                log.info("SINGLE ACCOUNT", "Retry count reset after cooldown period");
+                                                        }, 600000);
+                                                        
+                                                        setTimeout(async () => {
+                                                                log.info("SINGLE ACCOUNT", "Retrying with same account...");
+                                                                const cookieString = appState.map(i => i.key + "=" + i.value).join("; ");
+                                                                const cookieIsLive = await checkLiveCookie(cookieString, facebookAccount.userAgent);
+                                                                if (cookieIsLive) {
+                                                                        isSendNotiErrorMessage = false;
+                                                                        global.GoatBot.Listening = api.listenMqtt(createCallBackListen());
+                                                                } else {
+                                                                        // Cookie still invalid, try full re-login
+                                                                        startBot(true);
+                                                                }
+                                                        }, retryDelay);
+                                                        return;
+                                                }
+
+                                                // ——————————— MULTI-ACCOUNT SWITCHING ——————————— //
+                                                // Try to switch to next account instead of restarting
+                                                if (multiAccountManager.getAvailableAccounts().length > 1 && multiAccountManager.canSwitch()) {
+                                                        if (!isSendNotiErrorMessage) {
+                                                                await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
+                                                                isSendNotiErrorMessage = true;
+                                                        }
+
+                                                        const switched = await switchToNextAccount(`Account issue: ${error.error || error}`);
+                                                        if (switched) {
+                                                                return; // Account switch in progress, don't restart
+                                                        }
+                                                }
+
+                                                // If only one account or switch failed, fall back to old behavior
                                                 if (!isSendNotiErrorMessage) {
                                                         await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
                                                         isSendNotiErrorMessage = true;
@@ -965,15 +1099,10 @@ async function startBot(loginWithEmail) {
                                                 if (global.GoatBot.config.autoRestartWhenListenMqttError)
                                                         process.exit(2);
                                                 else {
-                                                        // log.dev("ACCOUNT LOCKED, start relogin...");
-                                                        // await stopListening();
-                                                        // log.dev("STOP LISTENING SUCCESS");
                                                         const keyListen = Object.keys(callbackListenTime).pop();
                                                         if (callbackListenTime[keyListen])
                                                                 callbackListenTime[keyListen] = () => { };
                                                         const cookieString = appState.map(i => i.key + "=" + i.value).join("; ");
-                                                        // log.dev("GET COOKIE SUCCESS");
-                                                        // log.dev(cookieString);
 
                                                         let times = 5;
 
@@ -1199,4 +1328,5 @@ async function startBot(loginWithEmail) {
 }
 
 global.GoatBot.reLoginBot = startBot;
+global.switchToNextAccount = switchToNextAccount; // Export for manual account switching
 startBot();
