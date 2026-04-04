@@ -1078,7 +1078,7 @@ async function startBot(loginWithEmail) {
 
                                                 // ——————————— MULTI-ACCOUNT SWITCHING ——————————— //
                                                 // Try to switch to next account instead of restarting
-                                                if (multiAccountManager.getAvailableAccounts().length > 1 && multiAccountManager.canSwitch()) {
+                                                if (multiAccountManager.hasMoreAccounts() && multiAccountManager.canSwitch()) {
                                                         if (!isSendNotiErrorMessage) {
                                                                 await handlerWhenListenHasError({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData, error });
                                                                 isSendNotiErrorMessage = true;
