@@ -12,8 +12,8 @@ module.exports = {
                         needPermission: "Bot cần quyền quản trị viên để kick thành viên bị ban"
                 },
                 en: {
-                        warn: "Member %1 has been warned 3 times before and has been banned from the chat box\n- Name: %1\n- Uid: %2\n- To unban, please use the \"%3warn unban <uid>\" command (with uid is the uid of the person you want to unban)",
-                        needPermission: "Bot needs administrator permission to kick banned members"
+                        warn: "Member %1 has reached 3 warnings and has been removed from the group.\n- Name: %1\n- User ID: %2\n- To restore access, use the command: %3warn unban <uid>",
+                        needPermission: "The bot needs admin permission to remove this member."
                 }
         },
 

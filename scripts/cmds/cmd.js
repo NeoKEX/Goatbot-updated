@@ -374,7 +374,7 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 			allOnChat.splice(indexOnChat, 1);
 
 		// Check onFirstChat function
-		const indexOnFirstChat = allOnChat.findIndex(item => item == oldCommandName);
+		const indexOnFirstChat = (allOnFirstChat || []).findIndex(item => item?.commandName == oldCommandName);
 		let oldOnFirstChat;
 		if (indexOnFirstChat != -1) {
 			oldOnFirstChat = allOnFirstChat[indexOnFirstChat];

@@ -82,6 +82,7 @@ global.GoatBot = {
         eventCommandsFilesPath: [], // [{ filePath: "", commandName: [] }
         aliases: new Map(), // store all aliases
         onFirstChat: new Set(), // store threadIDs that have been first chatted (memory efficient with automatic cleanup)
+        onFirstChatCommands: [], // store command names that use onFirstChat
         onChat: [], // store all onChat
         onEvent: [], // store all onEvent
         onReply: new TTLMap({ ttl: 30 * 60 * 1000, maxSize: 500, cleanupInterval: 60000 }), // 30 min TTL, max 500 entries
