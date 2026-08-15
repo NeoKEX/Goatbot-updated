@@ -190,8 +190,10 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 				if (onChat)
 					GoatBot.onChat.push(commandName);
 				// ——————————————— CHECK ONFIRSTCHAT ——————————————— //
-				if (onFirstChat)
-					GoatBot.onFirstChat.push({ commandName, threadIDsChattedFirstTime: [] });
+				if (onFirstChat) {
+					GoatBot.onFirstChatCommands.push(commandName);
+					GoatBot.onFirstChat._commandNames = GoatBot.onFirstChatCommands;
+				}
 				// ————————————————— CHECK ONEVENT ————————————————— //
 				if (onEvent)
 					GoatBot.onEvent.push(commandName);

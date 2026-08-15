@@ -24,10 +24,11 @@ function startProject() {
         // --expose-gc  : lets MemoryManager call global.gc() to force V8 GC when heap is high
         // --max-old-space-size=400 : caps V8 old-gen heap at 400 MB so Node aggressively collects
         //   before the host (Render 512 MB container) hits its limit and OOM-kills the process
-        const child = spawn("node", ["--expose-gc", "--max-old-space-size=400", "Goat.js"], {
+        const child = spawn(process.execPath, ["--expose-gc", "--max-old-space-size=400", "Goat.js"], {
                 cwd: __dirname,
                 stdio: "inherit",
-                shell: true
+                shell: false,
+                env: { ...process.env, NODE_ENV: process.env.NODE_ENV || "production" }
         });
 
         child.on("close", (code) => {

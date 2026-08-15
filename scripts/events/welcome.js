@@ -17,7 +17,7 @@ module.exports = {
                         multiple1: "bạn",
                         multiple2: "các bạn",
                         welcomeMessage: "Cảm ơn bạn đã thêm mình vào nhóm!\nPrefix của bot: %1\nĐể xem danh sách lệnh, vui lòng nhập: %1help",
-                        defaultWelcomeMessage: "Chào mừng {multiple} đã đến với {boxName}! Chúc {multiple} một buổi {session} vui vẻ 🎉"
+                        defaultWelcomeMessage: "Chào mừng {userNameTag} đã đến với {boxName}! Chúc {multiple} một buổi {session} vui vẻ 🎉"
                 },
                 en: {
                         session1: "morning",
@@ -26,8 +26,8 @@ module.exports = {
                         session4: "evening",
                         multiple1: "you",
                         multiple2: "you guys",
-                        welcomeMessage: "Thank you for inviting me to the group!\nBot prefix: %1\nTo view the list of commands, please enter: %1help",
-                        defaultWelcomeMessage: "Welcome {multiple} to {boxName}! Have a great {session} 🎉"
+                        welcomeMessage: "Thanks for adding me to the group.\nBot prefix: %1\nUse %1help to see the available commands.",
+                        defaultWelcomeMessage: "Welcome {userNameTag} to {boxName}! Wishing you a great {session} 🎉"
                 }
         },
 
@@ -41,6 +41,16 @@ module.exports = {
                         if (!addedParticipants || addedParticipants.length === 0)
                                 return;
 
+                        let threadData;
+                        try {
+                                threadData = await threadsData.get(threadID);
+                        } catch (e) {
+                                return;
+                        }
+
+                        if (!threadData?.settings?.sendWelcomeMessage)
+                                return;
+
                         const botID = api.getCurrentUserID();
 
                         // ── Case 1: Bot itself was added to the group ──
@@ -50,15 +60,6 @@ module.exports = {
                         }
 
                         // ── Case 2: Regular member(s) joined ──
-                        let threadData;
-                        try {
-                                threadData = await threadsData.get(threadID);
-                        } catch (e) {
-                                return;
-                        }
-
-                        if (!threadData.settings.sendWelcomeMessage)
-                                return;
 
                         const hours = +getTime("HH");
                         const session =
@@ -73,14 +74,9 @@ module.exports = {
 
                         let { welcomeMessage = getLang("defaultWelcomeMessage") } = threadData.data;
 
-                        // Build mention list when {userNameTag} placeholder is used
-                        const hasMentionTag = welcomeMessage.includes("{userNameTag}");
-                        const mentions = hasMentionTag
-                                ? addedParticipants.map(u => ({ tag: u.fullName, id: u.userFbId }))
-                                : null;
-
                         const namesList = addedParticipants.map(u => u.fullName).join(", ");
                         const firstName = addedParticipants[0].fullName;
+                        const mentions = addedParticipants.map(u => ({ tag: u.fullName, id: u.userFbId }));
 
                         welcomeMessage = welcomeMessage
                                 .replace(/\{userName\}/g, isMultiple ? namesList : firstName)
@@ -89,8 +85,7 @@ module.exports = {
                                 .replace(/\{boxName\}|\{threadName\}/g, threadName)
                                 .replace(/\{session\}/g, session);
 
-                        const form = { body: welcomeMessage };
-                        if (mentions) form.mentions = mentions;
+                        const form = { body: welcomeMessage, mentions };
 
                         if (threadData.data.welcomeAttachment && threadData.data.welcomeAttachment.length > 0) {
                                 const streams = threadData.data.welcomeAttachment.map(fileId =>

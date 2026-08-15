@@ -297,8 +297,9 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         }
                 }
 
-                if (typeof threadData.settings.hideNotiMessage == "object")
-                        hideNotiMessage = threadData.settings.hideNotiMessage;
+                const threadSettings = threadData?.settings || {};
+                if (typeof threadSettings.hideNotiMessage == "object")
+                        hideNotiMessage = threadSettings.hideNotiMessage;
 
                 const prefix = getPrefix(threadID);
                 const role = getRole(threadData, senderID);
@@ -349,7 +350,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                 const isSpamBanned = await checkSpamBannedThread(threadID, globalData);
                                 if (isSpamBanned) {
                                         if (!hideNotiMessage.threadBanned)
-                                                message.reply("This group is temporarily banned for command spam.");
+                                                message.reply("This conversation is temporarily restricted due to repeated command spam activity. Please wait a while and try again later.");
                                         return;
                                 }
                         }
@@ -496,11 +497,11 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2", commandName));
                                         else if (needRole == 3)
-                                                return await message.reply("This command requires premium access.");
+                                                return await message.reply("This command requires premium access. Please upgrade to continue.");
                                         else if (needRole == 4)
-                                                return await message.reply("Developers only.");
+                                                return await message.reply("This feature is restricted to the bot developers.");
                                         else
-                                                return await message.reply("You don't have permission to use this command.");
+                                                return await message.reply("You do not have permission to use this command.");
                                 }
                                 else {
                                         return true;
@@ -685,14 +686,14 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                  +------------------------------------------------+
                 */
                 async function onFirstChat() {
-                                        // onFirstChat is now a Set of threadIDs that have been first chatted
-                                        // Commands register themselves in GoatBot.onChat with a flag for firstChat
+                                        // Ensure first-chat hooks only fire once per thread.
                                         if (GoatBot.onFirstChat.has(threadID))
                                                 return;
 
                                         const args = body ? body.split(/ +/) : [];
+                                        const commandNames = GoatBot.onFirstChatCommands || GoatBot.onFirstChat._commandNames || [];
 
-                                        for (const commandName of GoatBot.onFirstChat._commandNames || []) {
+                                        for (const commandName of commandNames) {
                                                 const command = GoatBot.commands.get(commandName);
                                                 if (!command || !command.onFirstChat)
                                                         continue;
@@ -703,7 +704,6 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 
                                                 if (getType(command.onFirstChat) == "Function") {
                                                         const defaultOnFirstChat = command.onFirstChat;
-                                                        // convert to AsyncFunction
                                                         command.onFirstChat = async function () {
                                                                 return defaultOnFirstChat(...arguments);
                                                         };
@@ -734,7 +734,6 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                                         });
                                         }
 
-                                        // Mark this thread as having received first chat
                                         GoatBot.onFirstChat.add(threadID);
                 }
 
@@ -773,9 +772,9 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2ToUseOnReply", commandName));
                                         else if (needRole == 3)
-                                                return await message.reply("This command requires premium access.");
+                                                return await message.reply("This command is available to premium members only. Please upgrade your access to continue.");
                                         else if (needRole == 4)
-                                                return await message.reply("Developers only.");
+                                                return await message.reply("This feature is restricted to the bot developer team.");
                                 }
                                 else {
                                         return true;
@@ -854,9 +853,9 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                         else if (needRole == 2)
                                                 return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "onlyAdminBot2ToUseOnReaction", commandName));
                                         else if (needRole == 3)
-                                                return await message.reply("This command requires premium access.");
+                                                return await message.reply("This command is available to premium members only. Please upgrade your access to continue.");
                                         else if (needRole == 4)
-                                                return await message.reply("Developers only.");
+                                                return await message.reply("This feature is restricted to the bot developer team.");
                                 }
                                 else {
                                         return true;

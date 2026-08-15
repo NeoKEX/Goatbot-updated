@@ -64,15 +64,15 @@ module.exports = {
 			addedFile: "Đã thêm %1 tệp đính kèm vào tin nhắn chào mừng của nhóm bạn"
 		},
 		en: {
-			turnedOn: "Turned on welcome message",
-			turnedOff: "Turned off welcome message",
-			missingContent: "Please enter welcome message content",
-			edited: "Edited welcome message content of your group to: %1",
-			reseted: "Reseted welcome message content",
-			noFile: "No file attachments to delete",
-			resetedFile: "Reseted file attachments successfully",
-			missingFile: "Please reply this message with image/video/audio file",
-			addedFile: "Added %1 file attachments to your group welcome message"
+			turnedOn: "Welcome messages are now enabled.",
+			turnedOff: "Welcome messages are now disabled.",
+			missingContent: "Please enter the welcome message content.",
+			edited: "The group welcome message has been updated: %1",
+			reseted: "The welcome message has been reset.",
+			noFile: "There are no welcome attachments to remove.",
+			resetedFile: "Welcome attachments have been cleared successfully.",
+			missingFile: "Please reply to this message with an image, video, or audio file.",
+			addedFile: "Added %1 attachment(s) to the group welcome message."
 		}
 	},
 

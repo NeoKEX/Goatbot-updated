@@ -68,15 +68,15 @@ module.exports = {
 			addedFile: "Đã thêm %1 tệp đính kèm vào tin nhắn tạm biệt của nhóm bạn"
 		},
 		en: {
-			turnedOn: "Turned on leave message successfully",
-			turnedOff: "Turned off leave message successfully",
-			missingContent: "Please enter content",
-			edited: "Edited leave message content of your group to:\n%1",
-			reseted: "Reseted leave message content",
-			noFile: "No leave message attachment file to reset",
-			resetedFile: "Reseted leave message attachment file successfully",
-			missingFile: "Please reply this message with image/video/audio file",
-			addedFile: "Added %1 attachment file to your leave message"
+			turnedOn: "Leave messages are now enabled.",
+			turnedOff: "Leave messages are now disabled.",
+			missingContent: "Please enter the leave message content.",
+			edited: "The group leave message has been updated:\n%1",
+			reseted: "The leave message has been reset.",
+			noFile: "There are no leave attachments to remove.",
+			resetedFile: "Leave attachments have been cleared successfully.",
+			missingFile: "Please reply to this message with an image, video, or audio file.",
+			addedFile: "Added %1 attachment(s) to the group leave message."
 		}
 	},
 
