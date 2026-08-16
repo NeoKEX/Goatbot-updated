@@ -2,13 +2,13 @@ const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 
-const BASE_URL = "https://nkx-downloader-pro.vercel.app";
+const BASE_URL = "https://downloader.nkx.lol";
 
 module.exports = {
   config: {
     name: "sing",
     aliases: ["song", "music"],
-    version: "1.0",
+    version: "1.1",
     author: "Neoaz 🐊",
     countDown: 5,
     role: 0,
@@ -25,7 +25,6 @@ module.exports = {
     api.setMessageReaction("⏳", event.messageID);
 
     try {
-      // 1) Search YouTube via our API
       const searchRes = await axios.get(`${BASE_URL}/api/search/youtube`, {
         params: { q: query, limit: 5 },
         timeout: 25000
@@ -40,11 +39,10 @@ module.exports = {
       const selectedVideo = results[0];
       const videoUrl = selectedVideo.url;
 
-      // 2) Download audio for the top result via our API
       const dlRes = await axios.get(`${BASE_URL}/api/download/youtube`, {
         params: { url: videoUrl },
         timeout: 30000,
-        validateStatus: () => true // handle 502 upstream failures ourselves below
+        validateStatus: () => true
       });
 
       if (!dlRes.data?.success) {
@@ -54,14 +52,15 @@ module.exports = {
         );
       }
 
-      const audioUrl = extractAudioUrl(dlRes.data.data);
+      const info = dlRes.data.data;
+      const audioUrl = info?.mp3;
+      const title = info?.title || selectedVideo.title;
 
       if (!audioUrl) {
         api.setMessageReaction("❌", event.messageID);
         return message.reply("Unable to retrieve download link.");
       }
 
-      // 3) Fetch the actual audio file
       const cacheDir = path.join(__dirname, "cache");
       await fs.ensureDir(cacheDir);
       const filePath = path.join(cacheDir, `${Date.now()}.mp3`);
@@ -98,7 +97,7 @@ module.exports = {
       await fs.writeFile(filePath, Buffer.from(fileBuffer));
 
       await message.reply({
-        body: selectedVideo.title,
+        body: title,
         attachment: fs.createReadStream(filePath)
       });
 
@@ -111,55 +110,3 @@ module.exports = {
     }
   }
 };
-
-/**
- * The download endpoint wraps whatever btch-downloader's youtube() function
- * returns inside `data`, and that upstream shape isn't guaranteed to stay
- * consistent across versions. Try the field names it's most likely to use,
- * then fall back to scanning for any string that looks like an audio link.
- */
-function extractAudioUrl(data) {
-  if (!data || typeof data !== "object") return null;
-
-  const directCandidates = [
-    data.mp3,
-    data.audio,
-    data.audio_url,
-    data.audioUrl,
-    data.dl_url,
-    data.download,
-    data.download_url,
-    data.downloadUrl,
-    data.url,
-    data.link,
-    data.media?.mp3,
-    data.media?.audio,
-    data.result?.mp3,
-    data.result?.audio,
-    Array.isArray(data.urls) ? data.urls.find((u) => typeof u === "string" && u.includes(".mp3")) : null,
-    Array.isArray(data.urls) ? data.urls[0] : null
-  ];
-
-  const direct = directCandidates.find((v) => typeof v === "string" && v.startsWith("http"));
-  if (direct) return direct;
-
-  // Last resort: recursively scan the object for any http(s) string that
-  // looks like an audio file link.
-  const found = deepFindAudioLink(data);
-  return found || null;
-}
-
-function deepFindAudioLink(obj, depth = 0) {
-  if (depth > 4 || !obj || typeof obj !== "object") return null;
-
-  for (const value of Object.values(obj)) {
-    if (typeof value === "string" && value.startsWith("http") && /\.mp3(\?|$)|audio/i.test(value)) {
-      return value;
-    }
-    if (typeof value === "object" && value !== null) {
-      const nested = deepFindAudioLink(value, depth + 1);
-      if (nested) return nested;
-    }
-  }
-  return null;
-}
