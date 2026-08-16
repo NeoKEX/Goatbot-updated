@@ -8,7 +8,7 @@
                 "npm": ">=7.0.0"
         },
         "dependencies": {
-                "@dongdev/fca-unofficial": "4.0.3",
+                "@lazyneoaz/metachat": "1.1.8",
                 "@distube/ytdl-core": "4.16.12",
                 "@lazyneoaz/metachat": "1.1.6",
                 "axios": "1.16.1",
