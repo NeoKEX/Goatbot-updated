@@ -275,7 +275,8 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 		}
 		const regExpCheckPackage = /require(\s+|)\((\s+|)[`'"]([^`'"]+)[`'"](\s+|)\)/g;
 		const { GoatBot } = global;
-		const { onFirstChat: allOnFirstChat, onChat: allOnChat, onEvent: allOnEvent, onAnyEvent: allOnAnyEvent } = GoatBot;
+		const { onFirstChat: allOnFirstChat, onFirstChatCommands: allOnFirstChatCommands, onChat: allOnChat, onEvent: allOnEvent, onAnyEvent: allOnAnyEvent } = GoatBot;
+		const firstChatCommandNames = Array.isArray(allOnFirstChatCommands) ? allOnFirstChatCommands : (Array.isArray(allOnFirstChat) ? allOnFirstChat : []);
 		let setMap, typeEnvCommand, commandType;
 		if (folder == "cmds") {
 			typeEnvCommand = "envCommands";
@@ -374,11 +375,13 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 			allOnChat.splice(indexOnChat, 1);
 
 		// Check onFirstChat function
-		const indexOnFirstChat = (allOnFirstChat || []).findIndex(item => item?.commandName == oldCommandName);
+		const indexOnFirstChat = firstChatCommandNames.findIndex(item => typeof item == "string" ? item == oldCommandName : item?.commandName == oldCommandName);
 		let oldOnFirstChat;
 		if (indexOnFirstChat != -1) {
-			oldOnFirstChat = allOnFirstChat[indexOnFirstChat];
-			allOnFirstChat.splice(indexOnFirstChat, 1);
+			oldOnFirstChat = firstChatCommandNames[indexOnFirstChat];
+			firstChatCommandNames.splice(indexOnFirstChat, 1);
+			GoatBot.onFirstChatCommands = firstChatCommandNames;
+			GoatBot.onFirstChat._commandNames = firstChatCommandNames;
 		}
 
 		// Check onEvent function
@@ -442,8 +445,12 @@ function loadScripts(folder, fileName, log, configCommands, api, threadModel, us
 		if (command.onChat)
 			allOnChat.push(scriptName);
 
-		if (command.onFirstChat)
-			allOnFirstChat.push({ commandName: scriptName, threadIDsChattedFirstTime: oldOnFirstChat?.threadIDsChattedFirstTime || [] });
+		if (command.onFirstChat) {
+			if (!firstChatCommandNames.includes(scriptName))
+				firstChatCommandNames.push(scriptName);
+			GoatBot.onFirstChatCommands = firstChatCommandNames;
+			GoatBot.onFirstChat._commandNames = firstChatCommandNames;
+		}
 
 		if (command.onEvent)
 			allOnEvent.push(scriptName);

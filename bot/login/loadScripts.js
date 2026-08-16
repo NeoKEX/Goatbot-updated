@@ -191,7 +191,8 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 					GoatBot.onChat.push(commandName);
 				// ——————————————— CHECK ONFIRSTCHAT ——————————————— //
 				if (onFirstChat) {
-					GoatBot.onFirstChatCommands.push(commandName);
+					if (!GoatBot.onFirstChatCommands.includes(commandName))
+						GoatBot.onFirstChatCommands.push(commandName);
 					GoatBot.onFirstChat._commandNames = GoatBot.onFirstChatCommands;
 				}
 				// ————————————————— CHECK ONEVENT ————————————————— //
