@@ -5,46 +5,14 @@ const path = require("path");
 const BASE_URL = "https://meta.nkx.lol";
 const MAX_ATTACHMENT_BYTES = 26214400;
 
-function deepCollect(obj, predicate, results = [], depth = 0) {
-  if (depth > 6 || obj == null) return results;
-  if (Array.isArray(obj)) {
-    obj.forEach((v) => deepCollect(v, predicate, results, depth + 1));
-    return results;
-  }
-  if (typeof obj === "object") {
-    for (const [k, v] of Object.entries(obj)) {
-      if (typeof v === "string" && predicate(k, v)) results.push(v);
-      else deepCollect(v, predicate, results, depth + 1);
-    }
-  }
-  return results;
-}
-
-function extractMediaUrls(data) {
-  const hinted = deepCollect(
-    data,
-    (k, v) => /^https?:\/\//i.test(v) && /url|video|media|asset|output|link/i.test(k)
-  );
-  if (hinted.length) return [...new Set(hinted)];
-
-  const anyUrl = deepCollect(data, (k, v) => /^https?:\/\//i.test(v));
-  return [...new Set(anyUrl)];
-}
-
-function extractBatchId(data) {
-  const found = deepCollect(data, (k) => /batch_?id/i.test(k));
-  return found.length ? found[0] : null;
-}
-
-function extractStatus(data) {
-  const found = deepCollect(data, (k) => /^status$/i.test(k));
-  return found.length ? found[0].toLowerCase() : null;
-}
-
 function formatError(res) {
   if (res.status === 422 && Array.isArray(res.data?.detail)) {
-    return res.data.detail.map((d) => d.msg).join("; ");
+    return res.data.detail.map((d) => d.msg || d).join("; ");
   }
+  if (res.status === 401) return "The API server rejected its own API key. Check the server's API_KEY config.";
+  if (res.status === 404) return "That video batch could not be found.";
+  if (res.status === 502) return "The Vibes provider failed to fulfill this request. Try again (a fresh submission, not a retry).";
+  if (res.status === 503) return "The API server's Vibes session is misconfigured (vibes.txt missing or invalid).";
   return res.data?.message || res.data?.error || `Request failed (status ${res.status}).`;
 }
 
@@ -61,22 +29,40 @@ function extractImageUrlFromEvent(event) {
   return null;
 }
 
-async function pollForVideoUrl(batchId, { attempts = 40, intervalMs = 3000 } = {}) {
-  for (let i = 0; i < attempts; i++) {
-    await new Promise((r) => setTimeout(r, intervalMs));
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// POST /v1/videos/generate and /v1/videos/from-image return immediately
+// with result.batchId and isLoading:true items — the actual videoUrl only
+// shows up once GET /v1/videos/{batch_id} reports result.isComplete: true
+// and result.content[0].videoUrl is populated.
+async function pollForVideo(batchId, { intervalMs = 3000, timeoutMs = 180000 } = {}) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    await sleep(intervalMs);
+
     const res = await axios.get(`${BASE_URL}/v1/videos/${encodeURIComponent(batchId)}`, {
       timeout: 30000,
       validateStatus: () => true
     });
     if (res.status >= 400) continue;
 
-    const urls = extractMediaUrls(res.data);
-    if (urls.length) return urls[0];
+    const result = res.data?.result;
+    if (!result) continue;
 
-    const status = extractStatus(res.data);
-    if (status && /fail|error/i.test(status)) return null;
+    const item = Array.isArray(result.content) ? result.content[0] : null;
+
+    if (item?.videoUrl) {
+      return { videoUrl: item.videoUrl };
+    }
+    if (result.hasError || item?.error) {
+      return { error: result.error || item?.error || "Video generation failed." };
+    }
   }
-  return null;
+
+  return { error: "Timed out waiting for the video to finish generating." };
 }
 
 async function downloadToBuffer(fileUrl) {
@@ -94,7 +80,7 @@ module.exports = {
   config: {
     name: "animate",
     aliases: ["vid", "video"],
-    version: "1.0",
+    version: "1.2",
     author: "Neoaz 🐊",
     countDown: 10,
     role: 0,
@@ -118,19 +104,19 @@ module.exports = {
       aspect_ratio: "9:16",
       resolution: "480p",
       variations: 1,
-      poll: true,
+      poll: false,
       poll_interval: 3,
       poll_timeout: 180
     };
     const body = imageUrl
-      ? { ...baseBody, source_image_url: imageUrl, prompt: prompt || "Animate this image naturally." }
+      ? { ...baseBody, image_url: imageUrl, prompt: prompt || "Animate this image naturally." }
       : { ...baseBody, prompt };
 
     api.setMessageReaction("⏳", event.messageID);
 
     try {
       const res = await axios.post(`${BASE_URL}${endpoint}`, body, {
-        timeout: 200000,
+        timeout: 60000,
         validateStatus: () => true
       });
 
@@ -139,16 +125,17 @@ module.exports = {
         return message.reply(formatError(res));
       }
 
-      let videoUrl = extractMediaUrls(res.data)[0] || null;
-
-      if (!videoUrl) {
-        const batchId = extractBatchId(res.data);
-        if (batchId) videoUrl = await pollForVideoUrl(batchId);
+      const batchId = res.data?.result?.batchId;
+      if (!batchId) {
+        api.setMessageReaction("❌", event.messageID);
+        return message.reply("The API didn't return a batch ID to track this generation.");
       }
+
+      const { videoUrl, error } = await pollForVideo(batchId, { intervalMs: 3000, timeoutMs: 180000 });
 
       if (!videoUrl) {
         api.setMessageReaction("❌", event.messageID);
-        return message.reply("Video generation didn't return a downloadable link in time.");
+        return message.reply(error || "Video generation didn't finish in time.");
       }
 
       const buffer = await downloadToBuffer(videoUrl);
