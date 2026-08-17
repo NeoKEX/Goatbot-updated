@@ -5,37 +5,29 @@ const path = require("path");
 const BASE_URL = "https://meta.nkx.lol";
 const MAX_ATTACHMENT_BYTES = 26214400;
 
-function deepCollect(obj, predicate, results = [], depth = 0) {
-  if (depth > 6 || obj == null) return results;
-  if (Array.isArray(obj)) {
-    obj.forEach((v) => deepCollect(v, predicate, results, depth + 1));
-    return results;
-  }
-  if (typeof obj === "object") {
-    for (const [k, v] of Object.entries(obj)) {
-      if (typeof v === "string" && predicate(k, v)) results.push(v);
-      else deepCollect(v, predicate, results, depth + 1);
-    }
-  }
-  return results;
-}
-
-function extractMediaUrls(data) {
-  const hinted = deepCollect(
-    data,
-    (k, v) => /^https?:\/\//i.test(v) && /url|image|video|media|asset|output|link/i.test(k)
-  );
-  if (hinted.length) return [...new Set(hinted)];
-
-  const anyUrl = deepCollect(data, (k, v) => /^https?:\/\//i.test(v));
-  return [...new Set(anyUrl)];
-}
-
 function formatError(res) {
   if (res.status === 422 && Array.isArray(res.data?.detail)) {
-    return res.data.detail.map((d) => d.msg).join("; ");
+    return res.data.detail.map((d) => d.msg || d).join("; ");
   }
+  if (res.status === 401) return "The API server rejected its own API key. Check the server's API_KEY config.";
+  if (res.status === 404) return "That project/image could not be found.";
+  if (res.status === 502) return "The Vibes provider failed to fulfill this request. Try again.";
+  if (res.status === 503) return "The API server's Vibes session is misconfigured (vibes.txt missing or invalid).";
   return res.data?.message || res.data?.error || `Request failed (status ${res.status}).`;
+}
+
+function extractGeneratedImageUrls(data) {
+  const items = data?.result?.data;
+  if (Array.isArray(items)) {
+    const urls = items.map((it) => it.url).filter((u) => typeof u === "string" && u.startsWith("http"));
+    if (urls.length) return urls;
+  }
+  return [];
+}
+
+function extractEditedImageUrl(data) {
+  const contentItem = data?.result?.contentItem;
+  return contentItem?.imageUrl || contentItem?.structuredOutput?.image || null;
 }
 
 function extractImageUrlFromEvent(event) {
@@ -66,7 +58,7 @@ module.exports = {
   config: {
     name: "meta",
     aliases: ["img", "imagine"],
-    version: "1.0",
+    version: "1.3",
     author: "Neoaz 🐊",
     countDown: 5,
     role: 0,
@@ -83,7 +75,7 @@ module.exports = {
     const imageUrl = extractImageUrlFromEvent(event);
     const endpoint = imageUrl ? "/v1/images/edit" : "/v1/images/generate";
     const body = imageUrl
-      ? { source_image_url: imageUrl, prompt, project_name: "Goatbot image edit" }
+      ? { image_url: imageUrl, prompt, project_name: "Goatbot image edit" }
       : { prompt, project_name: "Goatbot image generation", aspect_ratio: "1:1", resolution: "480p", variations: 1 };
 
     api.setMessageReaction("⏳", event.messageID);
@@ -99,10 +91,13 @@ module.exports = {
         return message.reply(formatError(res));
       }
 
-      const urls = extractMediaUrls(res.data).slice(0, 4);
+      const urls = imageUrl
+        ? [extractEditedImageUrl(res.data)].filter(Boolean)
+        : extractGeneratedImageUrls(res.data);
+
       if (urls.length === 0) {
         api.setMessageReaction("❌", event.messageID);
-        return message.reply("No image URL could be found in the API's response.");
+        return message.reply("No image URL was found in the API's response.");
       }
 
       const cacheDir = path.join(__dirname, "cache");
@@ -111,7 +106,7 @@ module.exports = {
 
       for (let i = 0; i < urls.length; i++) {
         const buffer = await downloadToBuffer(urls[i]);
-        const filePath = path.join(cacheDir, `meta_${Date.now()}_${i}.png`);
+        const filePath = path.join(cacheDir, `meta_${Date.now()}_${i}.jpg`);
         await fs.writeFile(filePath, buffer);
         attachments.push(fs.createReadStream(filePath));
       }
