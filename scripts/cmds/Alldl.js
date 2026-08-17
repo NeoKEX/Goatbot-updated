@@ -4,7 +4,7 @@ const path = require("path");
 
 const BASE_URL = "https://downloader.nkx.lol";
 const TOGGLE_FILE = path.join(__dirname, "data", "alldlThreads.json");
-const MAX_ATTACHMENT_BYTES = 26214400;
+const MAX_ATTACHMENT_BYTES = 26214400; // Messenger's ~25MB attachment limit
 
 let enabledThreads = new Set();
 
@@ -50,6 +50,10 @@ function extractUrlFromText(text) {
 function extractUrlFromAttachments(attachments) {
   if (!Array.isArray(attachments)) return null;
   for (const att of attachments) {
+    // Only "share" attachments (a shared video/post/link) carry a URL we
+    // want to act on. Stickers, photos, audio clips, files, etc. also
+    // expose url-like fields pointing to their own CDN asset — acting on
+    // those caused the bot to respond to stickers, so they're excluded.
     if (att?.type !== "share") continue;
     const candidate = att?.url || att?.uri || att?.source || att?.target?.url;
     if (candidate && /^https?:\/\//i.test(candidate)) return candidate;
@@ -65,6 +69,13 @@ function stripAudioFlag(text) {
   return typeof text === "string" ? text.replace(/--a\s*$/i, "").trim() : text;
 }
 
+/**
+ * Resolves a target URL + whether audio was requested, from either:
+ *  - the message itself (a pasted link, optionally ending in --a)
+ *  - a native "share" attachment (video shared directly instead of a link)
+ *  - a reply to an earlier message/share that contained a link, where the
+ *    reply body is just "--a" to request the audio version of it
+ */
 function resolveRequest(event) {
   const replyBody = event.messageReply?.body;
   const replyAttachments = event.messageReply?.attachments;
@@ -99,6 +110,10 @@ async function fetchMedia(endpoint, url) {
   return { ok: true, data: res.data.data };
 }
 
+/**
+ * Normalizes each platform's differently-shaped payload into
+ * { videoUrl, audioUrl, imageUrl, title }.
+ */
 function extractMediaLinks(platformName, data) {
   switch (platformName) {
     case "tiktok":
@@ -156,11 +171,23 @@ function extractMediaLinks(platformName, data) {
   }
 }
 
+function pickHeaders(fileUrl) {
+  if (/rapidcdn\.app/i.test(fileUrl)) {
+    return { "User-Agent": "TelegramBot (like TwitterBot)" };
+  }
+  return {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "*/*"
+  };
+}
+
 async function downloadToBuffer(fileUrl) {
+  const headers = pickHeaders(fileUrl);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await axios.get(fileUrl, {
         responseType: "arraybuffer",
+        headers,
         timeout: 60000,
         maxContentLength: MAX_ATTACHMENT_BYTES,
         maxBodyLength: MAX_ATTACHMENT_BYTES,
@@ -253,7 +280,7 @@ async function handleDownload({ url, wantsAudio, message, api, event }) {
 module.exports = {
   config: {
     name: "alldl",
-    aliases: ["dl"],
+    aliases: ["adl"],
     version: "1.0",
     author: "Neoaz 🐊",
     countDown: 5,
