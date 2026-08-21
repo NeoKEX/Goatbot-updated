@@ -23,9 +23,6 @@ function parseFlags(rawPrompt) {
   const prompt = rawPrompt.replace(FLAG_REGEX, "").replace(/\s{2,}/g, " ").trim();
   return { prompt, flags };
 }
-
-// The server allows 1-4 source images for img2img. Reply to a single image
-// (the common case) or to a message with multiple photo attachments.
 function extractImageUrlsFromEvent(event, max = 4) {
   const urls = [];
   const sources = [event.messageReply?.attachments, event.attachments];
