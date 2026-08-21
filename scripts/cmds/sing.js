@@ -33,10 +33,6 @@ function parseMediaPlaylist(text, baseUrl) {
 
   return { initUrl, segments };
 }
-
-// Handles both a direct media playlist and a master playlist (which lists
-// variant playlists rather than segments) by recursing into the first
-// variant if one is found.
 async function fetchAndParsePlaylist(url) {
   const res = await axios.get(url, { headers: REQUEST_HEADERS, timeout: 20000, responseType: "text" });
   const text = typeof res.data === "string" ? res.data : String(res.data);
