@@ -84,4 +84,20 @@
                 "prompt-checkbox": "^2.2.0",
                 "terser": "^5.15.0"
         }
+                
+               { 
+                 "name": "reyes-bot", 
+                 "version": "1.0.0", 
+                 "main": "index.js", 
+                 "scripts": { 
+                 "start": "node index.js" 
+           } 
+}
+    "dependencies": {
+      "facebook-chat-api": "^1.10.4"
+    }
+
+    "engines": {
+      "node": "18.x"
+    } ,
 }
