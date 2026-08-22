@@ -1,4 +1,8 @@
- "email": "", 
+    { 
+    
+    facebookAccount": {
+    "email": "",
+    "email": "", 
     "password": "", 
     "2FASecret": "", 
     "i_user": "", 
@@ -48,7 +52,7 @@
       "enable": true,
       "channelName": "uptime",
       "verifyToken": "8126831f37f9cb8d6ba35489bac1ac619b114178e9617613ae8277ed4328fa3f"
-    }
+    
   },
   "spamProtection": {
     "commandThreshold": 8,
@@ -94,7 +98,7 @@
       "enable": false,
       "webhookUrl": "",
       "note": "Can send notifications to many webhookUrl, separate by comma or space, example: \"https://discord.com/api/webhooks/123456789/123456789 https://discord.com/api/webhooks/987654321/987654321\" (without backslash)"
-    }
+    
   },
   "hideNotiMessage": {
     "commandNotFound": false,
@@ -143,4 +147,4 @@
     "errorCacheTtlMs": 300000,
     "notes": "@lazyneoaz/metachat options — see node_modules/@lazyneoaz/metachat/README.md for full documentation"
   }
-}
+
