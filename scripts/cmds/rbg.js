@@ -1,104 +1,106 @@
-const axios = require('axios');
-const fs = require('fs-extra'); 
-const path = require('path');
-const stream = require('stream');
-const { promisify } = require('util');
-
-const pipeline = promisify(stream.pipeline);
-const API_ENDPOINT = "https://free-goat-api.onrender.com/rbg"; 
-const CACHE_DIR = path.join(__dirname, 'cache');
-
-function extractImageUrl(args, event) {
-    let imageUrl = args.find(arg => arg.startsWith('http'));
-
-    if (!imageUrl && event.messageReply && event.messageReply.attachments && event.messageReply.attachments.length > 0) {
-        const imageAttachment = event.messageReply.attachments.find(att => att.type === 'photo' || att.type === 'image');
-        if (imageAttachment && imageAttachment.url) {
-            imageUrl = imageAttachment.url;
-        }
-    }
-    return imageUrl;
-}
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+const FormData = require("form-data");
 
 module.exports = {
-  config: {
-    name: "rbg",
-    aliases: ["removebg", "nobg", "bgremove"],
-    version: "2.0",
-    author: "NeoKEX",
-    countDown: 10,
-    role: 0,
-    longDescription: "Removes the background from an image using AI.",
-    category: "image",
-    guide: {
-      en: 
-        "{pn} <image_url> OR reply to an image.\n\n" +
-        "• Example: {pn} https://example.com/image.jpg"
-    }
-  },
+ config: {
+ name: "rbg",
+ aliases: ["removebg", "rmvbg"],
+ version: "2.1",
+ author: "Toshiro Editz",
+ countDown: 5,
+ role: 0,
+ shortDescription: {
+ en: "Remove background from image or video"
+ },
+ longDescription: {
+ en: "Removes background from image using proxy and video using Unscreen"
+ },
+ category: "utility",
+ guide: {
+ en: "+rbg → image bg remove\n+rbg vid → video bg remove"
+ }
+ },
 
-  onStart: async function ({ args, message, event }) {
-    
-    const imageUrl = extractImageUrl(args, event);
+ onStart: async function ({ message, api, args, event }) {
+ const isVideo = args[0] === "vid";
+ const unscreenApiKey = "DnFcWMu9WavCVoNgg7BQDWqc";
+ const proxyHost = "xyz"; // Replace if different
+ let url = "";
 
-    if (!imageUrl) {
-      return message.reply("❌ Please provide an image URL or reply to an image to remove its background.");
-    }
+ if (event.messageReply?.attachments?.[0]?.url) {
+ url = event.messageReply.attachments[0].url;
+ } else if (args[1]?.startsWith("http")) {
+ url = args[1];
+ } else {
+ return message.reply(`❌ Please reply to a ${isVideo ? "video" : "image"} or provide a valid link.`);
+ }
 
-    if (!fs.existsSync(CACHE_DIR)) {
-        fs.mkdirSync(CACHE_DIR, { recursive: true });
-    }
+ // 🌀 React & Notify
+ api.setMessageReaction("⏳", event.messageID, () => {}, true);
+ message.reply(`🎬 Removing ${isVideo ? "video" : "image"} background, please wait...`, async (err, info) => {
+ try {
+ if (isVideo) {
+ // --- 🔹 Unscreen Video API flow ---
+ const form = new FormData();
+ form.append("video_url", url);
 
-    message.reaction("⏳", event.messageID);
-    let tempFilePath; 
+ const uploadRes = await axios.post("https://api.unscreen.com/v1.0/videos", form, {
+ headers: {
+ ...form.getHeaders(),
+ "X-Api-Key": unscreenApiKey
+ }
+ });
 
-    try {
-      const fullApiUrl = `${API_ENDPOINT}?url=${encodeURIComponent(imageUrl)}`;
-      
-      const imageDownloadResponse = await axios.get(fullApiUrl, {
-          responseType: 'stream',
-          timeout: 60000,
-      });
+ const videoId = uploadRes.data.id;
+ const pollingUrl = `https://api.unscreen.com/v1.0/videos/${videoId}`;
+ let downloadUrl = null;
 
-      if (imageDownloadResponse.status !== 200) {
-           throw new Error(`API request failed with status code ${imageDownloadResponse.status}.`);
-      }
-      
-      const fileHash = Date.now() + Math.random().toString(36).substring(2, 8);
-      tempFilePath = path.join(CACHE_DIR, `rbg_${fileHash}.png`);
-      
-      await pipeline(imageDownloadResponse.data, fs.createWriteStream(tempFilePath));
+ // ⏳ Polling until complete
+ for (let i = 0; i < 10; i++) {
+ const poll = await axios.get(pollingUrl, {
+ headers: { "X-Api-Key": unscreenApiKey }
+ });
 
-      message.reaction("✅", event.messageID);
-      
-      await message.reply({
-        body: `Background removed successfully!`,
-        attachment: fs.createReadStream(tempFilePath)
-      });
+ if (poll.data.status === "done") {
+ downloadUrl = poll.data.video.url;
+ break;
+ }
+ await new Promise(r => setTimeout(r, 3000)); // wait 3s
+ }
 
-    } catch (error) {
-      message.reaction("❌", event.messageID);
-      
-      let errorMessage = "❌ Failed to remove background. An error occurred.";
-      if (error.response) {
-         if (error.response.status === 400) {
-             errorMessage = `❌ Error 400: The provided URL might be invalid or the image is too small/large.`;
-         } else {
-             errorMessage = `❌ HTTP Error ${error.response.status}. The API may be unavailable.`;
-         }
-      } else if (error.message.includes('timeout')) {
-         errorMessage = `❌ Request timed out (API response too slow).`;
-      } else if (error.message) {
-         errorMessage = `❌ ${error.message}`;
-      }
+ if (!downloadUrl) throw new Error("Unscreen failed to complete in time.");
 
-      console.error("RBG Command Error:", error);
-      message.reply(errorMessage);
+ const filePath = path.join(__dirname, "cache", `${videoId}.mp4`);
+ const file = await axios.get(downloadUrl, { responseType: "arraybuffer" });
+ fs.writeFileSync(filePath, file.data);
 
-    } finally {
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-          fs.unlinkSync(tempFilePath);
-      }
-    }
-  }
+ await message.reply({
+ body: "✅ Video background removed!\nAPI Owner: Chitron Bhattacharjee",
+ attachment: fs.createReadStream(filePath)
+ });
+
+ fs.unlinkSync(filePath);
+ } else {
+ // --- 🔹 Proxy Image API ---
+ const encoded = encodeURIComponent(url);
+ const proxyUrl = `https://smfahim.${proxyHost}/rbg?url=${encoded}`;
+ const imageStream = await global.utils.getStreamFromURL(proxyUrl);
+
+ await message.reply({
+ body: "✅ Image background removed!\nAPI Owner: Chitron Bhattacharjee",
+ attachment: imageStream
+ });
+ }
+
+ if (info?.messageID) message.unsend(info.messageID);
+ api.setMessageReaction("✅", event.messageID, () => {}, true);
+ } catch (e) {
+ console.error("❌ RBG ERROR:", e?.response?.data || e.message || e);
+ api.setMessageReaction("❌", event.messageID, () => {}, true);
+ message.reply(`❌ Failed to remove background.\nReason: ${e.message || "Unknown error"}`);
+ }
+ });
+ }
 };
