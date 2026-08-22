@@ -1,80 +1,71 @@
-    { 
-    
-    facebookAccount": {
+{
+  "facebookAccount": {
     "email": "",
-    "email": "", 
-    "password": "", 
-    "2FASecret": "", 
-    "i_user": "", 
-    "proxy": null, 
-    "userAgent": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36", 
-    "intervalGetNewCookie": null 
-  }, 
+    "password": "",
+    "2FASecret": "",
+    "i_user": "",
+    "proxy": null,
+    "userAgent": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+    "intervalGetNewCookie": null
+  },
   "facebookAppState": "JSON.parse(process.env.APPSTATE)",
-  "antiInbox": false, 
-  "language": "fr", 
-  "nickNameBot": "ᏒᎬᎩᎬᏕ ᏦᎥᏁᎶᎠᎾᎷ", 
-  "prefix": "!", 
-  "noPrefix": false, 
-  "adminOnly": { "enable": false, "ignoreCommand": [] }, 
-  "adminBot": [ "61591127625090" ], 
-  "premiumUsers": [ "61591127625090" ], 
-  "devUsers": [ "61591127625090" ], 
-  "whiteListMode": { "enable": false, "whiteListIds": [ "61580644970976" ] }, 
-  "whiteListModeThread": { "enable": false, "whiteListThreadIds": [] }, 
-  "database": { 
-    "type": "sqlite", 
-    "uriMongodb": "", 
-    "autoSyncWhenStart": true, 
-    "autoRefreshThreadInfoFirstTime": true
-  }, 
-  "timeZone": "Africa/Bamako", 
-  "dashBoard": { "enable": false, "expireVerifyCode": 300000, "port": 5000 }
-} ,
- "enable": true,
-    "notes": "if you enable this feature, only the ids in the whiteListIds list can use the bot"
+  "antiInbox": false,
+  "language": "fr",
+  "nickNameBot": "ᏒᎬᎩᎬᏕ ᏦᎥᏁᎶᎠᎾᎷ",
+  "prefix": "!",
+  "noPrefix": false,
+  "adminOnly": {
+    "enable": false,
+    "ignoreCommand": []
+  },
+  "adminBot": [
+    "61591127625090"
+  ],
+  "premiumUsers": [
+    "61591127625090"
+  ],
+  "devUsers": [
+    "61591127625090"
+  ],
+  "whiteListMode": {
+    "enable": false,
+    "whiteListIds": [
+      "61580644970976"
+    ]
   },
   "whiteListModeThread": {
     "enable": false,
-    "whiteListThreadIds": [],
-    "notes": "if you enable this feature, only the thread in the whiteListThreadIds list can use the bot",
-    "how_it_work": "if you enable both whiteListMode and whiteListModeThread, the system will check if the user is in whiteListIds, then check if the thread is in whiteListThreadIds, if one of the conditions is true, the user can use the bot"
+    "whiteListThreadIds": []
   },
   "database": {
     "type": "sqlite",
     "uriMongodb": "",
-    "autoSyncWhenStart": false,
-    "autoRefreshThreadInfoFirstTime": true,
-    rUptime": {
+    "autoSyncWhenStart": true,
+    "autoRefreshThreadInfoFirstTime": true
+  },
+  "timeZone": "Africa/Bamako",
+  "dashBoard": {
     "enable": false,
-    "port": 5000,
-    "socket": {
-      "enable": true,
-      "channelName": "uptime",
-      "verifyToken": "8126831f37f9cb8d6ba35489bac1ac619b114178e9617613ae8277ed4328fa3f"
-    
+    "expireVerifyCode": 300000,
+    "port": 5000
   },
   "spamProtection": {
     "commandThreshold": 8,
     "timeWindow": 10,
-    "banDuration": 24,
-    "notes": "Auto-ban threads when users spam commands. commandThreshold: number of commands, timeWindow: seconds, banDuration: hours"
+    "banDuration": 24
   },
   "autoRestart": {
-    "time": null,
-    "notes": "you can set time is interval with milisecond or cron time, example: 1000, 10000, 60000, 3600000, 86400000, 0 0 * * *,... docs: https://www.npmjs.com/package/node-cron. If you set time is 0 or false or null, the bot will not auto restart"
+    "time": null
   },
   "autoUptime": {
     "enable": true,
     "timeInterval": 180,
-    "url": "",
-    "notes": "the value of timeInterval is seconds, url is the url you want to send the request to (automatically detected for hosting glitch or replit)"
+    "url": ""
   },
   "autoLoadScripts": {
     "enable": false,
     "ignoreCmds": "",
-    "ignoreEvents": "",
-    "notes": "this feature will automatically load the script when scripts have been changed, you can set ignoreCmds to ignore commands, ignoreEvents to ignore events, separate by comma or space, example: \"cmd1.js cmd2.js cmd3.js\" (without backslash)"
+    "ignoreEvents": ""
   },
   "autoRefreshFbstate": true,
   "autoReloginWhenChangeAccount": false,
@@ -83,22 +74,18 @@
     "enable": true,
     "timeRestart": 3600000,
     "delayAfterStopListening": 2000,
-    "logNoti": true,
-    "notes": "the value of timeRestart and delayAfterStopListening is milisecond, You shouldn't edit this if you don't know what it is"
+    "logNoti": true
   },
   "notiWhenListenMqttError": {
-    "notes": "This is the message when the bot is listening to the mqtt server and the mqtt server stops working due to account problems such as: locked acc, blocked due to spam,... bot will automatically send notifications to parts of your settings. You must change enable to true to use this feature. See bot/login/handlerWhenListenHasError.js file for details on how it works",
     "telegram": {
       "enable": false,
       "botToken": "",
-      "chatId": "",
-      "note": "Can send notifications to many chatId, separate by comma or space, example: \"123456789 987654321\" (without backslash)"
+      "chatId": ""
     },
     "discordHook": {
       "enable": false,
-      "webhookUrl": "",
-      "note": "Can send notifications to many webhookUrl, separate by comma or space, example: \"https://discord.com/api/webhooks/123456789/123456789 https://discord.com/api/webhooks/987654321/987654321\" (without backslash)"
-    
+      "webhookUrl": ""
+    }
   },
   "hideNotiMessage": {
     "commandNotFound": false,
@@ -122,8 +109,7 @@
   },
   "typingIndicator": {
     "enable": false,
-    "duration": 2000,
-    "notes": "Shows typing indicator before sending messages. duration is in milliseconds (1000 = 1 second). Set enable to false to disable."
+    "duration": 2000
   },
   "optionsFca": {
     "online": true,
@@ -144,7 +130,6 @@
     "maxConcurrentRequests": 5,
     "maxRequestsPerMinute": 50,
     "requestCooldownMs": 60000,
-    "errorCacheTtlMs": 300000,
-    "notes": "@lazyneoaz/metachat options — see node_modules/@lazyneoaz/metachat/README.md for full documentation"
+    "errorCacheTtlMs": 300000
   }
-
+}
