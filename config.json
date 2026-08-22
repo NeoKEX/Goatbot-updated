@@ -1,41 +1,35 @@
-{
-  "facebookAccount": {
-    "email": "",
-    "password": "",
-    "2FASecret": "",
-    "i_user": "",
-    "proxy": null,
-    "userAgent": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
-    "intervalGetNewCookie": null,
-    "notes": "time the system automatically retrieves new cookies from email/password, unit is minute, if you set null, the system will not automatically retrieve new cookies. WARNING: setting this causes a full bot restart every N minutes which drops all active sessions — leave as null unless you are specifically using email/password auth and understand the impact"
-  },
-  "antiInbox": false,
-  "language": "en",
-  "notesLanguage": "change to your language with ISO 639-1 code, available languages: vi (Vietnamese), en (English)",
-  "nickNameBot": "গেসুকে 😈",
-  "prefix": "~",
-  "noPrefix": true,
-  "noPrefixNotes": "When true, Bot Admins (role 2) and Developers (role 4) can run commands without the prefix",
-  "adminOnly": {
-    "enable": false,
-    "ignoreCommand": []
-  },
-  "adminBot": [
-    "61580644970976"
-  ],
-  "premiumUsers": [
-    "61580644970976"
-  ],
-  "devUsers": [
-    "61580644970976"
-  ],
-  "notes_premiumUsers": "List of user IDs with premium access (role 3)",
-  "notes_devUsers": "List of developer IDs with full access (role 4)",
-  "whiteListMode": {
-    "enable": false,
-    "whiteListIds": [
-      "61580644970976"
-    ],
+{ 
+  "facebookAccount": { 
+    "email": "", 
+    "password": "", 
+    "2FASecret": "", 
+    "i_user": "", 
+    "proxy": null, 
+    "userAgent": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36", 
+    "intervalGetNewCookie": null 
+  }, 
+  "facebookAppState": "JSON.parse(process.env.APPSTATE)",
+  "antiInbox": false, 
+  "language": "fr", 
+  "nickNameBot": "ᏒᎬᎩᎬᏕ ᏦᎥᏁᎶᎠᎾᎷ", 
+  "prefix": "!", 
+  "noPrefix": false, 
+  "adminOnly": { "enable": false, "ignoreCommand": [] }, 
+  "adminBot": [ "61591127625090" ], 
+  "premiumUsers": [ "61591127625090" ], 
+  "devUsers": [ "61591127625090" ], 
+  "whiteListMode": { "enable": false, "whiteListIds": [ "61580644970976" ] }, 
+  "whiteListModeThread": { "enable": false, "whiteListThreadIds": [] }, 
+  "database": { 
+    "type": "sqlite", 
+    "uriMongodb": "", 
+    "autoSyncWhenStart": true, 
+    "autoRefreshThreadInfoFirstTime": true
+  }, 
+  "timeZone": "Africa/Bamako", 
+  "dashBoard": { "enable": false, "expireVerifyCode": 300000, "port": 5000 }
+} ,
+ "enable": true,
     "notes": "if you enable this feature, only the ids in the whiteListIds list can use the bot"
   },
   "whiteListModeThread": {
@@ -49,15 +43,7 @@
     "uriMongodb": "",
     "autoSyncWhenStart": false,
     "autoRefreshThreadInfoFirstTime": true,
-    "notes": "(1) type selects 'json' or 'sqlite' or 'mongodb'. If you choose mongodb, enter uri connect mongodb in the uriMongodb section, instructions to get uri connect mongodb at: https://youtu.be/z1f9urHW5xY. I recommend using 'mongodb' or 'sqlite', json is not recommended because it is not stable. (2) when you set autoSyncWhenStart to true, the bot will automatically synchronize the data in the database when starting the bot, this will make the bot start slower. (3) when you set autoRefreshThreadInfoFirstTime to true, the bot will automatically refresh the thread information when get first message from the thread since starting the bot"
-  },
-  "timeZone": "Asia/Dhaka",
-  "dashBoard": {
-    "enable": true,
-    "expireVerifyCode": 300000,
-    "port": 5000
-  },
-  "serverUptime": {
+    rUptime": {
     "enable": false,
     "port": 5000,
     "socket": {
@@ -144,7 +130,7 @@
     "selfListenEvent": true,
     "listenEvents": true,
     "listenTyping": true,
-    "updatePresence": false,
+    "updatePresence": true,
     "autoMarkDelivery": false,
     "autoMarkRead": true,
     "autoReconnect": true,
