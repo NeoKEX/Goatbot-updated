@@ -4,17 +4,17 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "jail",
-    aliases: ["prison"],
+    name: "facepalm",
+    aliases: ["fp"],
     version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "Apply jail effect"
+      en: "Apply facepalm effect"
     },
     longDescription: {
-      en: "Apply jail effect to a mentioned or replied user's PFP"
+      en: "Apply facepalm effect to a mentioned or replied user's PFP"
     },
     category: "fun",
     guide: {
@@ -40,7 +40,7 @@ module.exports = {
         uid = event.messageReply.senderID;
       } else {
         return api.sendMessage(
-          "⛓️ Please mention or reply to a user.",
+          "🤦 Please mention or reply to a user.",
           event.threadID,
           event.messageID
         );
@@ -55,12 +55,12 @@ module.exports = {
         `&access_token=${token}`;
 
       const apiUrl =
-        `https://toshiro-api-editz6t9.vercel.app/api/canvas/jail` +
+        `https://toshiro-api-editz6t9.vercel.app/api/canvas/facepalm` +
         `?image=${encodeURIComponent(image)}`;
 
       filePath = path.join(
         cacheDir,
-        `jail_${uid}_${Date.now()}.png`
+        `facepalm_${uid}_${Date.now()}.png`
       );
 
       const response = await axios.get(apiUrl, {
@@ -74,7 +74,7 @@ module.exports = {
       });
 
       if (!response.data) {
-        throw new Error("Empty response from Jail API.");
+        throw new Error("Empty response from Facepalm API.");
       }
 
       await fs.writeFile(
@@ -92,12 +92,12 @@ module.exports = {
 
     } catch (error) {
       console.error(
-        "Jail:",
+        "Facepalm:",
         error.response?.status || error.message
       );
 
       await api.sendMessage(
-        `❌ Failed to generate jail image.\n\n${error.response?.status || error.message}`,
+        `❌ Failed to generate facepalm.\n\n${error.response?.status || error.message}`,
         event.threadID,
         event.messageID
       );

@@ -4,25 +4,25 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "jail",
-    aliases: ["prison"],
+    name: "snews",
+    aliases: ["news"],
     version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "Apply jail effect"
+      en: "Create news image"
     },
     longDescription: {
-      en: "Apply jail effect to a mentioned or replied user's PFP"
+      en: "Create a news-style image using target user's PFP"
     },
     category: "fun",
     guide: {
-      en: "{pn} @mention\n{pn} (reply to a user)"
+      en: "{pn} @mention name - headline\n{pn} (reply) name - headline"
     }
   },
 
-  onStart: async function ({ api, event }) {
+  onStart: async function ({ api, event, args }) {
     const cacheDir = path.join(__dirname, "cache");
     await fs.ensureDir(cacheDir);
 
@@ -40,7 +40,30 @@ module.exports = {
         uid = event.messageReply.senderID;
       } else {
         return api.sendMessage(
-          "⛓️ Please mention or reply to a user.",
+          "📰 Please mention or reply to a user.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      const text = args.join(" ").trim();
+
+      if (!text.includes("-")) {
+        return api.sendMessage(
+          "📰 Use: snews @mention name - headline",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      const parts = text.split("-");
+
+      const name = parts.shift().trim();
+      const headline = parts.join("-").trim();
+
+      if (!name || !headline) {
+        return api.sendMessage(
+          "📰 Use: snews @mention name - headline",
           event.threadID,
           event.messageID
         );
@@ -49,18 +72,23 @@ module.exports = {
       const token =
         "6628568379%7Cc1e620fa708a1d5696fb991c1bde5662";
 
-      const image =
+      const pfp =
         `https://graph.facebook.com/${uid}/picture` +
         `?width=720&height=720` +
         `&access_token=${token}`;
 
+      const bg = pfp;
+
       const apiUrl =
-        `https://toshiro-api-editz6t9.vercel.app/api/canvas/jail` +
-        `?image=${encodeURIComponent(image)}`;
+        `https://toshiro-api-editz6t9.vercel.app/api/canvas/snews` +
+        `?headline=${encodeURIComponent(headline)}` +
+        `&name=${encodeURIComponent(name)}` +
+        `&pfp=${encodeURIComponent(pfp)}` +
+        `&bg=${encodeURIComponent(bg)}`;
 
       filePath = path.join(
         cacheDir,
-        `jail_${uid}_${Date.now()}.png`
+        `snews_${uid}_${Date.now()}.png`
       );
 
       const response = await axios.get(apiUrl, {
@@ -74,7 +102,7 @@ module.exports = {
       });
 
       if (!response.data) {
-        throw new Error("Empty response from Jail API.");
+        throw new Error("Empty response from SNews API.");
       }
 
       await fs.writeFile(
@@ -92,12 +120,12 @@ module.exports = {
 
     } catch (error) {
       console.error(
-        "Jail:",
+        "SNEWS:",
         error.response?.status || error.message
       );
 
       await api.sendMessage(
-        `❌ Failed to generate jail image.\n\n${error.response?.status || error.message}`,
+        `❌ Failed to generate news image.\n\n${error.response?.status || error.message}`,
         event.threadID,
         event.messageID
       );

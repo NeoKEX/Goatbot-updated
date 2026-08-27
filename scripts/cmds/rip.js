@@ -1,32 +1,114 @@
-
-const DIG = require("discord-image-generation");
+const axios = require("axios");
 const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "rip",
-    version: "1.1",
+    aliases: ["restinpeace"],
+    version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
     role: 0,
-    shortDescription: "rip image",
-    longDescription: "rip image",
+    shortDescription: {
+      en: "Apply RIP effect"
+    },
+    longDescription: {
+      en: "Apply RIP effect to a mentioned or replied user's PFP"
+    },
     category: "fun",
     guide: {
-      vi: "{pn} [@tag | blank]",
-      en: "{pn} [@tag]"
+      en: "{pn} @mention\n{pn} (reply to a user)"
     }
   },
 
-  onStart: async function ({ event, message, usersData }) {
- const uid = Object.keys(event.mentions)[0]
- if(!uid) return message.reply("please mention someone")
-    const avatarURL = await usersData.getAvatarUrl(uid);
-    const img = await new DIG.Rip().getImage(avatarURL);
- const pathSave = `${__dirname}/tmp/${uid}_Rip.png`;
-    fs.writeFileSync(pathSave, Buffer.from(img));
-    message.reply({
-      attachment: fs.createReadStream(pathSave)
-    }, () => fs.unlinkSync(pathSave));
+  onStart: async function ({ api, event }) {
+    const cacheDir = path.join(__dirname, "cache");
+    await fs.ensureDir(cacheDir);
+
+    let filePath;
+
+    try {
+      let uid;
+
+      if (
+        event.mentions &&
+        Object.keys(event.mentions).length > 0
+      ) {
+        uid = Object.keys(event.mentions)[0];
+      } else if (event.messageReply?.senderID) {
+        uid = event.messageReply.senderID;
+      } else {
+        return api.sendMessage(
+          "🪦 Please mention or reply to a user.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      const token =
+        "6628568379%7Cc1e620fa708a1d5696fb991c1bde5662";
+
+      const image =
+        `https://graph.facebook.com/${uid}/picture` +
+        `?width=720&height=720` +
+        `&access_token=${token}`;
+
+      const apiUrl =
+        `https://toshiro-api-editz6t9.vercel.app/api/canvas/rip` +
+        `?image=${encodeURIComponent(image)}`;
+
+      filePath = path.join(
+        cacheDir,
+        `rip_${uid}_${Date.now()}.png`
+      );
+
+      const response = await axios.get(apiUrl, {
+        responseType: "arraybuffer",
+        timeout: 60000,
+        maxRedirects: 5,
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Accept": "image/png,image/jpeg,image/*,*/*"
+        }
+      });
+
+      if (!response.data) {
+        throw new Error("Empty response from RIP API.");
+      }
+
+      await fs.writeFile(
+        filePath,
+        Buffer.from(response.data)
+      );
+
+      await api.sendMessage(
+        {
+          attachment: fs.createReadStream(filePath)
+        },
+        event.threadID,
+        event.messageID
+      );
+
+    } catch (error) {
+      console.error(
+        "RIP:",
+        error.response?.status || error.message
+      );
+
+      await api.sendMessage(
+        `❌ Failed to generate RIP image.\n\n${error.response?.status || error.message}`,
+        event.threadID,
+        event.messageID
+      );
+
+    } finally {
+      if (
+        filePath &&
+        await fs.pathExists(filePath)
+      ) {
+        await fs.remove(filePath).catch(() => {});
+      }
+    }
   }
 };

@@ -4,17 +4,16 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "jail",
-    aliases: ["prison"],
+    name: "bonk",
     version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "Apply jail effect"
+      en: "Bonk someone"
     },
     longDescription: {
-      en: "Apply jail effect to a mentioned or replied user's PFP"
+      en: "Create a bonk canvas with target and your PFP"
     },
     category: "fun",
     guide: {
@@ -29,38 +28,59 @@ module.exports = {
     let filePath;
 
     try {
-      let uid;
+      let targetID;
 
-      if (
+      if (event.messageReply?.senderID) {
+        targetID = event.messageReply.senderID;
+      } else if (
         event.mentions &&
         Object.keys(event.mentions).length > 0
       ) {
-        uid = Object.keys(event.mentions)[0];
-      } else if (event.messageReply?.senderID) {
-        uid = event.messageReply.senderID;
+        targetID = Object.keys(event.mentions)[0];
       } else {
         return api.sendMessage(
-          "⛓️ Please mention or reply to a user.",
+          "👤 Please reply to or mention someone.",
           event.threadID,
           event.messageID
         );
       }
 
+      const userInfo = await api
+        .getUserInfoV2(targetID)
+        .catch(() => null);
+
+      const targetUser =
+        userInfo?.[targetID] ||
+        userInfo?.data?.[targetID] ||
+        userInfo?.data ||
+        {};
+
+      const targetName =
+        targetUser.name ||
+        `${targetUser.firstName || ""} ${targetUser.lastName || ""}`.trim() ||
+        "Target";
+
       const token =
         "6628568379%7Cc1e620fa708a1d5696fb991c1bde5662";
 
-      const image =
-        `https://graph.facebook.com/${uid}/picture` +
+      const avatar1 =
+        `https://graph.facebook.com/${targetID}/picture` +
+        `?width=720&height=720` +
+        `&access_token=${token}`;
+
+      const avatar2 =
+        `https://graph.facebook.com/${event.senderID}/picture` +
         `?width=720&height=720` +
         `&access_token=${token}`;
 
       const apiUrl =
-        `https://toshiro-api-editz6t9.vercel.app/api/canvas/jail` +
-        `?image=${encodeURIComponent(image)}`;
+        `https://toshiro-api-editz6t9.vercel.app/api/canvas/bonk` +
+        `?avatar1=${encodeURIComponent(avatar1)}` +
+        `&avatar2=${encodeURIComponent(avatar2)}`;
 
       filePath = path.join(
         cacheDir,
-        `jail_${uid}_${Date.now()}.png`
+        `bonk_${Date.now()}.png`
       );
 
       const response = await axios.get(apiUrl, {
@@ -74,7 +94,7 @@ module.exports = {
       });
 
       if (!response.data) {
-        throw new Error("Empty response from Jail API.");
+        throw new Error("Empty response from Bonk API.");
       }
 
       await fs.writeFile(
@@ -84,6 +104,7 @@ module.exports = {
 
       await api.sendMessage(
         {
+          body: `🔨 Bonk!\n🎯 ${targetName}`,
           attachment: fs.createReadStream(filePath)
         },
         event.threadID,
@@ -92,21 +113,18 @@ module.exports = {
 
     } catch (error) {
       console.error(
-        "Jail:",
+        "Bonk:",
         error.response?.status || error.message
       );
 
       await api.sendMessage(
-        `❌ Failed to generate jail image.\n\n${error.response?.status || error.message}`,
+        `❌ Failed to generate bonk canvas.\n\n${error.response?.status || error.message}`,
         event.threadID,
         event.messageID
       );
 
     } finally {
-      if (
-        filePath &&
-        await fs.pathExists(filePath)
-      ) {
+      if (filePath && await fs.pathExists(filePath)) {
         await fs.remove(filePath).catch(() => {});
       }
     }

@@ -4,17 +4,17 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "jail",
-    aliases: ["prison"],
+    name: "patrick",
+    aliases: ["pk"],
     version: "1.0.0",
     author: "Toshiro Editz",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "Apply jail effect"
+      en: "Apply Patrick effect"
     },
     longDescription: {
-      en: "Apply jail effect to a mentioned or replied user's PFP"
+      en: "Apply Patrick effect to a mentioned or replied user's PFP"
     },
     category: "fun",
     guide: {
@@ -40,7 +40,7 @@ module.exports = {
         uid = event.messageReply.senderID;
       } else {
         return api.sendMessage(
-          "⛓️ Please mention or reply to a user.",
+          "⭐ Please mention or reply to a user.",
           event.threadID,
           event.messageID
         );
@@ -49,18 +49,18 @@ module.exports = {
       const token =
         "6628568379%7Cc1e620fa708a1d5696fb991c1bde5662";
 
-      const image =
+      const avatar =
         `https://graph.facebook.com/${uid}/picture` +
         `?width=720&height=720` +
         `&access_token=${token}`;
 
       const apiUrl =
-        `https://toshiro-api-editz6t9.vercel.app/api/canvas/jail` +
-        `?image=${encodeURIComponent(image)}`;
+        `https://toshiro-api-editz6t9.vercel.app/api/canvas/patrick` +
+        `?avatar=${encodeURIComponent(avatar)}`;
 
       filePath = path.join(
         cacheDir,
-        `jail_${uid}_${Date.now()}.png`
+        `patrick_${uid}_${Date.now()}.png`
       );
 
       const response = await axios.get(apiUrl, {
@@ -74,7 +74,7 @@ module.exports = {
       });
 
       if (!response.data) {
-        throw new Error("Empty response from Jail API.");
+        throw new Error("Empty response from Patrick API.");
       }
 
       await fs.writeFile(
@@ -92,12 +92,12 @@ module.exports = {
 
     } catch (error) {
       console.error(
-        "Jail:",
+        "Patrick:",
         error.response?.status || error.message
       );
 
       await api.sendMessage(
-        `❌ Failed to generate jail image.\n\n${error.response?.status || error.message}`,
+        `❌ Failed to generate Patrick image.\n\n${error.response?.status || error.message}`,
         event.threadID,
         event.messageID
       );
